@@ -3,4 +3,5 @@
 
 <style lang="scss">
      @use "../lib/styles/variables" as v;
+     @use "../lib/styles/global" as g;
 </style>

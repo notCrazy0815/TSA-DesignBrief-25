@@ -1,11 +1,7 @@
-<script lang="ts" context="module">
-    export let title = "DESIGNBRIEF 25";
-</script>
-
 <main>
-    <header>
-        <h1>{title}</h1>
-    </header>
+    <nav>
+        <p>NavBar</p>
+    </nav>
     <section>
         <slot></slot>
     </section>
@@ -13,3 +9,8 @@
         <p>Footer</p>
     </footer>
 </main>
+
+<style lang="scss">
+    @use "../lib/styles/variables" as v;
+    @use "../lib/styles/global" as g;
+</style>

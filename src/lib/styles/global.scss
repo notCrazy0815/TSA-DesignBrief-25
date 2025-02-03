@@ -1,0 +1,17 @@
+@font-face {
+    font-family: "DynaPuff Regular";
+    src: url("/fonts/DynaPuff/static/DynaPuff-Regular.ttf") format("opentype");
+}
+
+@font-face {
+    font-family: "Inter 24pt Regular";
+    src: url("/fonts/Inter/static/Inter_24pt-Regular.ttf") format("opentype");
+}
+
+h1 {
+    font-family: "DynaPuff Regular";
+}
+
+p {
+    font-family: "Inter 24pt Regular";
+}
