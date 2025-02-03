@@ -1,13 +1,5 @@
 <div class="content">
-     <section class="hero-section">
-          <div class="image-content">
-               <div class="bowls">
-                   <div class="bowl1 bowl"></div>
-                   <div class="bowl2 bowl"></div>
-                   <div class="bowl3 bowl"></div> 
-               </div>
-          </div>
-     </section>
+     <section class="hero-section"></section>
      <section class="message-section">
           <div class="message-text">
                <p>
@@ -31,17 +23,6 @@
           .hero-section {
                width: 100%;
                height: 100vh;
-               background-color: v.$background-color-light;
-               display: flex;
-               align-items: center;
-               flex-direction: column;
-
-               .heading {
-                    .heading-title {
-                         font-size: clamp(2rem, 130px, 9rem);
-                         color: v.$secondary;
-                    }
-               }
           }
 
           .message-section {

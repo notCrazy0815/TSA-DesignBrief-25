@@ -36,7 +36,7 @@
 
             .heading-title {
                 font-size: clamp(2rem, 130px, 9rem);
-                color: v.$secondary;
+                color: v.$tertiary;
             }
         }
 
