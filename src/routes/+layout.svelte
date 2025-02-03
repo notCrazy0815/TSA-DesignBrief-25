@@ -1,13 +1,17 @@
 <main>
+    <!--
     <nav>
         <p>NavBar</p>
     </nav>
+    -->
     <section>
         <slot></slot>
     </section>
+    <!--
     <footer>
         <p>Footer</p>
     </footer>
+    -->
 </main>
 
 <style lang="scss">

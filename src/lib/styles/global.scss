@@ -1,3 +1,14 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:global(body) {
+    margin: 0;
+    padding: 0;
+}
+
 @font-face {
     font-family: "DynaPuff Regular";
     src: url("/fonts/DynaPuff/static/DynaPuff-Regular.ttf") format("opentype");
@@ -8,10 +19,15 @@
     src: url("/fonts/Inter/static/Inter_24pt-Regular.ttf") format("opentype");
 }
 
+@font-face {
+    font-family: "PublicSans Extra Light";
+    src: url("/fonts/PublicSans_Complete/Fonts/OTF/PublicSans-ExtraLight.otf") format("opentype");
+}
+
 h1 {
     font-family: "DynaPuff Regular";
 }
 
 p {
-    font-family: "Inter 24pt Regular";
+    font-family: "PublicSans Extra Light";
 }
