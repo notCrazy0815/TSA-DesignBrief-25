@@ -111,24 +111,34 @@
                </div>
           </section>
      {/if}
-     <div class="nav">
-          <h1 bind:this={navTitle}>VERDANTIA</h1>
-          <div class="links">
-               <div class="link">
-                   <a href="/">Home</a>
-                   <div class="active-icon active"></div>
-               </div>
-               <div class="link">
-                   <a href="/menu">Menu</a>
-                   <div class="active-icon"></div>
-               </div>
-               <div class="link">
-                   <a href="/news">News</a>
-                   <div class="active-icon"></div>
+     <section class="sideways-section">
+          <div class="nav">
+               <h1 bind:this={navTitle}>VERDANTIA</h1>
+               <div class="links">
+                    <div class="link">
+                        <a href="/">Home</a>
+                        <div class="active-icon active"></div>
+                    </div>
+                    <div class="link">
+                        <a href="/menu">Menu</a>
+                        <div class="active-icon"></div>
+                    </div>
+                    <div class="link">
+                        <a href="/news">News</a>
+                        <div class="active-icon"></div>
+                    </div>
                </div>
           </div>
-     </div>
-     <section class="another-section"></section>
+          <div class="sideways-content">
+               <div class="journey-start">
+                    <p>The journey goes on.<br>Learn more about us.</p>
+                    <div class="orange"></div>
+               </div>
+               <div class="who-we-are">
+                    <p>Since 2022, we at <span>Verdantia</span> serve the best food in town. And we're not stopping anytime soon.</p>
+               </div>
+          </div>
+     </section>
 </div>
 
 <style lang="scss">
@@ -238,43 +248,85 @@
                }
           }
 
-          .nav {
-               width: 100%;
-               height: 100vh;
+          .sideways-section {
                display: flex;
                flex-direction: column;
-               align-items: center ;
+               min-width: 100%;
+               height: 100vh;
 
-               h1 {
-                    font-size: 5rem;
-                    font-weight: bold;
-                    cursor: default;
-                    color: v.$tertiary-dark;
-                    opacity: var(--navOpacity);
+               .nav {
+                    width: 100%;
+                    height: fit-content;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+
+                    h1 {
+                         font-size: 5rem;
+                         font-weight: bold;
+                         cursor: default;
+                         color: v.$tertiary-dark;
+                         opacity: var(--navOpacity);
+                    }
+
+                    .links {
+                         display: flex;
+                         justify-content: center;
+                         gap: 2rem;
+                         width: 100%;
+
+                         .link {
+                              text-transform: uppercase;
+                              display: flex;
+                              gap: 1px;
+                              align-items: center;
+
+                              .active-icon {
+                                   height: 10px;
+                                   width: 10px;
+                                   border-radius: 50%;
+                                   background-color: transparent;
+                              }
+
+                              .active {
+                                   background-color: v.$primary;
+                              }
+                         }
+                    }
                }
 
-               .links {
+               .sideways-content {
+                    height: 100%;
                     display: flex;
-                    justify-content: center;
                     gap: 2rem;
-                    width: 100%;
+                    align-items: center;
 
-                    .link {
-                         text-transform: uppercase;
+                    .journey-start {
+                         margin-left: 2rem;
+                         height: 80%;
+                         width: 80vw;
                          display: flex;
-                         gap: 1px;
                          align-items: center;
+                         justify-content: space-between;
+                         background-color: v.$secondary;
+                         color: v.$font-color-light;
+                         text-transform: uppercase;
+                         font-size: clamp(1.5rem, 2vw, 2.5rem);
+                         padding: 3rem;
+                         border-radius: 1rem;
 
-                         .active-icon {
-                              height: 10px;
-                              width: 10px;
-                              border-radius: 50%;
-                              background-color: transparent;
-                         }
-
-                         .active {
+                         .orange {
+                              width: clamp(8rem, 30vw, 18rem);
+                              aspect-ratio: 1;
                               background-color: v.$primary;
+                              margin-right: 2rem;
+                              border-radius: 50%;
                          }
+                    }
+
+                    .who-we-are {
+                         // width: 80vw;
+                         padding: 3rem;
                     }
                }
           }
