@@ -1,3 +1,5 @@
+@use "variables" as v;
+
 * {
     margin: 0;
     padding: 0;
@@ -7,6 +9,7 @@
 :global(body) {
     margin: 0;
     padding: 0;
+    background-color: v.$background-color-light;
 }
 
 @font-face {
@@ -28,6 +31,11 @@ h1 {
     font-family: "DynaPuff Regular";
 }
 
-p {
-    font-family: "PublicSans Extra Light";
+p, a {
+    font-family: "Inter 24pt Regular";
+}
+
+a {
+    color: v.$font-color-dark;
+    text-decoration: none;
 }
