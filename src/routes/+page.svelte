@@ -20,9 +20,28 @@
      let navTitle: HTMLHeadingElement;
 
      let active = false;
+     let showHero = true;
      let windowY = 0;
 
      onMount(() => {
+          window.scrollTo(0, 0);
+          showHero = true;
+
+          styles = {
+               'x1': '0rem',
+               'y1': '0rem',
+               'x2': '0rem',
+               'y2': '0rem',
+               'x4': '0rem',
+               'y4': '0rem',
+               'x5': '0rem',
+               'y5': '0rem',
+               'opacity': '1',
+               'titleY': '0',
+               'titleOpacity': '1',
+               'navOpacity': '0'
+          };
+
           setTimeout(() => {
                active = true;
           }, 1500);
@@ -48,6 +67,8 @@
      }
 
      function handleScroll() {
+          if (!showHero) return;
+
           const { innerHeight } = window;
           
           let fadeStart = 0.1 * innerHeight;
@@ -66,6 +87,10 @@
                styles['titleOpacity'] = '1';
                styles['navOpacity'] = '0';
           }
+
+          if (navTitle.getBoundingClientRect().top <= 0) {
+               showHero = false;
+          }
      }
 
 
@@ -75,15 +100,17 @@
 <svelte:window on:scroll={handleScroll} bind:scrollY={windowY} />
 
 <div class="content" style={cssVarStyles}>
-     <section class="hero-section" on:mousemove={e => handleMouseMove(e)} role="presentation">
-          <div class="title-stack">
-               <h1>VERDANTIA</h1>
-               <h1>VERDANTIA</h1>
-               <h1 bind:this={centerTitle}>VERDANTIA</h1>
-               <h1>VERDANTIA</h1>
-               <h1>VERDANTIA</h1>
-          </div>
-     </section>
+     {#if showHero}
+          <section class="hero-section" on:mousemove={e => handleMouseMove(e)} role="presentation">
+               <div class="title-stack">
+                    <h1>VERDANTIA</h1>
+                    <h1>VERDANTIA</h1>
+                    <h1 bind:this={centerTitle}>VERDANTIA</h1>
+                    <h1>VERDANTIA</h1>
+                    <h1>VERDANTIA</h1>
+               </div>
+          </section>
+     {/if}
      <div class="nav">
           <h1 bind:this={navTitle}>VERDANTIA</h1>
           <div class="links">
