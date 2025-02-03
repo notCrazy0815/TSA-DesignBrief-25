@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+     import { onMount } from "svelte";
 
      let styles = {
           'x1': '0rem',
@@ -9,16 +9,24 @@
           'x4': '0rem',
           'y4': '0rem',
           'x5': '0rem',
-          'y5': '0rem'
+          'y5': '0rem',
+          'opacity': '1',
+          'titleY': '0',
+          'titleOpacity': '1',
+          'navOpacity': '0'
      };
 
+     let centerTitle: HTMLHeadingElement;
+     let navTitle: HTMLHeadingElement;
+
      let active = false;
+     let windowY = 0;
 
      onMount(() => {
           setTimeout(() => {
                active = true;
           }, 1500);
-     })
+     });
 
      function handleMouseMove(e: MouseEvent) {
           if (!active) return;
@@ -39,20 +47,61 @@
           styles['y5'] = `${yFactor * 5}rem`;
      }
 
+     function handleScroll() {
+          const { innerHeight } = window;
+          
+          let fadeStart = 0.1 * innerHeight;
+          let fadeEnd = 0.4 * innerHeight;
+
+          styles['titleY'] = `${Math.max(0, windowY * 0.65)}px`;
+          
+          let fadeFactor = Math.max(0, Math.min(1, (windowY - fadeStart) / (fadeEnd - fadeStart)));
+
+          styles['opacity'] = `${1 - fadeFactor}`;
+
+          if (centerTitle.getBoundingClientRect().top >= navTitle.getBoundingClientRect().top) {
+               styles['navOpacity'] = '1';
+               styles['titleOpacity'] = '0';
+          } else {
+               styles['titleOpacity'] = '1';
+               styles['navOpacity'] = '0';
+          }
+     }
+
+
      $: cssVarStyles = Object.entries(styles).map(([key, value]) => `--${key}:${value}`).join(';');
 </script>
 
+<svelte:window on:scroll={handleScroll} bind:scrollY={windowY} />
 
 <div class="content" style={cssVarStyles}>
      <section class="hero-section" on:mousemove={e => handleMouseMove(e)} role="presentation">
           <div class="title-stack">
                <h1>VERDANTIA</h1>
                <h1>VERDANTIA</h1>
-               <h1>VERDANTIA</h1>
+               <h1 bind:this={centerTitle}>VERDANTIA</h1>
                <h1>VERDANTIA</h1>
                <h1>VERDANTIA</h1>
           </div>
      </section>
+     <div class="nav">
+          <h1 bind:this={navTitle}>VERDANTIA</h1>
+          <div class="links">
+               <div class="link">
+                   <a href="/">Home</a>
+                   <div class="active-icon active"></div>
+               </div>
+               <div class="link">
+                   <a href="/menu">Menu</a>
+                   <div class="active-icon"></div>
+               </div>
+               <div class="link">
+                   <a href="/news">News</a>
+                   <div class="active-icon"></div>
+               </div>
+          </div>
+     </div>
+     <section class="another-section"></section>
 </div>
 
 <style lang="scss">
@@ -76,6 +125,7 @@
                .title-stack {
                     position: relative;
                     text-align: center;
+                    transform: translateY(var(--titleY));
                }
 
                h1 {
@@ -87,6 +137,7 @@
                     top: 50%;
                     transform: translate(-50%, -50%);
                     transition: all 0.1s;
+                    opacity: var(--opacity);
 
                     &:nth-child(1) {
                          color: v.$tertiary-light;
@@ -100,6 +151,8 @@
                     }
                     &:nth-child(3) {
                          color: v.$tertiary-dark;
+                         opacity: var(--titleOpacity);
+                         transition: all 0s;
                     }
                     &:nth-child(4) {
                          color: v.$tertiary;
@@ -153,6 +206,47 @@
                          100% {
                               top: calc(50% + 10rem);
                               left: calc(50% + 5rem);
+                         }
+                    }
+               }
+          }
+
+          .nav {
+               width: 100%;
+               height: 100vh;
+               display: flex;
+               flex-direction: column;
+               align-items: center ;
+
+               h1 {
+                    font-size: 5rem;
+                    font-weight: bold;
+                    cursor: default;
+                    color: v.$tertiary-dark;
+                    opacity: var(--navOpacity);
+               }
+
+               .links {
+                    display: flex;
+                    justify-content: center;
+                    gap: 2rem;
+                    width: 100%;
+
+                    .link {
+                         text-transform: uppercase;
+                         display: flex;
+                         gap: 1px;
+                         align-items: center;
+
+                         .active-icon {
+                              height: 10px;
+                              width: 10px;
+                              border-radius: 50%;
+                              background-color: transparent;
+                         }
+
+                         .active {
+                              background-color: v.$primary;
                          }
                     }
                }
