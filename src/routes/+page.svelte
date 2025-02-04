@@ -13,7 +13,8 @@
           'opacity': '1',
           'titleY': '0',
           'titleOpacity': '1',
-          'navOpacity': '0'
+          'navOpacity': '0',
+          'translateHorizontalScroll': '0px'
      };
 
      let centerTitle: HTMLHeadingElement;
@@ -39,7 +40,8 @@
                'opacity': '1',
                'titleY': '0',
                'titleOpacity': '1',
-               'navOpacity': '0'
+               'navOpacity': '0',
+               'translateHorizontalScroll': '0px'
           };
 
           setTimeout(() => {
@@ -93,11 +95,31 @@
           }
      }
 
+     let allowScroll = true;
+     function handleMouseWheel(e: WheelEvent) {
+          if (showHero) return;
+          if (!allowScroll) return;
+          if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+
+          let translateBefore: number = parseInt(styles['translateHorizontalScroll'].split('px')[0]);
+          if (e.deltaY > 0) {
+               translateBefore -= 500;
+          } else {
+               translateBefore += 500;
+          }
+          styles['translateHorizontalScroll'] = `${translateBefore}px`;
+
+          allowScroll = false;
+          setTimeout(() => {
+               allowScroll = true;
+          }, 1100);
+     }
+
 
      $: cssVarStyles = Object.entries(styles).map(([key, value]) => `--${key}:${value}`).join(';');
 </script>
 
-<svelte:window on:scroll={handleScroll} bind:scrollY={windowY} />
+<svelte:window on:scroll={handleScroll} bind:scrollY={windowY} on:wheel={handleMouseWheel} />
 
 <div class="content" style={cssVarStyles}>
      {#if showHero}
@@ -111,7 +133,7 @@
                </div>
           </section>
      {/if}
-     <section class="sideways-section">
+     <section class="horizontal-section">
           <div class="nav">
                <h1 bind:this={navTitle}>VERDANTIA</h1>
                <div class="links">
@@ -129,13 +151,11 @@
                     </div>
                </div>
           </div>
-          <div class="sideways-content">
-               <div class="journey-start">
-                    <p>The journey goes on.<br>Learn more about us.</p>
-                    <div class="orange"></div>
-               </div>
-               <div class="who-we-are">
-                    <p>Since 2022, we at <span>Verdantia</span> serve the best food in town. And we're not stopping anytime soon.</p>
+          <div class="horizontal-content">
+               <div class="boxes">
+                    {#each Array(10) as _, i}
+                         <div class="box"></div>
+                    {/each}
                </div>
           </div>
      </section>
@@ -248,10 +268,10 @@
                }
           }
 
-          .sideways-section {
+          .horizontal-section {
                display: flex;
                flex-direction: column;
-               min-width: 100%;
+               width: 100%;
                height: 100vh;
 
                .nav {
@@ -295,38 +315,31 @@
                     }
                }
 
-               .sideways-content {
-                    height: 100%;
+               .horizontal-content {
                     display: flex;
                     gap: 2rem;
                     align-items: center;
+                    height: 100%;
 
-                    .journey-start {
-                         margin-left: 2rem;
-                         height: 80%;
-                         width: 80vw;
+                    .boxes {
                          display: flex;
-                         align-items: center;
-                         justify-content: space-between;
-                         background-color: v.$secondary;
-                         color: v.$font-color-light;
-                         text-transform: uppercase;
-                         font-size: clamp(1.5rem, 2vw, 2.5rem);
-                         padding: 3rem;
-                         border-radius: 1rem;
+                         gap: 2rem;
+                         transform: translateX(var(--translateHorizontalScroll));
+                         transition: all 1s;
 
-                         .orange {
-                              width: clamp(8rem, 30vw, 18rem);
-                              aspect-ratio: 1;
-                              background-color: v.$primary;
-                              margin-right: 2rem;
-                              border-radius: 50%;
+                         .box {
+                              width: 300px;
+                              height: 300px;
+                              background-color: v.$tertiary;
+
+                              &:nth-child(1) {
+                                   margin-left: calc(50vw - 150px);
+                              }
+
+                              &:nth-child(2n) {
+                                   background-color: v.$tertiary-light;
+                              }
                          }
-                    }
-
-                    .who-we-are {
-                         // width: 80vw;
-                         padding: 3rem;
                     }
                }
           }
