@@ -14,7 +14,8 @@
           'titleY': '0',
           'titleOpacity': '1',
           'navOpacity': '0',
-          'translateHorizontalScroll': '0px'
+          'translateHorizontalScroll': '0px',
+          'scrollDownHintOpacity': '0'
      };
 
      let centerTitle: HTMLHeadingElement;
@@ -41,11 +42,14 @@
                'titleY': '0',
                'titleOpacity': '1',
                'navOpacity': '0',
-               'translateHorizontalScroll': '0px'
+               'translateHorizontalScroll': '0px',
+               'scrollDownHintOpacity': '0'
           };
 
           setTimeout(() => {
                active = true;
+
+               styles['scrollDownHintOpacity'] = '1';
           }, 1500);
      });
 
@@ -81,6 +85,9 @@
           let fadeFactor = Math.max(0, Math.min(1, (windowY - fadeStart) / (fadeEnd - fadeStart)));
 
           styles['opacity'] = `${1 - fadeFactor}`;
+          let scrollDownHintOpacity = 1 - fadeFactor;
+          if (scrollDownHintOpacity < 1) scrollDownHintOpacity = 0;
+          styles['scrollDownHintOpacity'] = `${scrollDownHintOpacity}`;
 
           if (centerTitle.getBoundingClientRect().top >= navTitle.getBoundingClientRect().top) {
                styles['navOpacity'] = '1';
@@ -124,12 +131,21 @@
 <div class="content" style={cssVarStyles}>
      {#if showHero}
           <section class="hero-section" on:mousemove={e => handleMouseMove(e)} role="presentation">
+               <div class="fruits-stack">
+                    <div class="orange-1 orange fruit"></div>
+                    <div class="orange-2 orange fruit"></div>
+                    <div class="tomate-1 tomate fruit"></div>
+                    <div class="onion-1 onion fruit"></div>
+               </div>
                <div class="title-stack">
                     <h1>VERDANTIA</h1>
                     <h1>VERDANTIA</h1>
                     <h1 bind:this={centerTitle}>VERDANTIA</h1>
                     <h1>VERDANTIA</h1>
                     <h1>VERDANTIA</h1>
+               </div>
+               <div class="scroll-down-hint">
+                    <p>Scroll down</p>
                </div>
           </section>
      {/if}
@@ -183,6 +199,75 @@
                     position: relative;
                     text-align: center;
                     transform: translateY(var(--titleY));
+               }
+
+               .scroll-down-hint {
+                    position: absolute;
+                    bottom: 5%;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    font-size: clamp(0.9rem, 2vw, 1.2rem);
+                    color: v.$tertiary;
+                    text-transform: uppercase;
+                    opacity: var(--scrollDownHintOpacity);
+                    transition: all 0.5s;
+               }
+
+               .fruits-stack {
+                    position: absolute;
+                    width: 100%;
+                    height: 100%;
+
+                    .fruit {
+                         position: absolute;
+                         aspect-ratio: 1/1;
+                         border-radius: 50%;
+                         transform: translate(-50%, -50%);
+                         animation: fruit-start 1.5s forwards;
+                    }
+
+                    .onion {
+                         background-color: v.$secondary;
+                    }
+
+                    .onion-1 {
+                         top: calc(90% - 150px);
+                         left: 10%;
+                    }
+
+                    .tomate {
+                         background-color: v.$quinary;
+                    }
+
+                    .tomate-1 {
+                         top: 25%;
+                         left: calc(90% - 100px);
+                    }
+                    
+                    .orange {
+                         background-color: v.$primary;
+                    }
+
+                    .orange-1 {
+                         top: 15%;
+                         left: 20%;
+                    }
+
+                    .orange-2 {
+                         top: calc(95% - 100px);
+                         left: 80%;
+                    }
+
+                    @keyframes fruit-start {
+                         0% {
+                              width: 0;
+                              height: 0;
+                         }
+                         100% {
+                              // width: clamp(100px, 10vw, 200px);
+                              // height: clamp(100px, 10vw, 200px);
+                         }
+                    }
                }
 
                h1 {
