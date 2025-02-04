@@ -1,5 +1,6 @@
 <script lang="ts">
      import { onMount } from "svelte";
+     import branch from "$lib/assets/home/branch-geklaut.png";
 
      let styles = {
           'x1': '0rem',
@@ -72,7 +73,7 @@
           styles['y5'] = `${yFactor * 5}rem`;
      }
 
-     function handleScroll() {
+     function handleScroll(e: Event) {
           if (!showHero) return;
 
           const { innerHeight } = window;
@@ -136,6 +137,17 @@
                     <div class="orange-2 orange fruit"></div>
                     <div class="tomate-1 tomate fruit"></div>
                     <div class="onion-1 onion fruit"></div>
+               </div>
+               <div class="branches-stack">
+                    <div class="branch-1 branch">
+                         <img src={branch} alt="Branch 1" />
+                    </div>
+                    <div class="branch-2 branch">
+                         <img src={branch} alt="Branch 2" />
+                    </div>
+                    <div class="branch-3 branch">
+                         <img src={branch} alt="Branch 3" />
+                    </div>
                </div>
                <div class="title-stack">
                     <h1>VERDANTIA</h1>
@@ -201,16 +213,79 @@
                     transform: translateY(var(--titleY));
                }
 
+               .branches-stack {
+                    position: absolute;
+                    width: 100%;
+                    height: 100%;
+                    z-index: 100;
+
+                    .branch {
+                         position: absolute;
+                         animation: branch-start 1.5s forwards;
+                         transform: translateY(-50vw);
+
+                         width: clamp(250px, 35vw, 500px);
+
+                         img {
+                              width: 100%;
+                              height: 100%;
+                              object-fit: cover;
+                         }
+                    }
+
+                    .branch-1 {
+                         rotate: 270deg;
+                         top: -10%;
+                         left: 0%;
+                         animation-delay: 0;
+                    }
+
+                    .branch-2 {
+                         rotate: 90deg;
+                         top: 15%;
+                         right: 0%;
+                         animation-delay: 0.3s;
+                    }
+
+                    .branch-3 {
+                         rotate: 270deg;
+                         top: 30%;
+                         left: 0%;
+                         animation-delay: 0.4s;
+                    }
+
+                    @keyframes branch-start {
+                         0% {
+                              transform: translateY(-50vw);
+                         }
+                         100% {
+                              transform: translateY(0%);
+                         }
+                    }
+               }
+
                .scroll-down-hint {
                     position: absolute;
                     bottom: 5%;
                     left: 50%;
                     transform: translateX(-50%);
                     font-size: clamp(0.9rem, 2vw, 1.2rem);
-                    color: v.$tertiary;
                     text-transform: uppercase;
                     opacity: var(--scrollDownHintOpacity);
                     transition: all 0.5s;
+                    animation: scroll-down-hint-color 2s infinite;
+               }
+
+               @keyframes scroll-down-hint-color {
+                    0% {
+                         color: v.$tertiary-dark;
+                    }
+                    50% {
+                         color: v.$tertiary-light;
+                    }
+                    100% {
+                         color: v.$tertiary-dark;
+                    }
                }
 
                .fruits-stack {
@@ -312,6 +387,10 @@
                               top: 50%;
                               left: 50%;
                          }
+                         10% {
+                              top: 50%;
+                              left: 50%;
+                         }
                          100% {
                               top: calc(50% - 10rem);
                               left: calc(50% - 5rem);
@@ -320,6 +399,10 @@
 
                     @keyframes h1-2-start {
                          0% {
+                              top: 50%;
+                              left: 50%;
+                         }
+                         10% {
                               top: 50%;
                               left: 50%;
                          }
@@ -334,6 +417,10 @@
                               top: 50%;
                               left: 50%;
                          }
+                         10% {
+                              top: 50%;
+                              left: 50%;
+                         }
                          100% {
                               top: calc(50% + 5rem);
                               left: calc(50% + 2.5rem);
@@ -342,6 +429,10 @@
 
                     @keyframes h1-5-start {
                          0% {
+                              top: 50%;
+                              left: 50%;
+                         }
+                         10% {
                               top: 50%;
                               left: 50%;
                          }
