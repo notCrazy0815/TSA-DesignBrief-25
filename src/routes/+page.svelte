@@ -17,7 +17,8 @@
           'navOpacity': '0',
           'translateHorizontalScroll': '0px',
           'scrollDownHintOpacity': '0',
-          'progress': '0%'
+          'progress': '0%',
+          'windowScale': '0',
      };
 
      let centerTitle: HTMLHeadingElement;
@@ -46,7 +47,8 @@
                'navOpacity': '0',
                'translateHorizontalScroll': '0px',
                'scrollDownHintOpacity': '0',
-               'progress': '0%'
+               'progress': '0%',
+               'windowScale': '0'
           };
 
           setTimeout(() => {
@@ -126,6 +128,16 @@
                visibleSection--;
           }
 
+          if (visibleSection === 1 && styles['windowScale'] === '1' && e.deltaY < 0) {
+               styles['windowScale'] = '0';
+          }
+          if (visibleSection === 2 && styles['windowScale'] === '0') {
+               styles['windowScale'] = '1';
+          }
+          if (visibleSection === 3 && styles['windowScale'] === '1' && e.deltaY > 0) {
+               styles['windowScale'] = '0';
+          }
+
           styles['progress'] = `${visibleSection * 25}%`;
           styles['translateHorizontalScroll'] = `${translateBefore}px`;
 
@@ -197,7 +209,19 @@
           </div>
           <div class="horizontal-content">
                <div class="boxes">
-                    {#each Array(4) as _, i}
+                    <div class="box first">
+                         <p>
+                              At <span class="logo">Verdantia</span>, we believe that great food starts with great ingredients. That’s why we source locally, working with sustainable farms to bring you the freshest, most flavorful plant-based meals. Every dish tells a story of ethical choices—less waste, fewer emissions, and a plate full of goodness.
+                         </p>
+                    </div>
+                    <div class="box second">
+                         <div class="second-content">
+                              <div class="window"></div>
+                              <div class="window"></div>
+                              <div class="window"></div>
+                         </div>
+                    </div>
+                    {#each Array(2) as _, i}
                          <div class="box"></div>
                     {/each}
                </div>
@@ -570,14 +594,50 @@
                          .box {
                               width: 90vw;
                               height: 100%;
-                              background-color: v.$tertiary;
 
                               &:nth-child(1) {
                                    margin-left: calc(100vw);
                               }
 
-                              &:nth-child(2n) {
-                                   background-color: v.$tertiary-light;
+                              p {
+                                   .logo {
+                                        color: v.$tertiary;
+                                        font-family: "DynaPuff Regular";
+                                   }
+                              }
+                         }
+
+                         .first {
+                              padding: 2rem 0;
+                              display: flex;
+                              align-items: center;
+
+                              p {
+                                   width: 50%;
+                                   font-size: 2rem;
+                                   text-transform: uppercase;
+                              }
+                         }
+
+                         .second {
+                              padding: 2rem 0;
+                              display: flex;
+                              align-items: center;
+                              justify-content: center;
+
+                              .second-content {
+                                   display: flex;
+                                   gap: 2.5rem;
+
+                                   .window {
+                                        width: 18rem;
+                                        aspect-ratio: 2/3;
+                                        background-color: v.$quaternary;
+                                        border-top-left-radius: 9rem;
+                                        border-top-right-radius: 9rem;
+                                        scale: var(--windowScale);
+                                        transition: scale 1s;
+                                   }
                               }
                          }
                     }
