@@ -115,9 +115,11 @@
           let translateBefore: number = parseInt(styles['translateHorizontalScroll'].split('px')[0]);
 
           if (e.deltaY > 0) {
+               if (visibleSection === 4) return;
                translateBefore -= innerWidth * 0.95;               
                visibleSection++;
           } else {
+               if (visibleSection === 1) return;
                translateBefore += innerWidth * 0.95;
                visibleSection--;
           }
@@ -187,9 +189,17 @@
           </div>
           <div class="horizontal-content">
                <div class="boxes">
-                    {#each Array(10) as _, i}
+                    {#each Array(4) as _, i}
                          <div class="box"></div>
                     {/each}
+               </div>
+               <div class="navigator">
+                    <div class="navigator-content">
+                         <div class="navigator-item active"></div>
+                         {#each Array(3) as _, i}
+                              <div class="navigator-item"></div>
+                         {/each}
+                    </div>
                </div>
           </div>
      </section>
@@ -499,9 +509,34 @@
 
                .horizontal-content {
                     display: flex;
+                    flex-direction: column;
                     gap: 2rem;
-                    align-items: center;
+                    align-items: start;
                     height: 100vh;
+
+                    .navigator {
+                         width: 100%;
+                         display: flex;
+                         justify-content: center;
+
+                         .navigator-content {
+                              display: flex;
+                              gap: 1rem;
+
+                              .navigator-item {
+                                   width: 10px;
+                                   height: 10px;
+                                   border-radius: 50%;
+                                   background-color: v.$tertiary-light;
+                                   opacity: 0.1;
+                                   transition: all 0.1s;
+                              }
+
+                              .active {
+                                   opacity: 1;
+                              }
+                         }
+                    }
 
                     .boxes {
                          display: flex;
