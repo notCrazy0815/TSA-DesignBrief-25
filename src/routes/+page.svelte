@@ -179,7 +179,11 @@
                <div class="links">
                     <div class="link">
                         <a href="/">Home</a>
-                        <div class="active-icon active"></div>
+                        {#if showHero}
+                             <div class="active-icon"></div>
+                        {:else}
+                             <div class="active-icon active"></div>
+                         {/if}
                     </div>
                     <div class="link">
                         <a href="/menu">Menu</a>
@@ -505,6 +509,16 @@
 
                               .active {
                                    background-color: v.$primary;
+                                   animation: active-icon-start 0.5s forwards;
+                              }
+
+                              @keyframes active-icon-start {
+                                   0% {
+                                        transform: scale(0);
+                                   }
+                                   100% {
+                                        transform: scale(1);
+                                   }
                               }
                          }
                     }
