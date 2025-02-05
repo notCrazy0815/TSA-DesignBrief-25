@@ -104,16 +104,22 @@
      }
 
      let allowScroll = true;
+     let visibleSection = 0;
      function handleMouseWheel(e: WheelEvent) {
           if (showHero) return;
           if (!allowScroll) return;
           if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
 
+          let innerWidth = window.innerWidth;
+
           let translateBefore: number = parseInt(styles['translateHorizontalScroll'].split('px')[0]);
+
           if (e.deltaY > 0) {
-               translateBefore -= 500;
+               translateBefore -= innerWidth * 0.95;               
+               visibleSection++;
           } else {
-               translateBefore += 500;
+               translateBefore += innerWidth * 0.95;
+               visibleSection--;
           }
           styles['translateHorizontalScroll'] = `${translateBefore}px`;
 
@@ -495,21 +501,22 @@
                     display: flex;
                     gap: 2rem;
                     align-items: center;
-                    height: 100%;
+                    height: 100vh;
 
                     .boxes {
                          display: flex;
-                         gap: 2rem;
+                         gap: 5vw;
                          transform: translateX(var(--translateHorizontalScroll));
                          transition: all 1s;
+                         height: 90%;
 
                          .box {
-                              width: 300px;
-                              height: 300px;
+                              width: 90vw;
+                              height: 100%;
                               background-color: v.$tertiary;
 
                               &:nth-child(1) {
-                                   margin-left: calc(50vw - 150px);
+                                   margin-left: calc(100vw);
                               }
 
                               &:nth-child(2n) {
