@@ -128,13 +128,10 @@
                visibleSection--;
           }
 
-          if (visibleSection === 1 && styles['windowScale'] === '1' && e.deltaY < 0) {
-               styles['windowScale'] = '0';
-          }
-          if (visibleSection === 2 && styles['windowScale'] === '0') {
+          if (visibleSection === 1 && styles['windowScale'] === '0') {
                styles['windowScale'] = '1';
           }
-          if (visibleSection === 3 && styles['windowScale'] === '1' && e.deltaY > 0) {
+          if (visibleSection === 2 && styles['windowScale'] === '1' && e.deltaY > 0) {
                styles['windowScale'] = '0';
           }
 
@@ -162,6 +159,7 @@
                     <div class="tomate-1 tomate fruit"></div>
                     <div class="onion-1 onion fruit"></div>
                </div>
+               <!--
                <div class="branches-stack">
                     <div class="branch-1 branch">
                          <img src={branch} alt="Branch 1" />
@@ -173,6 +171,7 @@
                          <img src={branch} alt="Branch 3" />
                     </div>
                </div>
+               -->
                <div class="title-stack">
                     <h1>VERDANTIA</h1>
                     <h1>VERDANTIA</h1>
@@ -213,12 +212,17 @@
                          <p>
                               At <span class="logo">Verdantia</span>, we believe that great food starts with great ingredients. That’s why we source locally, working with sustainable farms to bring you the freshest, most flavorful plant-based meals. Every dish tells a story of ethical choices—less waste, fewer emissions, and a plate full of goodness.
                          </p>
+                         <div class="window-container">
+                              <div class="window"></div>
+                         </div>
                     </div>
                     <div class="box second">
                          <div class="second-content">
+                              <!--
                               <div class="window"></div>
                               <div class="window"></div>
                               <div class="window"></div>
+                              -->
                          </div>
                     </div>
                     {#each Array(2) as _, i}
@@ -611,11 +615,29 @@
                               padding: 2rem 0;
                               display: flex;
                               align-items: center;
+                              justify-content: space-between;
 
                               p {
                                    width: 50%;
                                    font-size: 2rem;
                                    text-transform: uppercase;
+                              }
+
+                              .window-container {
+                                   width: 50%;
+                                   display: flex;
+                                   justify-content: center;
+                                   align-items: center;
+                              }
+
+                              .window {
+                                   width: 18rem;
+                                   aspect-ratio: 2/3;
+                                   background-color: v.$quaternary;
+                                   border-top-left-radius: 9rem;
+                                   border-top-right-radius: 9rem;
+                                   scale: var(--windowScale);
+                                   transition: scale 1s;
                               }
                          }
 
