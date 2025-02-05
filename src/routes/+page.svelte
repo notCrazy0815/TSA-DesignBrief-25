@@ -16,7 +16,8 @@
           'titleOpacity': '1',
           'navOpacity': '0',
           'translateHorizontalScroll': '0px',
-          'scrollDownHintOpacity': '0'
+          'scrollDownHintOpacity': '0',
+          'progress': '0%'
      };
 
      let centerTitle: HTMLHeadingElement;
@@ -44,7 +45,8 @@
                'titleOpacity': '1',
                'navOpacity': '0',
                'translateHorizontalScroll': '0px',
-               'scrollDownHintOpacity': '0'
+               'scrollDownHintOpacity': '0',
+               'progress': '0%'
           };
 
           setTimeout(() => {
@@ -116,13 +118,15 @@
 
           if (e.deltaY > 0) {
                if (visibleSection === 4) return;
-               translateBefore -= innerWidth * 0.95;               
+               translateBefore -= innerWidth * 0.95;         
                visibleSection++;
           } else {
                if (visibleSection === 1) return;
                translateBefore += innerWidth * 0.95;
                visibleSection--;
           }
+
+          styles['progress'] = `${visibleSection * 25}%`;
           styles['translateHorizontalScroll'] = `${translateBefore}px`;
 
           allowScroll = false;
@@ -195,10 +199,9 @@
                </div>
                <div class="navigator">
                     <div class="navigator-content">
-                         <div class="navigator-item active"></div>
-                         {#each Array(3) as _, i}
-                              <div class="navigator-item"></div>
-                         {/each}
+                         <div class="progress-bar">
+                              <div class="progress"></div>
+                         </div>
                     </div>
                </div>
           </div>
@@ -522,18 +525,23 @@
                          .navigator-content {
                               display: flex;
                               gap: 1rem;
+                              width: 90%;
 
-                              .navigator-item {
-                                   width: 10px;
-                                   height: 10px;
-                                   border-radius: 50%;
-                                   background-color: v.$tertiary-light;
-                                   opacity: 0.1;
-                                   transition: all 0.1s;
-                              }
+                              .progress-bar {
+                                   width: 25%;
+                                   min-width: 150px;
+                                   height: 0.3rem;
+                                   background-color: v.$tertiary-light-low-opacity;
+                                   border-radius: 5px;
+                                   position: relative;
 
-                              .active {
-                                   opacity: 1;
+                                   .progress {
+                                        height: 100%;
+                                        width: var(--progress);
+                                        background-color: v.$tertiary;
+                                        border-radius: 5px;
+                                        transition: all 1s;
+                                   }
                               }
                          }
                     }
