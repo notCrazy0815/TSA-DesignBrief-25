@@ -1,6 +1,6 @@
 <script lang="ts">
      import { onMount } from "svelte";
-     import branch from "$lib/assets/home/branch-geklaut.png";
+     // import branch from "$lib/assets/home/branch-geklaut.png";
 
      let styles = {
           'x1': '0rem',
@@ -210,7 +210,7 @@
                <div class="boxes">
                     <div class="box first">
                          <p>
-                              At <span class="logo">Verdantia</span>, we believe that great food starts with great ingredients. That’s why we source locally, working with sustainable farms to bring you the freshest, most flavorful plant-based meals. Every dish tells a story of ethical choices—less waste, fewer emissions, and a plate full of goodness.
+                              At <span class="logo">Verdantia</span>, we believe that great food starts with great ingredients. That’s why we source locally, working with sustainable farms to bring you the freshest, most flavorful plant-based meals.
                          </p>
                          <div class="window-container">
                               <div class="window"></div>
