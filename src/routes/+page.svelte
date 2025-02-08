@@ -32,25 +32,6 @@
           window.scrollTo(0, 0);
           showHero = true;
 
-          styles = {
-               'x1': '0rem',
-               'y1': '0rem',
-               'x2': '0rem',
-               'y2': '0rem',
-               'x4': '0rem',
-               'y4': '0rem',
-               'x5': '0rem',
-               'y5': '0rem',
-               'opacity': '1',
-               'titleY': '0',
-               'titleOpacity': '1',
-               'navOpacity': '0',
-               'translateHorizontalScroll': '0px',
-               'scrollDownHintOpacity': '0',
-               'progress': '0%',
-               'windowScale': '0'
-          };
-
           setTimeout(() => {
                active = true;
 
