@@ -1,6 +1,11 @@
 <script lang="ts">
      import { onMount } from "svelte";
-     // import branch from "$lib/assets/home/branch-geklaut.png";
+     import branch1 from "$lib/assets/branches/branch_1.png";
+     import branch2 from "$lib/assets/branches/branch_2.png";
+     import branch3 from "$lib/assets/branches/branch_3.png";
+     import branch4 from "$lib/assets/branches/branch_4.png";
+
+     let branches = [branch1, branch2, branch3, branch4];
 
      let styles = {
           'x1': '0rem',
@@ -140,19 +145,22 @@
                     <div class="tomate-1 tomate fruit"></div>
                     <div class="onion-1 onion fruit"></div>
                </div>
-               <!--
                <div class="branches-stack">
-                    <div class="branch-1 branch">
-                         <img src={branch} alt="Branch 1" />
+                    <div class="left">
+                         {#each Array(10) as _, i}
+                              <div class="branch" style="top: {i * 10 - 15}%; left: {-Math.random() * 10}%; animation-delay: {i * 0.1}s;">
+                                   <img src={branches[i % branches.length]} alt="Branch" />
+                              </div>
+                         {/each}
                     </div>
-                    <div class="branch-2 branch">
-                         <img src={branch} alt="Branch 2" />
-                    </div>
-                    <div class="branch-3 branch">
-                         <img src={branch} alt="Branch 3" />
+                    <div class="right">
+                         {#each Array(10) as _, i}
+                              <div class="branch" style="top: {i * 10 - 15}%; right: {-Math.random() * 10}%; animation-delay: {(10 - i) * 0.1}s;">
+                                   <img src={branches[i % branches.length]} alt="Branch" />
+                              </div>
+                         {/each}
                     </div>
                </div>
-               -->
                <div class="title-stack">
                     <h1>VERDANTIA</h1>
                     <h1>VERDANTIA</h1>
@@ -253,10 +261,10 @@
 
                     .branch {
                          position: absolute;
-                         animation: branch-start 1.5s forwards;
-                         transform: translateY(-50vw);
+                         animation: branch-start 1s forwards;
+                         transform: translateX(-100%);
 
-                         width: clamp(250px, 35vw, 500px);
+                         width: clamp(250px, 35vw, 650px);
 
                          img {
                               width: 100%;
@@ -265,30 +273,15 @@
                          }
                     }
 
-                    .branch-1 {
-                         rotate: 270deg;
-                         top: -10%;
-                         left: 0%;
-                         animation-delay: 0;
-                    }
-
-                    .branch-2 {
-                         rotate: 90deg;
-                         top: 15%;
-                         right: 0%;
-                         animation-delay: 0.3s;
-                    }
-
-                    .branch-3 {
-                         rotate: 270deg;
-                         top: 30%;
-                         left: 0%;
-                         animation-delay: 0.4s;
+                    .right {
+                         .branch {
+                              rotate: 180deg;
+                         }
                     }
 
                     @keyframes branch-start {
                          0% {
-                              transform: translateY(-50vw);
+                              transform: translateX(-50vw);
                          }
                          100% {
                               transform: translateY(0%);
