@@ -15,6 +15,7 @@
      import branch13 from "$lib/assets/branches/branch_13.png";
      import branch14 from "$lib/assets/branches/branch_14.png";
      import branch15 from "$lib/assets/branches/branch_15.png";
+     import orange from "$lib/assets/icons/orange.png";
 
      let branches = [branch1, branch2, branch3, branch4, branch5, branch6, branch7, branch8, branch9, branch10, branch11, branch12, branch13, branch14, branch15];
 
@@ -193,7 +194,9 @@
                         {#if showHero}
                              <div class="active-icon"></div>
                         {:else}
-                             <div class="active-icon active"></div>
+                             <div class="active-icon active">
+                                   <img src={orange} alt="Active" />
+                             </div>
                          {/if}
                     </div>
                     <div class="link">
@@ -213,7 +216,9 @@
                               At <span class="logo">Verdantia</span>, we believe that great food starts with great ingredients. That’s why we source locally, working with sustainable farms to bring you the freshest, most flavorful plant-based meals.
                          </p>
                          <div class="window-container">
-                              <div class="window"></div>
+                              <div class="window">
+                                   <img src={branch5} alt="Window" class="window-branch" />
+                              </div>
                          </div>
                     </div>
                     <div class="box second">
@@ -521,8 +526,14 @@
                               }
 
                               .active {
-                                   background-color: v.$primary;
+                                   // background-color: v.$primary;
                                    animation: active-icon-start 0.5s forwards;
+                                   display: flex;
+
+                                   img {
+                                        width: 100%;
+                                        height: 100%;
+                                   }
                               }
 
                               @keyframes active-icon-start {
@@ -623,6 +634,16 @@
                                    border-top-right-radius: 9rem;
                                    scale: var(--windowScale);
                                    transition: scale 1s;
+                                   display: flex;
+                                   justify-content: center;
+
+                                   .window-branch {
+                                        position: relative;
+                                        aspect-ratio: 3840/2160;
+                                        height: 18rem;
+                                        width: auto;
+                                        transform: rotate(90deg) translateX(20%);
+                                   }
                               }
                          }
 
