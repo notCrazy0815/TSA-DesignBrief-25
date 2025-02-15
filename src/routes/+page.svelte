@@ -4,8 +4,19 @@
      import branch2 from "$lib/assets/branches/branch_2.png";
      import branch3 from "$lib/assets/branches/branch_3.png";
      import branch4 from "$lib/assets/branches/branch_4.png";
+     import branch5 from "$lib/assets/branches/branch_5.png";
+     import branch6 from "$lib/assets/branches/branch_6.png";
+     import branch7 from "$lib/assets/branches/branch_7.png";
+     import branch8 from "$lib/assets/branches/branch_8.png";
+     import branch9 from "$lib/assets/branches/branch_9.png";
+     import branch10 from "$lib/assets/branches/branch_10.png";
+     import branch11 from "$lib/assets/branches/branch_11.png";
+     import branch12 from "$lib/assets/branches/branch_12.png";
+     import branch13 from "$lib/assets/branches/branch_13.png";
+     import branch14 from "$lib/assets/branches/branch_14.png";
+     import branch15 from "$lib/assets/branches/branch_15.png";
 
-     let branches = [branch1, branch2, branch3, branch4];
+     let branches = [branch1, branch2, branch3, branch4, branch5, branch6, branch7, branch8, branch9, branch10, branch11, branch12, branch13, branch14, branch15];
 
      let styles = {
           'x1': '0rem',
