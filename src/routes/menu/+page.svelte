@@ -863,6 +863,15 @@
   @use "../../lib/styles/variables" as v;
   @use "../../lib/styles/global" as g;
 
+  h1, h2, h3, h4, .title-font, .special-heading, .filter-section-title, .menu-header h2 {
+    font-family: "DynaPuff Regular", cursive;
+  }
+  
+  p, a, span, button, .subtitle, li, .item-name, .item-price, .filter-chip,
+  .beverage-origin, .allergen-name, .allergen-code, .click-me, .hint-elegant {
+    font-family: "Inter 24pt Regular", sans-serif;
+  }
+  
   main {
     width: 100%;
     overflow-x: hidden;
