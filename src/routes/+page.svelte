@@ -16,6 +16,7 @@
      import branch14 from "$lib/assets/branches/branch_14.png";
      import branch15 from "$lib/assets/branches/branch_15.png";
      import orange from "$lib/assets/icons/orange.png";
+     import cloud from "$lib/assets/icons/cloud.png";
 
      let branches = [branch1, branch2, branch3, branch4, branch5, branch6, branch7, branch8, branch9, branch10, branch11, branch12, branch13, branch14, branch15];
 
@@ -210,24 +211,27 @@
                </div>
           </div>
           <div class="horizontal-content">
+               <div class="clouds">
+                    <img src={cloud} alt="cloud" class="cloud">
+               </div>
                <div class="boxes">
                     <div class="box first">
-                         <p>
-                              At <span class="logo">Verdantia</span>, we believe that great food starts with great ingredients. That’s why we source locally, working with sustainable farms to bring you the freshest, most flavorful plant-based meals.
-                         </p>
-                         <div class="window-container">
-                              <div class="window">
-                                   <img src={branch5} alt="Window" class="window-branch" />
-                              </div>
+                         <div class="big-number">
+                              <h1>1</h1>
+                              {#each Array(2) as _}
+                                   <img src={orange} alt="Orange zero" class="orange-zero">
+                              {/each}
+                              <h1>%</h1>
                          </div>
+                         <p class="subtitle">plant-based, local, sustainable</p>
                     </div>
                     <div class="box second">
-                         <div class="second-content">
-                              <!--
-                              <div class="window"></div>
-                              <div class="window"></div>
-                              <div class="window"></div>
-                              -->
+                         <div class="second-text">
+                              <h1 class="header">
+                                   <span class="number">85%</span>
+                                   of our ingredients come from farms within a 100 km radius.
+                              </h1>
+                              <p class="subtitle">Shorter supply chains – better taste while promoting American farmers.</p>
                          </div>
                     </div>
                     {#each Array(2) as _, i}
@@ -490,6 +494,7 @@
                flex-direction: column;
                width: 100%;
                height: 100vh;
+               gap: 1.5rem;
 
                .nav {
                     width: 100%;
@@ -551,9 +556,11 @@
                .horizontal-content {
                     display: flex;
                     flex-direction: column;
-                    gap: 2rem;
                     align-items: start;
                     height: 100vh;
+                    gap: 2rem;
+                    position: relative;
+                    z-index: 1000;
 
                     .navigator {
                          width: 100%;
@@ -584,16 +591,35 @@
                          }
                     }
 
+                    .clouds {
+                         display: none !important; // weil gerade kb drauf
+                         position: absolute;
+                         width: 100%;
+                         height: 100%;
+                         display: flex;
+                         justify-content: center;
+                         align-items: center;
+                         z-index: -1;
+
+                         .cloud {
+                              width: clamp(1.5rem, 9vw, 10rem);
+                              height: auto;
+                         }
+                    }
+
                     .boxes {
                          display: flex;
                          gap: 5vw;
                          transform: translateX(var(--translateHorizontalScroll));
                          transition: all 1s;
                          height: 90%;
+                         z-index: -2;
 
                          .box {
                               width: 90vw;
                               height: 100%;
+                              background-color: v.$quaternary;
+                              border-radius: 2rem;
 
                               &:nth-child(1) {
                                    margin-left: calc(100vw);
@@ -608,42 +634,32 @@
                          }
 
                          .first {
-                              padding: 2rem 0;
                               display: flex;
+                              justify-content: center;
                               align-items: center;
-                              justify-content: space-between;
+                              flex-direction: column;
+                              gap: 1rem;
+                              overflow: hidden;
 
-                              p {
-                                   width: 50%;
-                                   font-size: 2rem;
-                                   text-transform: uppercase;
-                              }
-
-                              .window-container {
-                                   width: 50%;
+                              .big-number {
                                    display: flex;
                                    justify-content: center;
                                    align-items: center;
+                                   gap: 5px;
+
+                                   h1 {
+                                        font-size: clamp(1.5rem, 9vw, 10rem);
+                                   }
+
+                                   .orange-zero {
+                                        aspect-ratio: 1;
+                                        width: clamp(1.5rem, 9vw, 10rem);
+                                        height: clamp(1.5rem, 9vw, 10rem);
+                                   }
                               }
 
-                              .window {
-                                   width: 18rem;
-                                   aspect-ratio: 2/3;
-                                   background-color: v.$quaternary;
-                                   border-top-left-radius: 9rem;
-                                   border-top-right-radius: 9rem;
-                                   scale: var(--windowScale);
-                                   transition: scale 1s;
-                                   display: flex;
-                                   justify-content: center;
-
-                                   .window-branch {
-                                        position: relative;
-                                        aspect-ratio: 3840/2160;
-                                        height: 18rem;
-                                        width: auto;
-                                        transform: rotate(90deg) translateX(20%);
-                                   }
+                              .subtitle {
+                                   font-size: clamp(0.9rem, 2vw, 1.4rem);
                               }
                          }
 
@@ -653,20 +669,7 @@
                               align-items: center;
                               justify-content: center;
 
-                              .second-content {
-                                   display: flex;
-                                   gap: 2.5rem;
-
-                                   .window {
-                                        width: 18rem;
-                                        aspect-ratio: 2/3;
-                                        background-color: v.$quaternary;
-                                        border-top-left-radius: 9rem;
-                                        border-top-right-radius: 9rem;
-                                        scale: var(--windowScale);
-                                        transition: scale 1s;
-                                   }
-                              }
+                              
                          }
                     }
                }
