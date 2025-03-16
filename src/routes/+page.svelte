@@ -46,7 +46,7 @@
      let active = false;
      let showHero = true;
      let showHorizontal = true;
-     let showWindow = true;
+     let showWindow = true; // for testing, should be true
      let windowY = 0;
 
      onMount(() => {
@@ -135,6 +135,8 @@
 
           if (visibleSection === 3) {
                styles['windowHeight'] = '100%';
+          } else if (visibleSection === 2) {
+               styles['windowHeight'] = '70%';
           }
 
           styles['progress'] = `${visibleSection * 33.3334}%`;
@@ -158,7 +160,7 @@
 
           setTimeout(() => {
                showWindow = false;
-          }, 2000);
+          }, 1000);
      }
 
      $: cssVarStyles = Object.entries(styles).map(([key, value]) => `--${key}:${value}`).join(';');
@@ -167,6 +169,7 @@
 <svelte:window on:scroll={handleScroll} bind:scrollY={windowY} on:wheel={handleMouseWheel} />
 
 <div class="content" style={cssVarStyles}>
+     <!--{#if false}-->
      {#if showHero}
           <section class="hero-section" on:mousemove={e => handleMouseMove(e)} role="presentation">
                <div class="branches-stack">
@@ -246,7 +249,15 @@
           </section>
      {/if}
      {#if !showWindow}
-          <section class="blue-section"></section>
+          <section class="blue-section">
+               <div class="blue-content">
+                    <div class="heading">
+                         <h1>Verdantia</h1>
+                    </div>
+                    <div class="clouds"></div>
+               </div>
+               <div class="white-content"></div>
+          </section>
      {/if}
 </div>
 
@@ -567,7 +578,7 @@
                                         border-top-left-radius: var(--windowBorderRadius);
                                         border-top-right-radius: var(--windowBorderRadius);
                                         transition: border-radius 0.5s,
-                                             height 1.2s;
+                                             height 1s;
                                    }
                               }
                          }
@@ -577,8 +588,59 @@
 
           .blue-section {
                width: 100%;
-               height: 100vh;
+               min-height: 100vh;
+
+               display: flex;
+               flex-direction: column;
+               justify-content: center;
                background-color: v.$quaternary;
+
+               .blue-content {
+                    width: 100%;
+                    display: flex;
+                    justify-content: center;
+                    flex-direction: column;
+                    opacity: 0;
+                    animation: fadeIn 1s forwards;
+
+                    @keyframes fadeIn {
+                         0% {
+                              opacity: 0;
+                         }
+                         100% {
+                              opacity: 1;
+                         }
+                    }
+
+                    .heading {
+                         background-color: v.$quaternary;
+                         height: 90%;
+                         min-height: 90vh;
+                         width: 100%;
+                         display: flex;
+                         justify-content: center;
+                         align-items: center;
+
+                         h1 {
+                              font-size: clamp(4rem, 10vw, 6rem);
+                              font-weight: bold;
+                              color: v.$font-color-light;
+                         }
+                    }
+
+                    .clouds {
+                         background-image: linear-gradient(180deg, v.$quaternary, v.$font-color-light);
+                         height: 10%;
+                         min-height: 200px;
+                         width: 100%;
+                    }
+               }
+
+               .white-content {
+                    width: 100%;
+                    height: 100vh;
+                    background-color: v.$background-color-light;
+               }
           }
      }
 </style>
