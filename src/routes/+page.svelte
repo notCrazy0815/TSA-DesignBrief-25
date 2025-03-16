@@ -16,7 +16,6 @@
      import branch14 from "$lib/assets/branches/branch_14.png";
      import branch15 from "$lib/assets/branches/branch_15.png";
      import orange from "$lib/assets/icons/orange.png";
-     import cloud from "$lib/assets/icons/cloud.png";
 
      let branches = [branch1, branch2, branch3, branch4, branch5, branch6, branch7, branch8, branch9, branch10, branch11, branch12, branch13, branch14, branch15];
 
@@ -36,7 +35,9 @@
           'translateHorizontalScroll': '0px',
           'scrollDownHintOpacity': '0',
           'progress': '0%',
-          'windowScale': '0',
+          'windowHeight': '100%',
+          'windowBorderRadius': '1000px',
+          'horizontalOpacity': '1'
      };
 
      let centerTitle: HTMLHeadingElement;
@@ -44,6 +45,7 @@
 
      let active = false;
      let showHero = true;
+     let showHorizontal = true;
      let windowY = 0;
 
      onMount(() => {
@@ -118,20 +120,16 @@
           let translateBefore: number = parseInt(styles['translateHorizontalScroll'].split('px')[0]);
 
           if (e.deltaY > 0) {
-               if (visibleSection === 3) return;
+               if (visibleSection === 3) {
+                    zoomInWindow();
+                    return;
+               }
                translateBefore -= innerWidth * 0.95;
                visibleSection++;
           } else {
                if (visibleSection === 1) return;
                translateBefore += innerWidth * 0.95;
                visibleSection--;
-          }
-
-          if (visibleSection === 1 && styles['windowScale'] === '0') {
-               styles['windowScale'] = '1';
-          }
-          if (visibleSection === 2 && styles['windowScale'] === '1' && e.deltaY > 0) {
-               styles['windowScale'] = '0';
           }
 
           styles['progress'] = `${visibleSection * 33.3334}%`;
@@ -143,6 +141,16 @@
           }, 1100);
      }
 
+     function zoomInWindow() {
+          styles['windowHeight'] = '400%';
+          styles['windowBorderRadius'] = '0';
+          styles['horizontalOpacity'] = '0';
+
+          setTimeout(() => {
+               showHorizontal = false;
+          }, 1000);
+          allowScroll = false;
+     }
 
      $: cssVarStyles = Object.entries(styles).map(([key, value]) => `--${key}:${value}`).join(';');
 </script>
@@ -152,12 +160,6 @@
 <div class="content" style={cssVarStyles}>
      {#if showHero}
           <section class="hero-section" on:mousemove={e => handleMouseMove(e)} role="presentation">
-               <div class="fruits-stack">
-                    <div class="orange-1 orange fruit"></div>
-                    <div class="orange-2 orange fruit"></div>
-                    <div class="tomate-1 tomate fruit"></div>
-                    <div class="onion-1 onion fruit"></div>
-               </div>
                <div class="branches-stack">
                     <div class="left">
                          {#each Array(10) as _, i}
@@ -187,45 +189,49 @@
           </section>
      {/if}
      <section class="horizontal-section">
-          <div class="nav">
-               <h1 bind:this={navTitle}>VERDANTIA</h1>
-               <div class="links">
-                    <div class="link">
-                        <a href="/">Home</a>
-                        {#if showHero}
-                             <div class="active-icon"></div>
-                        {:else}
-                             <div class="active-icon active">
-                                   <img src={orange} alt="Active" />
-                             </div>
-                         {/if}
-                    </div>
-                    <div class="link">
-                        <a href="/menu">Menu</a>
-                        <div class="active-icon"></div>
-                    </div>
-                    <div class="link">
-                        <a href="/news">News</a>
-                        <div class="active-icon"></div>
-                    </div>
-               </div>
-          </div>
-          <div class="horizontal-content">
-               <div class="clouds">
-                    <img src={cloud} alt="cloud" class="cloud">
-               </div>
-               <div class="boxes">
-                    {#each Array(3) as _, i}
-                         <div class="box"></div>
-                    {/each}
-               </div>
-               <div class="navigator">
-                    <div class="navigator-content">
-                         <div class="progress-bar">
-                              <div class="progress"></div>
+          {#if showHorizontal}
+               <div class="nav">
+                    <h1 bind:this={navTitle}>VERDANTIA</h1>
+                    <div class="links">
+                         <div class="link">
+                         <a href="/">Home</a>
+                         {#if showHero}
+                              <div class="active-icon"></div>
+                         {:else}
+                              <div class="active-icon active">
+                                        <img src={orange} alt="Active" />
+                              </div>
+                              {/if}
+                         </div>
+                         <div class="link">
+                         <a href="/menu">Menu</a>
+                         <div class="active-icon"></div>
+                         </div>
+                         <div class="link">
+                         <a href="/news">News</a>
+                         <div class="active-icon"></div>
                          </div>
                     </div>
                </div>
+          {/if}
+          <div class="horizontal-content">
+               <div class="boxes">
+                    {#each Array(2) as _, i}
+                         <div class="box"></div>
+                    {/each}
+                    <div class="box">
+                         <div class="window"></div>
+                    </div>
+               </div>
+               {#if showHorizontal}
+                    <div class="navigator">
+                         <div class="navigator-content">
+                              <div class="progress-bar">
+                                   <div class="progress"></div>
+                              </div>
+                         </div>
+                    </div>
+               {/if}
           </div>
      </section>
 </div>
@@ -311,63 +317,6 @@
                     }
                     100% {
                          color: v.$tertiary-dark;
-                    }
-               }
-
-               .fruits-stack {
-                    position: absolute;
-                    width: 100%;
-                    height: 100%;
-
-                    .fruit {
-                         position: absolute;
-                         aspect-ratio: 1/1;
-                         border-radius: 50%;
-                         transform: translate(-50%, -50%);
-                         animation: fruit-start 1.5s forwards;
-                    }
-
-                    .onion {
-                         background-color: v.$secondary;
-                    }
-
-                    .onion-1 {
-                         top: calc(90% - 150px);
-                         left: 10%;
-                    }
-
-                    .tomate {
-                         background-color: v.$quinary;
-                    }
-
-                    .tomate-1 {
-                         top: 25%;
-                         left: calc(90% - 100px);
-                    }
-                    
-                    .orange {
-                         background-color: v.$primary;
-                    }
-
-                    .orange-1 {
-                         top: 15%;
-                         left: 20%;
-                    }
-
-                    .orange-2 {
-                         top: calc(95% - 100px);
-                         left: 80%;
-                    }
-
-                    @keyframes fruit-start {
-                         0% {
-                              width: 0;
-                              height: 0;
-                         }
-                         100% {
-                              // width: clamp(100px, 10vw, 200px);
-                              // height: clamp(100px, 10vw, 200px);
-                         }
                     }
                }
 
@@ -483,6 +432,8 @@
                     display: flex;
                     flex-direction: column;
                     align-items: center;
+                    opacity: var(--horizontalOpacity);
+                    transition: all 0.3s;
 
                     h1 {
                          font-size: 5rem;
@@ -512,7 +463,6 @@
                               }
 
                               .active {
-                                   // background-color: v.$primary;
                                    animation: active-icon-start 0.5s forwards;
                                    display: flex;
 
@@ -541,12 +491,13 @@
                     height: 100vh;
                     gap: 2rem;
                     position: relative;
-                    z-index: 1000;
 
                     .navigator {
                          width: 100%;
                          display: flex;
                          justify-content: center;
+                         opacity: var(--horizontalOpacity);
+                         transition: all 0.2s;
 
                          .navigator-content {
                               display: flex;
@@ -572,22 +523,6 @@
                          }
                     }
 
-                    .clouds {
-                         display: none !important; // weil gerade kb drauf
-                         position: absolute;
-                         width: 100%;
-                         height: 100%;
-                         display: flex;
-                         justify-content: center;
-                         align-items: center;
-                         z-index: -1;
-
-                         .cloud {
-                              width: clamp(1.5rem, 9vw, 10rem);
-                              height: auto;
-                         }
-                    }
-
                     .boxes {
                          display: flex;
                          gap: 5vw;
@@ -599,11 +534,27 @@
                          .box {
                               width: 90vw;
                               height: 100%;
-                              // background-color: v.$quaternary;
-                              // border-radius: 2rem;
 
                               &:nth-child(1) {
                                    margin-left: calc(100vw);
+                              }
+
+                              &:nth-child(3) {
+                                   display: flex;
+                                   justify-content: center;
+                                   align-items: center;
+
+                                   .window {
+                                        height: var(--windowHeight);
+                                        aspect-ratio: 2/3;
+                                        z-index: 100;
+                                        position: relative;
+                                        background-color: v.$quaternary;
+                                        border-top-left-radius: var(--windowBorderRadius);
+                                        border-top-right-radius: var(--windowBorderRadius);
+                                        transition: border-radius 0.5s,
+                                             height 1.2s;
+                                   }
                               }
                          }
                     }
