@@ -35,7 +35,9 @@
           'translateHorizontalScroll': '0px',
           'scrollDownHintOpacity': '0',
           'progress': '0%',
-          'windowScale': '0',
+          'windowHeight': '70%',
+          'windowBorderRadius': '1000px',
+          'horizontalOpacity': '1'
      };
 
      let centerTitle: HTMLHeadingElement;
@@ -43,6 +45,8 @@
 
      let active = false;
      let showHero = true;
+     let showHorizontal = true;
+     let showWindow = true; // for testing "false", should be true
      let windowY = 0;
 
      onMount(() => {
@@ -117,8 +121,11 @@
           let translateBefore: number = parseInt(styles['translateHorizontalScroll'].split('px')[0]);
 
           if (e.deltaY > 0) {
-               if (visibleSection === 4) return;
-               translateBefore -= innerWidth * 0.95;         
+               if (visibleSection === 3) {
+                    zoomInWindow();
+                    return;
+               }
+               translateBefore -= innerWidth * 0.95;
                visibleSection++;
           } else {
                if (visibleSection === 1) return;
@@ -126,14 +133,13 @@
                visibleSection--;
           }
 
-          if (visibleSection === 1 && styles['windowScale'] === '0') {
-               styles['windowScale'] = '1';
-          }
-          if (visibleSection === 2 && styles['windowScale'] === '1' && e.deltaY > 0) {
-               styles['windowScale'] = '0';
+          if (visibleSection === 3) {
+               styles['windowHeight'] = '100%';
+          } else if (visibleSection === 2) {
+               styles['windowHeight'] = '70%';
           }
 
-          styles['progress'] = `${visibleSection * 25}%`;
+          styles['progress'] = `${visibleSection * 33.3334}%`;
           styles['translateHorizontalScroll'] = `${translateBefore}px`;
 
           allowScroll = false;
@@ -142,6 +148,19 @@
           }, 1100);
      }
 
+     function zoomInWindow() {
+          styles['windowHeight'] = '500%';
+          styles['windowBorderRadius'] = '0';
+          styles['horizontalOpacity'] = '0';
+
+          allowScroll = false;
+
+          setTimeout(() => {
+               showHorizontal = false;
+               showWindow = false;
+               window.scrollTo(0, 0);
+          }, 1000);
+     }
 
      $: cssVarStyles = Object.entries(styles).map(([key, value]) => `--${key}:${value}`).join(';');
 </script>
@@ -149,14 +168,9 @@
 <svelte:window on:scroll={handleScroll} bind:scrollY={windowY} on:wheel={handleMouseWheel} />
 
 <div class="content" style={cssVarStyles}>
+     <!--{#if false}-->
      {#if showHero}
           <section class="hero-section" on:mousemove={e => handleMouseMove(e)} role="presentation">
-               <div class="fruits-stack">
-                    <div class="orange-1 orange fruit"></div>
-                    <div class="orange-2 orange fruit"></div>
-                    <div class="tomate-1 tomate fruit"></div>
-                    <div class="onion-1 onion fruit"></div>
-               </div>
                <div class="branches-stack">
                     <div class="left">
                          {#each Array(10) as _, i}
@@ -185,64 +199,70 @@
                </div>
           </section>
      {/if}
-     <section class="horizontal-section">
-          <div class="nav">
-               <h1 bind:this={navTitle}>VERDANTIA</h1>
-               <div class="links">
-                    <div class="link">
-                        <a href="/">Home</a>
-                        {#if showHero}
-                             <div class="active-icon"></div>
-                        {:else}
-                             <div class="active-icon active">
-                                   <img src={orange} alt="Active" />
-                             </div>
-                         {/if}
-                    </div>
-                    <div class="link">
-                        <a href="/menu">Menu</a>
-                        <div class="active-icon"></div>
-                    </div>
-                    <div class="link">
-                        <a href="/news">News</a>
-                        <div class="active-icon"></div>
-                    </div>
-               </div>
-          </div>
-          <div class="horizontal-content">
-               <div class="boxes">
-                    <div class="box first">
-                         <p>
-                              At <span class="logo">Verdantia</span>, we believe that great food starts with great ingredients. That’s why we source locally, working with sustainable farms to bring you the freshest, most flavorful plant-based meals.
-                         </p>
-                         <div class="window-container">
-                              <div class="window">
-                                   <img src={branch5} alt="Window" class="window-branch" />
+     {#if showWindow}
+          <section class="horizontal-section">
+               {#if showHorizontal}
+                    <div class="nav">
+                         <h1 bind:this={navTitle}>VERDANTIA</h1>
+                         <div class="links">
+                              <div class="link">
+                              <a href="/">Home</a>
+                              {#if showHero}
+                                   <div class="active-icon"></div>
+                              {:else}
+                                   <div class="active-icon active">
+                                             <img src={orange} alt="Active" />
+                                   </div>
+                                   {/if}
+                              </div>
+                              <div class="link">
+                              <a href="/menu">Menu</a>
+                              <div class="active-icon"></div>
+                              </div>
+                              <div class="link">
+                              <a href="/news">News</a>
+                              <div class="active-icon"></div>
                               </div>
                          </div>
                     </div>
-                    <div class="box second">
-                         <div class="second-content">
-                              <!--
+               {/if}
+               <div class="horizontal-content">
+                    <div class="boxes">
+                         {#each Array(2) as _, i}
+                              <div class="box"></div>
+                         {/each}
+                         <div class="box">
                               <div class="window"></div>
-                              <div class="window"></div>
-                              <div class="window"></div>
-                              -->
                          </div>
                     </div>
-                    {#each Array(2) as _, i}
-                         <div class="box"></div>
-                    {/each}
-               </div>
-               <div class="navigator">
-                    <div class="navigator-content">
-                         <div class="progress-bar">
-                              <div class="progress"></div>
+                    {#if showHorizontal}
+                         <div class="navigator">
+                              <div class="navigator-content">
+                                   <div class="progress-bar">
+                                        <div class="progress"></div>
+                                   </div>
+                              </div>
                          </div>
+                    {/if}
+               </div>
+          </section>
+     {/if}
+     {#if !showWindow}
+          <section class="blue-section">
+               <div class="blue-content">
+                    <div class="heading">
+                         <h1>Still not convinced?</h1>
+                    </div>
+                    <div class="clouds"></div>
+               </div>
+               <div class="white-content">
+                    <div class="further-links">
+                         <h3>Now that you know who we are, find out what food we serve</h3>
+                         <a href="/menu">View our menu</a>
                     </div>
                </div>
-          </div>
-     </section>
+          </section>
+     {/if}
 </div>
 
 <style lang="scss">
@@ -326,63 +346,6 @@
                     }
                     100% {
                          color: v.$tertiary-dark;
-                    }
-               }
-
-               .fruits-stack {
-                    position: absolute;
-                    width: 100%;
-                    height: 100%;
-
-                    .fruit {
-                         position: absolute;
-                         aspect-ratio: 1/1;
-                         border-radius: 50%;
-                         transform: translate(-50%, -50%);
-                         animation: fruit-start 1.5s forwards;
-                    }
-
-                    .onion {
-                         background-color: v.$secondary;
-                    }
-
-                    .onion-1 {
-                         top: calc(90% - 150px);
-                         left: 10%;
-                    }
-
-                    .tomate {
-                         background-color: v.$quinary;
-                    }
-
-                    .tomate-1 {
-                         top: 25%;
-                         left: calc(90% - 100px);
-                    }
-                    
-                    .orange {
-                         background-color: v.$primary;
-                    }
-
-                    .orange-1 {
-                         top: 15%;
-                         left: 20%;
-                    }
-
-                    .orange-2 {
-                         top: calc(95% - 100px);
-                         left: 80%;
-                    }
-
-                    @keyframes fruit-start {
-                         0% {
-                              width: 0;
-                              height: 0;
-                         }
-                         100% {
-                              // width: clamp(100px, 10vw, 200px);
-                              // height: clamp(100px, 10vw, 200px);
-                         }
                     }
                }
 
@@ -490,6 +453,7 @@
                flex-direction: column;
                width: 100%;
                height: 100vh;
+               gap: 1.5rem;
 
                .nav {
                     width: 100%;
@@ -497,6 +461,8 @@
                     display: flex;
                     flex-direction: column;
                     align-items: center;
+                    opacity: var(--horizontalOpacity);
+                    transition: all 0.3s;
 
                     h1 {
                          font-size: 5rem;
@@ -526,7 +492,6 @@
                               }
 
                               .active {
-                                   // background-color: v.$primary;
                                    animation: active-icon-start 0.5s forwards;
                                    display: flex;
 
@@ -551,14 +516,17 @@
                .horizontal-content {
                     display: flex;
                     flex-direction: column;
-                    gap: 2rem;
                     align-items: start;
                     height: 100vh;
+                    gap: 2rem;
+                    position: relative;
 
                     .navigator {
                          width: 100%;
                          display: flex;
                          justify-content: center;
+                         opacity: var(--horizontalOpacity);
+                         transition: all 0.2s;
 
                          .navigator-content {
                               display: flex;
@@ -590,6 +558,7 @@
                          transform: translateX(var(--translateHorizontalScroll));
                          transition: all 1s;
                          height: 90%;
+                         z-index: -2;
 
                          .box {
                               width: 90vw;
@@ -599,73 +568,119 @@
                                    margin-left: calc(100vw);
                               }
 
-                              p {
-                                   .logo {
-                                        color: v.$tertiary;
-                                        font-family: "DynaPuff Regular";
-                                   }
-                              }
-                         }
-
-                         .first {
-                              padding: 2rem 0;
-                              display: flex;
-                              align-items: center;
-                              justify-content: space-between;
-
-                              p {
-                                   width: 50%;
-                                   font-size: 2rem;
-                                   text-transform: uppercase;
-                              }
-
-                              .window-container {
-                                   width: 50%;
+                              &:nth-child(3) {
                                    display: flex;
                                    justify-content: center;
                                    align-items: center;
-                              }
 
-                              .window {
-                                   width: 18rem;
-                                   aspect-ratio: 2/3;
-                                   background-color: v.$quaternary;
-                                   border-top-left-radius: 9rem;
-                                   border-top-right-radius: 9rem;
-                                   scale: var(--windowScale);
-                                   transition: scale 1s;
-                                   display: flex;
-                                   justify-content: center;
-
-                                   .window-branch {
+                                   .window {
+                                        height: var(--windowHeight);
+                                        aspect-ratio: 2/3;
+                                        z-index: 100;
                                         position: relative;
-                                        aspect-ratio: 3840/2160;
-                                        height: 18rem;
-                                        width: auto;
-                                        transform: rotate(90deg) translateX(20%);
+                                        background-color: v.$quaternary;
+                                        border-top-left-radius: var(--windowBorderRadius);
+                                        border-top-right-radius: var(--windowBorderRadius);
+                                        transition: border-radius 0.5s,
+                                             height 1s;
                                    }
                               }
                          }
+                    }
+               }
+          }
 
-                         .second {
-                              padding: 2rem 0;
-                              display: flex;
-                              align-items: center;
-                              justify-content: center;
+          .blue-section {
+               width: 100%;
+               min-height: 100vh;
 
-                              .second-content {
-                                   display: flex;
-                                   gap: 2.5rem;
+               display: flex;
+               flex-direction: column;
+               justify-content: center;
+               background-color: v.$quaternary;
 
-                                   .window {
-                                        width: 18rem;
-                                        aspect-ratio: 2/3;
-                                        background-color: v.$quaternary;
-                                        border-top-left-radius: 9rem;
-                                        border-top-right-radius: 9rem;
-                                        scale: var(--windowScale);
-                                        transition: scale 1s;
-                                   }
+               .blue-content {
+                    width: 100%;
+                    display: flex;
+                    justify-content: center;
+                    flex-direction: column;
+                    opacity: 0;
+                    animation: fadeIn 1s forwards;
+
+                    @keyframes fadeIn {
+                         0% {
+                              opacity: 0;
+                         }
+                         100% {
+                              opacity: 1;
+                         }
+                    }
+
+                    .heading {
+                         background-color: v.$quaternary;
+                         height: 90%;
+                         min-height: 90vh;
+                         width: 100%;
+                         display: flex;
+                         justify-content: center;
+                         align-items: center;
+
+                         h1 {
+                              font-size: clamp(4rem, 10vw, 6rem);
+                              font-weight: bold;
+                              color: v.$font-color-light;
+                         }
+                    }
+
+                    .clouds {
+                         background-image: linear-gradient(180deg, v.$quaternary, v.$font-color-light);
+                         height: 10%;
+                         min-height: 200px;
+                         width: 100%;
+                    }
+               }
+
+               .white-content {
+                    width: 100%;
+                    height: 100vh;
+                    background-color: v.$background-color-light;
+                    padding: 0 3rem;
+                    display: flex;
+                    align-items: end;
+
+                    .further-links {
+                         padding: 4rem 2rem;
+                         background-color: v.$tertiary-light;
+                         display: flex;
+                         flex-direction: column;
+                         align-items: center;
+                         border-radius: 2rem;
+                         width: 100%;
+                         margin-bottom: 2rem;
+                         gap: 2rem;
+
+                         h3 {
+                              font-size: clamp(1.5rem, 3vw, 2rem);
+                              color: v.$font-color-light;
+                              text-align: center;
+                              padding: 1rem;
+                         }
+
+                         a {
+                              background-color: rgba(v.$primary, 0.85);
+                              color: v.$font-color-light;
+                              padding: 10px 16px;
+                              border-radius: 30px;
+                              font-size: 0.95rem;
+                              font-weight: 500;
+                              letter-spacing: 0.5px;
+                              cursor: pointer;
+                              transition: all 0.3s ease;
+
+                              &::after {
+                                   content: "→";
+                                   margin-left: 8px;
+                                   font-size: 1.1em;
                               }
                          }
                     }
