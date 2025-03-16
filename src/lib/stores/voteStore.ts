@@ -1,126 +1,84 @@
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 
-// Define the structure for our votes
-type ArticleVotes = {
+// Define the structure for our likes
+type ArticleLikes = {
     [articleId: number]: {
-        upvotes: number;
-        downvotes: number;
-        userVote: 'up' | 'down' | null;
+        likes: number;
+        userLiked: boolean;
     }
 };
 
 // Initialize store with data from localStorage if available
-const storedVotes = browser ? localStorage.getItem('articleVotes') : null;
-const initialVotes: ArticleVotes = storedVotes ? JSON.parse(storedVotes) : {};
+const storedLikes = browser ? localStorage.getItem('articleLikes') : null;
+const initialLikes: ArticleLikes = storedLikes ? JSON.parse(storedLikes) : {};
 
-const createVoteStore = () => {
-    const { subscribe, update } = writable<ArticleVotes>(initialVotes);
+const createLikeStore = () => {
+    const { subscribe, update } = writable<ArticleLikes>(initialLikes);
 
     return {
         subscribe,
         
-        // Handle upvotes
-        upvote: (articleId: number) => {
-            update(votes => {
+        // Toggle like for an article
+        toggleLike: (articleId: number) => {
+            update(likes => {
                 // Initialize article if it doesn't exist
-                if (!votes[articleId]) {
-                    votes[articleId] = { upvotes: 0, downvotes: 0, userVote: null };
+                if (!likes[articleId]) {
+                    likes[articleId] = { likes: 0, userLiked: false };
                 }
                 
-                // Update vote counts based on previous user action
-                if (votes[articleId].userVote === 'up') {
-                    // User is removing their upvote
-                    votes[articleId].upvotes = Math.max(0, votes[articleId].upvotes - 1);
-                    votes[articleId].userVote = null;
+                // Toggle the like status
+                if (likes[articleId].userLiked) {
+                    // User is unliking
+                    likes[articleId].likes = Math.max(0, likes[articleId].likes - 1);
+                    likes[articleId].userLiked = false;
                 } else {
-                    // User is adding an upvote
-                    votes[articleId].upvotes += 1;
-                    
-                    // If they previously downvoted, remove that downvote
-                    if (votes[articleId].userVote === 'down') {
-                        votes[articleId].downvotes = Math.max(0, votes[articleId].downvotes - 1);
-                    }
-                    
-                    votes[articleId].userVote = 'up';
+                    // User is liking
+                    likes[articleId].likes += 1;
+                    likes[articleId].userLiked = true;
                 }
                 
                 // Save to localStorage
                 if (browser) {
-                    localStorage.setItem('articleVotes', JSON.stringify(votes));
+                    localStorage.setItem('articleLikes', JSON.stringify(likes));
                 }
                 
-                return votes;
+                return likes;
             });
         },
         
-        // Handle downvotes
-        downvote: (articleId: number) => {
-            update(votes => {
-                // Initialize article if it doesn't exist
-                if (!votes[articleId]) {
-                    votes[articleId] = { upvotes: 0, downvotes: 0, userVote: null };
-                }
-                
-                // Update vote counts based on previous user action
-                if (votes[articleId].userVote === 'down') {
-                    // User is removing their downvote
-                    votes[articleId].downvotes = Math.max(0, votes[articleId].downvotes - 1);
-                    votes[articleId].userVote = null;
-                } else {
-                    // User is adding a downvote
-                    votes[articleId].downvotes += 1;
-                    
-                    // If they previously upvoted, remove that upvote
-                    if (votes[articleId].userVote === 'up') {
-                        votes[articleId].upvotes = Math.max(0, votes[articleId].upvotes - 1);
-                    }
-                    
-                    votes[articleId].userVote = 'down';
-                }
-                
-                // Save to localStorage
-                if (browser) {
-                    localStorage.setItem('articleVotes', JSON.stringify(votes));
-                }
-                
-                return votes;
-            });
-        },
-        
-        // Initialize an article with no votes if it doesn't exist yet
+        // Initialize an article with no likes if it doesn't exist yet
         initArticle: (articleId: number) => {
-            update(votes => {
-                if (!votes[articleId]) {
-                    votes[articleId] = { upvotes: 0, downvotes: 0, userVote: null };
+            update(likes => {
+                if (!likes[articleId]) {
+                    likes[articleId] = { likes: 0, userLiked: false };
                     
                     if (browser) {
-                        localStorage.setItem('articleVotes', JSON.stringify(votes));
+                        localStorage.setItem('articleLikes', JSON.stringify(likes));
                     }
                 }
-                return votes;
+                return likes;
             });
         },
         
-        // Initialize an article with specific vote counts if it doesn't exist yet
-        initArticleWithCounts: (articleId: number, upvotes: number = 0, downvotes: number = 0) => {
-            update(votes => {
+        // Initialize an article with specified like count if it doesn't exist yet
+        initArticleWithCount: (articleId: number, likeCount: number = 0) => {
+            update(likes => {
                 // Only initialize with these counts if the article doesn't exist in localStorage yet
-                if (!votes[articleId]) {
-                    votes[articleId] = { 
-                        upvotes: upvotes, 
-                        downvotes: downvotes, 
-                        userVote: null 
+                if (!likes[articleId]) {
+                    likes[articleId] = { 
+                        likes: likeCount, 
+                        userLiked: false 
                     };
                     
                     if (browser) {
-                        localStorage.setItem('articleVotes', JSON.stringify(votes));
+                        localStorage.setItem('articleLikes', JSON.stringify(likes));
                     }
                 }
-                return votes;
+                return likes;
             });
         }
     };
 };
 
-export const voteStore = createVoteStore();
+export const likeStore = createLikeStore();
