@@ -46,7 +46,7 @@
      let active = false;
      let showHero = true;
      let showHorizontal = true;
-     let showWindow = true; // for testing, should be true
+     let showWindow = true; // for testing "false", should be true
      let windowY = 0;
 
      onMount(() => {
@@ -153,13 +153,12 @@
           styles['windowBorderRadius'] = '0';
           styles['horizontalOpacity'] = '0';
 
-          setTimeout(() => {
-               showHorizontal = false;
-          }, 1000);
           allowScroll = false;
 
           setTimeout(() => {
+               showHorizontal = false;
                showWindow = false;
+               window.scrollTo(0, 0);
           }, 1000);
      }
 
@@ -252,11 +251,16 @@
           <section class="blue-section">
                <div class="blue-content">
                     <div class="heading">
-                         <h1>Verdantia</h1>
+                         <h1>Still not convinced?</h1>
                     </div>
                     <div class="clouds"></div>
                </div>
-               <div class="white-content"></div>
+               <div class="white-content">
+                    <div class="further-links">
+                         <h3>Now that you know who we are, find out what food we serve</h3>
+                         <a href="/menu">View our menu</a>
+                    </div>
+               </div>
           </section>
      {/if}
 </div>
@@ -640,6 +644,46 @@
                     width: 100%;
                     height: 100vh;
                     background-color: v.$background-color-light;
+                    padding: 0 3rem;
+                    display: flex;
+                    align-items: end;
+
+                    .further-links {
+                         padding: 4rem 2rem;
+                         background-color: v.$tertiary-light;
+                         display: flex;
+                         flex-direction: column;
+                         align-items: center;
+                         border-radius: 2rem;
+                         width: 100%;
+                         margin-bottom: 2rem;
+                         gap: 2rem;
+
+                         h3 {
+                              font-size: clamp(1.5rem, 3vw, 2rem);
+                              color: v.$font-color-light;
+                              text-align: center;
+                              padding: 1rem;
+                         }
+
+                         a {
+                              background-color: rgba(v.$primary, 0.85);
+                              color: v.$font-color-light;
+                              padding: 10px 16px;
+                              border-radius: 30px;
+                              font-size: 0.95rem;
+                              font-weight: 500;
+                              letter-spacing: 0.5px;
+                              cursor: pointer;
+                              transition: all 0.3s ease;
+
+                              &::after {
+                                   content: "→";
+                                   margin-left: 8px;
+                                   font-size: 1.1em;
+                              }
+                         }
+                    }
                }
           }
      }
