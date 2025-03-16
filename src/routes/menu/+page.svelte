@@ -3,6 +3,7 @@
   import { fly, fade } from "svelte/transition";
   import NavBar from "$lib/components/NavBar.svelte";
   import { writable } from 'svelte/store';
+  import Footer from "$lib/components/Footer.svelte";
 
   const activeFilters = writable({
     dietary: new Set(['all']),
@@ -857,6 +858,8 @@
       </div>
     </div>
   </section>
+
+  <Footer />
 </main>
 
 <style lang="scss">

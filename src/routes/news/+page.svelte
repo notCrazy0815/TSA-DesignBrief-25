@@ -5,26 +5,32 @@
     import Modal from "$lib/components/Modal.svelte";
     import { fly, scale } from 'svelte/transition';
     import { elasticOut } from 'svelte/easing';
-    import { voteStore } from "$lib/stores/voteStore";
+    // Import the new likeStore instead of voteStore
+    import { likeStore } from "$lib/stores/voteStore";
+    import Footer from "$lib/components/Footer.svelte";
     
     // Sample data for new dishes
+    import dish1 from "$lib/assets/news/chungus-image-img-1742148353457-wayj7s9.png";
+    import dish2 from "$lib/assets/news/chungus-image-img-1742148407649-ge7uqdp.png";
+    import dish3 from "$lib/assets/news/chungus-image-img-1742148407650-h9m4kpx.png";
+
     const newDishes = [
         {
             title: "Artisanal Mushroom Risotto",
             description: "Creamy arborio rice with locally foraged wild mushrooms and truffle oil",
-            imageUrl: "mushroom-risotto.jpg", 
+            imageUrl: dish1,
             tags: ["new", "seasonal", "gluten-free"]
         },
         {
             title: "Rainbow Buddha Bowl",
             description: "Nutrient-packed bowl with quinoa, roasted vegetables, avocado and tahini dressing",
-            imageUrl: "buddha-bowl.jpg",
+            imageUrl: dish2,
             tags: ["popular", "protein-rich"]
         },
         {
             title: "Jackfruit Tacos",
             description: "Spicy pulled jackfruit with homemade corn tortillas and lime-cilantro slaw",
-            imageUrl: "jackfruit-tacos.jpg",
+            imageUrl: dish3,
             tags: ["new", "spicy"]
         }
     ];
@@ -53,7 +59,7 @@
                 
                 <p>We can't wait to share these exciting new flavors with our community!</p>
             `,
-            initialVotes: { upvotes: 23, downvotes: 2 }
+            initialLikes: 23
         },
         {
             id: 2,
@@ -85,7 +91,7 @@
                 
                 <p>Only 12 spots available for this intimate workshop! Reserve yours today by calling us or visiting the restaurant.</p>
             `,
-            initialVotes: { upvotes: 17, downvotes: 0 }
+            initialLikes: 17
         },
         {
             id: 3,
@@ -111,7 +117,7 @@
                 
                 <p>Thank you for supporting our environmental efforts by choosing Verdantia.</p>
             `,
-            initialVotes: { upvotes: 42, downvotes: 3 }
+            initialLikes: 42
         }
     ];
     
@@ -124,31 +130,25 @@
         showModal = true;
     }
 
-    // Initialize votes for all articles
+    // Initialize likes for all articles
     import { onMount } from 'svelte';
     
     onMount(() => {
-        // Initialize vote data for all articles with initial dummy values
+        // Initialize like data for all articles with initial dummy values
         newsArticles.forEach(article => {
-            voteStore.initArticleWithCounts(
+            likeStore.initArticleWithCount(
                 article.id, 
-                article.initialVotes.upvotes, 
-                article.initialVotes.downvotes
+                article.initialLikes
             );
         });
     });
 
-    // Function to handle votes
-    function handleVote(articleId: number, voteType: 'up' | 'down', event: MouseEvent) {
+    // Function to handle likes
+    function handleLike(articleId: number, event: MouseEvent) {
         // Stop the click from propagating to the news card
         // (which would open the modal)
         event.stopPropagation();
-        
-        if (voteType === 'up') {
-            voteStore.upvote(articleId);
-        } else {
-            voteStore.downvote(articleId);
-        }
+        likeStore.toggleLike(articleId);
     }
 </script>
 
@@ -172,33 +172,22 @@
         <h2>Latest News</h2>
         
         {#each newsArticles as article, i}
-            {@const votes = $voteStore[article.id] || { upvotes: 0, downvotes: 0, userVote: null }}
-            <div 
+            {@const likeData = $likeStore[article.id] || { likes: 0, userLiked: false }}
+            <div aria-role="article"
                 class="news-card" 
                 on:click={() => openArticle(article)}
                 in:fly={{ y: 50, delay: i * 100, duration: 500 }}
             >
-                <div class="vote-controls">
+                <div class="like-control">
                     <button 
-                        class="vote-btn upvote" 
-                        class:active={votes.userVote === 'up'} 
-                        on:click={(e) => handleVote(article.id, 'up', e)}
-                        aria-label="Upvote"
+                        class="like-btn" 
+                        class:active={likeData.userLiked} 
+                        on:click={(e) => handleLike(article.id, e)}
+                        aria-label="Like"
                     >
-                        <span class="vote-icon">▲</span>
-                        {#if votes.upvotes > 0}
-                            <span class="vote-count">{votes.upvotes}</span>
-                        {/if}
-                    </button>
-                    <button 
-                        class="vote-btn downvote" 
-                        class:active={votes.userVote === 'down'} 
-                        on:click={(e) => handleVote(article.id, 'down', e)}
-                        aria-label="Downvote"
-                    >
-                        <span class="vote-icon">▼</span>
-                        {#if votes.downvotes > 0}
-                            <span class="vote-count">{votes.downvotes}</span>
+                        <span class="heart-icon">♥</span>
+                        {#if likeData.likes > 0}
+                            <span class="like-count">{likeData.likes}</span>
                         {/if}
                     </button>
                 </div>
@@ -219,29 +208,19 @@
         <div class="modal-article">
             <div class="article-date">{selectedArticle.date}</div>
             
-            {#if $voteStore[selectedArticle.id]}
-                <div class="modal-vote-controls">
+            {#if $likeStore[selectedArticle.id]}
+                <div class="modal-like-control">
                     <button 
-                        class="vote-btn upvote" 
-                        class:active={$voteStore[selectedArticle.id].userVote === 'up'} 
-                        on:click={() => voteStore.upvote(selectedArticle.id)}
+                        class="like-btn" 
+                        class:active={$likeStore[selectedArticle.id].userLiked} 
+                        on:click={() => likeStore.toggleLike(selectedArticle.id)}
                     >
-                        <span class="vote-icon">▲</span>
-                        {#if $voteStore[selectedArticle.id].upvotes > 0}
-                            <span class="vote-count">{$voteStore[selectedArticle.id].upvotes}</span>
+                        <span class="heart-icon">♥</span>
+                        {#if $likeStore[selectedArticle.id].likes > 0}
+                            <span class="like-count">{$likeStore[selectedArticle.id].likes}</span>
                         {/if}
                     </button>
-                    <button 
-                        class="vote-btn downvote" 
-                        class:active={$voteStore[selectedArticle.id].userVote === 'down'} 
-                        on:click={() => voteStore.downvote(selectedArticle.id)}
-                    >
-                        <span class="vote-icon">▼</span>
-                        {#if $voteStore[selectedArticle.id].downvotes > 0}
-                            <span class="vote-count">{$voteStore[selectedArticle.id].downvotes}</span>
-                        {/if}
-                    </button>
-                    <span class="vote-label">Was this helpful?</span>
+                    <span class="like-label">Did you find this helpful?</span>
                 </div>
             {/if}
             
@@ -251,6 +230,8 @@
         </div>
     </Modal>
 </div>
+
+<Footer />
 
 <style lang="scss">
     @use "../../lib/styles/variables" as v;
@@ -362,14 +343,13 @@
         }
     }
 
-    .vote-controls {
+    .like-control {
         display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
         padding: 0.5rem;
+        justify-content: center;
     }
 
-    .modal-vote-controls {
+    .modal-like-control {
         display: flex;
         align-items: center;
         gap: 0.75rem;
@@ -378,55 +358,80 @@
         background-color: rgba(5, 113, 95, 0.05);
         border-radius: 8px;
 
-        .vote-label {
+        .like-label {
             margin-left: auto;
             font-size: 0.9rem;
             color: v.$tertiary-light;
         }
     }
 
-    .vote-btn {
+    .like-btn {
         display: flex;
         align-items: center;
-        gap: 0.25rem;
+        gap: 0.5rem;
         background: none;
         border: none;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
+        padding: 0.5rem 0.75rem;
+        border-radius: 20px;
         cursor: pointer;
-        transition: all 0.2s;
-        color: #666;
+        transition: all 0.3s ease;
+        color: #888;
         font-family: "Inter 24pt Regular";
+        
+        .heart-icon {
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            transform-origin: center;
+        }
+        
+        .like-count {
+            font-size: 0.95rem;
+        }
 
         &:hover {
-            background-color: rgba(0, 0, 0, 0.05);
+            background-color: rgba(252, 98, 52, 0.1);
+            .heart-icon {
+                color: v.$primary;
+            }
         }
 
         &.active {
-            font-weight: bold;
-            
-            &.upvote {
-                color: v.$tertiary;
-                .vote-icon {
-                    color: v.$tertiary;
-                }
-            }
-            
-            &.downvote {
+            .heart-icon {
                 color: v.$primary;
-                .vote-icon {
-                    color: v.$primary;
-                }
+                transform: scale(1.2);
+                animation: heart-pulse 0.4s;
+            }
+            .like-count {
+                color: v.$tertiary-dark;
+                font-weight: bold;
             }
         }
+    }
 
-        .vote-icon {
-            font-size: 0.8rem;
-            line-height: 1;
+    @keyframes heart-pulse {
+        0% {
+            transform: scale(1);
         }
-        
-        .vote-count {
-            font-size: 0.9rem;
+        50% {
+            transform: scale(1.3);
+        }
+        100% {
+            transform: scale(1.2);
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .news-card {
+            flex-direction: column;
+            gap: 1rem;
+            
+            .like-control {
+                align-self: flex-end;
+                padding-bottom: 0.5rem;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+                width: 100%;
+                justify-content: flex-end;
+            }
         }
     }
 
@@ -462,20 +467,6 @@
 
             :global(strong) {
                 color: v.$tertiary;
-            }
-        }
-    }
-    
-    @media (max-width: 768px) {
-        .news-card {
-            flex-direction: column;
-            gap: 1rem;
-            
-            .vote-controls {
-                flex-direction: row;
-                justify-content: flex-end;
-                border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-                padding-bottom: 1rem;
             }
         }
     }
