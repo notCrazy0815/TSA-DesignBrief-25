@@ -35,7 +35,7 @@
           'translateHorizontalScroll': '0px',
           'scrollDownHintOpacity': '0',
           'progress': '0%',
-          'windowHeight': '100%',
+          'windowHeight': '70%',
           'windowBorderRadius': '1000px',
           'horizontalOpacity': '1'
      };
@@ -46,6 +46,7 @@
      let active = false;
      let showHero = true;
      let showHorizontal = true;
+     let showWindow = true;
      let windowY = 0;
 
      onMount(() => {
@@ -132,6 +133,10 @@
                visibleSection--;
           }
 
+          if (visibleSection === 3) {
+               styles['windowHeight'] = '100%';
+          }
+
           styles['progress'] = `${visibleSection * 33.3334}%`;
           styles['translateHorizontalScroll'] = `${translateBefore}px`;
 
@@ -142,7 +147,7 @@
      }
 
      function zoomInWindow() {
-          styles['windowHeight'] = '400%';
+          styles['windowHeight'] = '500%';
           styles['windowBorderRadius'] = '0';
           styles['horizontalOpacity'] = '0';
 
@@ -150,6 +155,10 @@
                showHorizontal = false;
           }, 1000);
           allowScroll = false;
+
+          setTimeout(() => {
+               showWindow = false;
+          }, 2000);
      }
 
      $: cssVarStyles = Object.entries(styles).map(([key, value]) => `--${key}:${value}`).join(';');
@@ -188,52 +197,57 @@
                </div>
           </section>
      {/if}
-     <section class="horizontal-section">
-          {#if showHorizontal}
-               <div class="nav">
-                    <h1 bind:this={navTitle}>VERDANTIA</h1>
-                    <div class="links">
-                         <div class="link">
-                         <a href="/">Home</a>
-                         {#if showHero}
-                              <div class="active-icon"></div>
-                         {:else}
-                              <div class="active-icon active">
-                                        <img src={orange} alt="Active" />
-                              </div>
-                              {/if}
-                         </div>
-                         <div class="link">
-                         <a href="/menu">Menu</a>
-                         <div class="active-icon"></div>
-                         </div>
-                         <div class="link">
-                         <a href="/news">News</a>
-                         <div class="active-icon"></div>
-                         </div>
-                    </div>
-               </div>
-          {/if}
-          <div class="horizontal-content">
-               <div class="boxes">
-                    {#each Array(2) as _, i}
-                         <div class="box"></div>
-                    {/each}
-                    <div class="box">
-                         <div class="window"></div>
-                    </div>
-               </div>
+     {#if showWindow}
+          <section class="horizontal-section">
                {#if showHorizontal}
-                    <div class="navigator">
-                         <div class="navigator-content">
-                              <div class="progress-bar">
-                                   <div class="progress"></div>
+                    <div class="nav">
+                         <h1 bind:this={navTitle}>VERDANTIA</h1>
+                         <div class="links">
+                              <div class="link">
+                              <a href="/">Home</a>
+                              {#if showHero}
+                                   <div class="active-icon"></div>
+                              {:else}
+                                   <div class="active-icon active">
+                                             <img src={orange} alt="Active" />
+                                   </div>
+                                   {/if}
+                              </div>
+                              <div class="link">
+                              <a href="/menu">Menu</a>
+                              <div class="active-icon"></div>
+                              </div>
+                              <div class="link">
+                              <a href="/news">News</a>
+                              <div class="active-icon"></div>
                               </div>
                          </div>
                     </div>
                {/if}
-          </div>
-     </section>
+               <div class="horizontal-content">
+                    <div class="boxes">
+                         {#each Array(2) as _, i}
+                              <div class="box"></div>
+                         {/each}
+                         <div class="box">
+                              <div class="window"></div>
+                         </div>
+                    </div>
+                    {#if showHorizontal}
+                         <div class="navigator">
+                              <div class="navigator-content">
+                                   <div class="progress-bar">
+                                        <div class="progress"></div>
+                                   </div>
+                              </div>
+                         </div>
+                    {/if}
+               </div>
+          </section>
+     {/if}
+     {#if !showWindow}
+          <section class="blue-section"></section>
+     {/if}
 </div>
 
 <style lang="scss">
@@ -559,6 +573,12 @@
                          }
                     }
                }
+          }
+
+          .blue-section {
+               width: 100%;
+               height: 100vh;
+               background-color: v.$quaternary;
           }
      }
 </style>
