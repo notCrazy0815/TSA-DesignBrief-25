@@ -118,8 +118,8 @@
           let translateBefore: number = parseInt(styles['translateHorizontalScroll'].split('px')[0]);
 
           if (e.deltaY > 0) {
-               if (visibleSection === 4) return;
-               translateBefore -= innerWidth * 0.95;         
+               if (visibleSection === 3) return;
+               translateBefore -= innerWidth * 0.95;
                visibleSection++;
           } else {
                if (visibleSection === 1) return;
@@ -134,7 +134,7 @@
                styles['windowScale'] = '0';
           }
 
-          styles['progress'] = `${visibleSection * 25}%`;
+          styles['progress'] = `${visibleSection * 33.3334}%`;
           styles['translateHorizontalScroll'] = `${translateBefore}px`;
 
           allowScroll = false;
@@ -215,26 +215,7 @@
                     <img src={cloud} alt="cloud" class="cloud">
                </div>
                <div class="boxes">
-                    <div class="box first">
-                         <div class="big-number">
-                              <h1>1</h1>
-                              {#each Array(2) as _}
-                                   <img src={orange} alt="Orange zero" class="orange-zero">
-                              {/each}
-                              <h1>%</h1>
-                         </div>
-                         <p class="subtitle">plant-based, local, sustainable</p>
-                    </div>
-                    <div class="box second">
-                         <div class="second-text">
-                              <h1 class="header">
-                                   <span class="number">85%</span>
-                                   of our ingredients come from farms within a 100 km radius.
-                              </h1>
-                              <p class="subtitle">Shorter supply chains – better taste while promoting American farmers.</p>
-                         </div>
-                    </div>
-                    {#each Array(2) as _, i}
+                    {#each Array(3) as _, i}
                          <div class="box"></div>
                     {/each}
                </div>
@@ -618,58 +599,12 @@
                          .box {
                               width: 90vw;
                               height: 100%;
-                              background-color: v.$quaternary;
-                              border-radius: 2rem;
+                              // background-color: v.$quaternary;
+                              // border-radius: 2rem;
 
                               &:nth-child(1) {
                                    margin-left: calc(100vw);
                               }
-
-                              p {
-                                   .logo {
-                                        color: v.$tertiary;
-                                        font-family: "DynaPuff Regular";
-                                   }
-                              }
-                         }
-
-                         .first {
-                              display: flex;
-                              justify-content: center;
-                              align-items: center;
-                              flex-direction: column;
-                              gap: 1rem;
-                              overflow: hidden;
-
-                              .big-number {
-                                   display: flex;
-                                   justify-content: center;
-                                   align-items: center;
-                                   gap: 5px;
-
-                                   h1 {
-                                        font-size: clamp(1.5rem, 9vw, 10rem);
-                                   }
-
-                                   .orange-zero {
-                                        aspect-ratio: 1;
-                                        width: clamp(1.5rem, 9vw, 10rem);
-                                        height: clamp(1.5rem, 9vw, 10rem);
-                                   }
-                              }
-
-                              .subtitle {
-                                   font-size: clamp(0.9rem, 2vw, 1.4rem);
-                              }
-                         }
-
-                         .second {
-                              padding: 2rem 0;
-                              display: flex;
-                              align-items: center;
-                              justify-content: center;
-
-                              
                          }
                     }
                }
