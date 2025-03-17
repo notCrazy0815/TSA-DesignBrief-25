@@ -16,7 +16,6 @@
      import branch14 from "$lib/assets/branches/branch_14.png";
      import branch15 from "$lib/assets/branches/branch_15.png";
      import orange from "$lib/assets/icons/orange.png";
-     import cloud from "$lib/assets/icons/cloud.png";
 
      let branches = [branch1, branch2, branch3, branch4, branch5, branch6, branch7, branch8, branch9, branch10, branch11, branch12, branch13, branch14, branch15];
 
@@ -36,7 +35,9 @@
           'translateHorizontalScroll': '0px',
           'scrollDownHintOpacity': '0',
           'progress': '0%',
-          'windowScale': '0',
+          'windowHeight': '70%',
+          'windowBorderRadius': '1000px',
+          'horizontalOpacity': '1'
      };
 
      let centerTitle: HTMLHeadingElement;
@@ -44,6 +45,8 @@
 
      let active = false;
      let showHero = true;
+     let showHorizontal = true;
+     let showWindow = true; // for testing "false", should be true
      let windowY = 0;
 
      onMount(() => {
@@ -118,8 +121,11 @@
           let translateBefore: number = parseInt(styles['translateHorizontalScroll'].split('px')[0]);
 
           if (e.deltaY > 0) {
-               if (visibleSection === 4) return;
-               translateBefore -= innerWidth * 0.95;         
+               if (visibleSection === 3) {
+                    zoomInWindow();
+                    return;
+               }
+               translateBefore -= innerWidth * 0.95;
                visibleSection++;
           } else {
                if (visibleSection === 1) return;
@@ -127,14 +133,13 @@
                visibleSection--;
           }
 
-          if (visibleSection === 1 && styles['windowScale'] === '0') {
-               styles['windowScale'] = '1';
-          }
-          if (visibleSection === 2 && styles['windowScale'] === '1' && e.deltaY > 0) {
-               styles['windowScale'] = '0';
+          if (visibleSection === 3) {
+               styles['windowHeight'] = '100%';
+          } else if (visibleSection === 2) {
+               styles['windowHeight'] = '70%';
           }
 
-          styles['progress'] = `${visibleSection * 25}%`;
+          styles['progress'] = `${visibleSection * 33.3334}%`;
           styles['translateHorizontalScroll'] = `${translateBefore}px`;
 
           allowScroll = false;
@@ -143,6 +148,19 @@
           }, 1100);
      }
 
+     function zoomInWindow() {
+          styles['windowHeight'] = '500%';
+          styles['windowBorderRadius'] = '0';
+          styles['horizontalOpacity'] = '0';
+
+          allowScroll = false;
+
+          setTimeout(() => {
+               showHorizontal = false;
+               showWindow = false;
+               window.scrollTo(0, 0);
+          }, 1000);
+     }
 
      $: cssVarStyles = Object.entries(styles).map(([key, value]) => `--${key}:${value}`).join(';');
 </script>
@@ -150,14 +168,9 @@
 <svelte:window on:scroll={handleScroll} bind:scrollY={windowY} on:wheel={handleMouseWheel} />
 
 <div class="content" style={cssVarStyles}>
+     <!--{#if false}-->
      {#if showHero}
           <section class="hero-section" on:mousemove={e => handleMouseMove(e)} role="presentation">
-               <div class="fruits-stack">
-                    <div class="orange-1 orange fruit"></div>
-                    <div class="orange-2 orange fruit"></div>
-                    <div class="tomate-1 tomate fruit"></div>
-                    <div class="onion-1 onion fruit"></div>
-               </div>
                <div class="branches-stack">
                     <div class="left">
                          {#each Array(10) as _, i}
@@ -186,67 +199,70 @@
                </div>
           </section>
      {/if}
-     <section class="horizontal-section">
-          <div class="nav">
-               <h1 bind:this={navTitle}>VERDANTIA</h1>
-               <div class="links">
-                    <div class="link">
-                        <a href="/">Home</a>
-                        {#if showHero}
-                             <div class="active-icon"></div>
-                        {:else}
-                             <div class="active-icon active">
-                                   <img src={orange} alt="Active" />
-                             </div>
-                         {/if}
-                    </div>
-                    <div class="link">
-                        <a href="/menu">Menu</a>
-                        <div class="active-icon"></div>
-                    </div>
-                    <div class="link">
-                        <a href="/news">News</a>
-                        <div class="active-icon"></div>
-                    </div>
-               </div>
-          </div>
-          <div class="horizontal-content">
-               <div class="clouds">
-                    <img src={cloud} alt="cloud" class="cloud">
-               </div>
-               <div class="boxes">
-                    <div class="box first">
-                         <div class="big-number">
-                              <h1>1</h1>
-                              {#each Array(2) as _}
-                                   <img src={orange} alt="Orange zero" class="orange-zero">
-                              {/each}
-                              <h1>%</h1>
-                         </div>
-                         <p class="subtitle">plant-based, local, sustainable</p>
-                    </div>
-                    <div class="box second">
-                         <div class="second-text">
-                              <h1 class="header">
-                                   <span class="number">85%</span>
-                                   of our ingredients come from farms within a 100 km radius.
-                              </h1>
-                              <p class="subtitle">Shorter supply chains – better taste while promoting American farmers.</p>
+     {#if showWindow}
+          <section class="horizontal-section">
+               {#if showHorizontal}
+                    <div class="nav">
+                         <h1 bind:this={navTitle}>VERDANTIA</h1>
+                         <div class="links">
+                              <div class="link">
+                              <a href="/">Home</a>
+                              {#if showHero}
+                                   <div class="active-icon"></div>
+                              {:else}
+                                   <div class="active-icon active">
+                                             <img src={orange} alt="Active" />
+                                   </div>
+                                   {/if}
+                              </div>
+                              <div class="link">
+                              <a href="/menu">Menu</a>
+                              <div class="active-icon"></div>
+                              </div>
+                              <div class="link">
+                              <a href="/news">News</a>
+                              <div class="active-icon"></div>
+                              </div>
                          </div>
                     </div>
-                    {#each Array(2) as _, i}
-                         <div class="box"></div>
-                    {/each}
-               </div>
-               <div class="navigator">
-                    <div class="navigator-content">
-                         <div class="progress-bar">
-                              <div class="progress"></div>
+               {/if}
+               <div class="horizontal-content">
+                    <div class="boxes">
+                         {#each Array(2) as _, i}
+                              <div class="box"></div>
+                         {/each}
+                         <div class="box">
+                              <div class="window"></div>
                          </div>
                     </div>
+                    {#if showHorizontal}
+                         <div class="navigator">
+                              <div class="navigator-content">
+                                   <div class="progress-bar">
+                                        <div class="progress"></div>
+                                   </div>
+                              </div>
+                         </div>
+                    {/if}
                </div>
-          </div>
-     </section>
+          </section>
+     {/if}
+     {#if !showWindow}
+          <section class="blue-section">
+               <div class="blue-content">
+                    <div class="heading">
+                         <h1>Still not convinced?</h1>
+                    </div>
+                    <div class="clouds"></div>
+               </div>
+               <div class="white-content">
+                    <div class="further-links">
+                         <h3>Now that you know who we are, find out what food we serve</h3>
+                         <a href="/menu">View our menu</a>
+                    </div>
+               </div>
+          </section>
+     {/if}
 </div>
 
 <style lang="scss">
@@ -330,63 +346,6 @@
                     }
                     100% {
                          color: v.$tertiary-dark;
-                    }
-               }
-
-               .fruits-stack {
-                    position: absolute;
-                    width: 100%;
-                    height: 100%;
-
-                    .fruit {
-                         position: absolute;
-                         aspect-ratio: 1/1;
-                         border-radius: 50%;
-                         transform: translate(-50%, -50%);
-                         animation: fruit-start 1.5s forwards;
-                    }
-
-                    .onion {
-                         background-color: v.$secondary;
-                    }
-
-                    .onion-1 {
-                         top: calc(90% - 150px);
-                         left: 10%;
-                    }
-
-                    .tomate {
-                         background-color: v.$quinary;
-                    }
-
-                    .tomate-1 {
-                         top: 25%;
-                         left: calc(90% - 100px);
-                    }
-                    
-                    .orange {
-                         background-color: v.$primary;
-                    }
-
-                    .orange-1 {
-                         top: 15%;
-                         left: 20%;
-                    }
-
-                    .orange-2 {
-                         top: calc(95% - 100px);
-                         left: 80%;
-                    }
-
-                    @keyframes fruit-start {
-                         0% {
-                              width: 0;
-                              height: 0;
-                         }
-                         100% {
-                              // width: clamp(100px, 10vw, 200px);
-                              // height: clamp(100px, 10vw, 200px);
-                         }
                     }
                }
 
@@ -502,6 +461,8 @@
                     display: flex;
                     flex-direction: column;
                     align-items: center;
+                    opacity: var(--horizontalOpacity);
+                    transition: all 0.3s;
 
                     h1 {
                          font-size: 5rem;
@@ -531,7 +492,6 @@
                               }
 
                               .active {
-                                   // background-color: v.$primary;
                                    animation: active-icon-start 0.5s forwards;
                                    display: flex;
 
@@ -560,12 +520,13 @@
                     height: 100vh;
                     gap: 2rem;
                     position: relative;
-                    z-index: 1000;
 
                     .navigator {
                          width: 100%;
                          display: flex;
                          justify-content: center;
+                         opacity: var(--horizontalOpacity);
+                         transition: all 0.2s;
 
                          .navigator-content {
                               display: flex;
@@ -591,22 +552,6 @@
                          }
                     }
 
-                    .clouds {
-                         display: none !important; // weil gerade kb drauf
-                         position: absolute;
-                         width: 100%;
-                         height: 100%;
-                         display: flex;
-                         justify-content: center;
-                         align-items: center;
-                         z-index: -1;
-
-                         .cloud {
-                              width: clamp(1.5rem, 9vw, 10rem);
-                              height: auto;
-                         }
-                    }
-
                     .boxes {
                          display: flex;
                          gap: 5vw;
@@ -618,58 +563,125 @@
                          .box {
                               width: 90vw;
                               height: 100%;
-                              background-color: v.$quaternary;
-                              border-radius: 2rem;
 
                               &:nth-child(1) {
                                    margin-left: calc(100vw);
                               }
 
-                              p {
-                                   .logo {
-                                        color: v.$tertiary;
-                                        font-family: "DynaPuff Regular";
-                                   }
-                              }
-                         }
-
-                         .first {
-                              display: flex;
-                              justify-content: center;
-                              align-items: center;
-                              flex-direction: column;
-                              gap: 1rem;
-                              overflow: hidden;
-
-                              .big-number {
+                              &:nth-child(3) {
                                    display: flex;
                                    justify-content: center;
                                    align-items: center;
-                                   gap: 5px;
 
-                                   h1 {
-                                        font-size: clamp(1.5rem, 9vw, 10rem);
+                                   .window {
+                                        height: var(--windowHeight);
+                                        aspect-ratio: 2/3;
+                                        z-index: 100;
+                                        position: relative;
+                                        background-color: v.$quaternary;
+                                        border-top-left-radius: var(--windowBorderRadius);
+                                        border-top-right-radius: var(--windowBorderRadius);
+                                        transition: border-radius 0.5s,
+                                             height 1s;
                                    }
-
-                                   .orange-zero {
-                                        aspect-ratio: 1;
-                                        width: clamp(1.5rem, 9vw, 10rem);
-                                        height: clamp(1.5rem, 9vw, 10rem);
-                                   }
-                              }
-
-                              .subtitle {
-                                   font-size: clamp(0.9rem, 2vw, 1.4rem);
                               }
                          }
+                    }
+               }
+          }
 
-                         .second {
-                              padding: 2rem 0;
-                              display: flex;
-                              align-items: center;
-                              justify-content: center;
+          .blue-section {
+               width: 100%;
+               min-height: 100vh;
 
-                              
+               display: flex;
+               flex-direction: column;
+               justify-content: center;
+               background-color: v.$quaternary;
+
+               .blue-content {
+                    width: 100%;
+                    display: flex;
+                    justify-content: center;
+                    flex-direction: column;
+                    opacity: 0;
+                    animation: fadeIn 1s forwards;
+
+                    @keyframes fadeIn {
+                         0% {
+                              opacity: 0;
+                         }
+                         100% {
+                              opacity: 1;
+                         }
+                    }
+
+                    .heading {
+                         background-color: v.$quaternary;
+                         height: 90%;
+                         min-height: 90vh;
+                         width: 100%;
+                         display: flex;
+                         justify-content: center;
+                         align-items: center;
+
+                         h1 {
+                              font-size: clamp(4rem, 10vw, 6rem);
+                              font-weight: bold;
+                              color: v.$font-color-light;
+                         }
+                    }
+
+                    .clouds {
+                         background-image: linear-gradient(180deg, v.$quaternary, v.$font-color-light);
+                         height: 10%;
+                         min-height: 200px;
+                         width: 100%;
+                    }
+               }
+
+               .white-content {
+                    width: 100%;
+                    height: 100vh;
+                    background-color: v.$background-color-light;
+                    padding: 0 3rem;
+                    display: flex;
+                    align-items: end;
+
+                    .further-links {
+                         padding: 4rem 2rem;
+                         background-color: v.$tertiary-light;
+                         display: flex;
+                         flex-direction: column;
+                         align-items: center;
+                         border-radius: 2rem;
+                         width: 100%;
+                         margin-bottom: 2rem;
+                         gap: 2rem;
+
+                         h3 {
+                              font-size: clamp(1.5rem, 3vw, 2rem);
+                              color: v.$font-color-light;
+                              text-align: center;
+                              padding: 1rem;
+                         }
+
+                         a {
+                              background-color: rgba(v.$primary, 0.85);
+                              color: v.$font-color-light;
+                              padding: 10px 16px;
+                              border-radius: 30px;
+                              font-size: 0.95rem;
+                              font-weight: 500;
+                              letter-spacing: 0.5px;
+                              cursor: pointer;
+                              transition: all 0.3s ease;
+
+                              &::after {
+                                   content: "→";
+                                   margin-left: 8px;
+                                   font-size: 1.1em;
+                              }
                          }
                     }
                }
