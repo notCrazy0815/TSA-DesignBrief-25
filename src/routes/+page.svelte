@@ -16,6 +16,9 @@
      import branch14 from "$lib/assets/branches/branch_14.png";
      import branch15 from "$lib/assets/branches/branch_15.png";
      import orange from "$lib/assets/icons/orange.png";
+     import lavender from "$lib/assets/icons/lavender.png";
+     import leaf from "$lib/assets/icons/leaf.png";
+     import flower from "$lib/assets/icons/flower.png";
 
      let branches = [branch1, branch2, branch3, branch4, branch5, branch6, branch7, branch8, branch9, branch10, branch11, branch12, branch13, branch14, branch15];
 
@@ -44,7 +47,7 @@
      let navTitle: HTMLHeadingElement;
 
      let active = false;
-     let showHero = true;
+     let showHero = false;
      let showHorizontal = true;
      let showWindow = true; // for testing "false", should be true
      let windowY = 0;
@@ -228,9 +231,26 @@
                {/if}
                <div class="horizontal-content">
                     <div class="boxes">
-                         {#each Array(2) as _, i}
-                              <div class="box"></div>
-                         {/each}
+                         <div class="box">
+                              <div class="green">
+                                   <div class="plants">
+                                        <div class="plants-container">
+                                             <img src={branch2} alt="Plant 1" class="plant">
+                                        </div>
+                                   </div>
+                                   <div class="header-green">
+                                        <h1>
+                                             There is no reason not to<br><span>do it</span>.
+                                        </h1>
+                                   </div>
+                                   <div class="subtitle-green">
+                                        <p>
+                                             It has never been easier to eat healthy, while saving animals life, <br>and protecting the environment. All while not draining your wallet.
+                                        </p>
+                                   </div>
+                              </div>
+                         </div>
+                         <div class="box"></div>
                          <div class="box">
                               <div class="window"></div>
                          </div>
@@ -566,6 +586,95 @@
 
                               &:nth-child(1) {
                                    margin-left: calc(100vw);
+
+                                   display: flex;
+                                   justify-content: space-between;
+                                   gap: 2rem;
+
+                                   .green {
+                                        height: 100%;
+                                        width: 100%;
+                                        display: flex;
+                                        flex-direction: column;
+                                        justify-content: space-between;
+                                        position: relative;
+
+                                        background-color: v.$font-color-light-2;
+                                        border-radius: 2rem;
+                                        padding: 2rem;
+
+                                        .header-green {
+                                             height: 70%;
+                                             display: flex;
+                                             align-items: center;
+
+                                             h1 {
+                                                  color: v.$tertiary-dark;
+                                                  font-size: clamp(2.5rem, 6vw, 4rem);
+
+                                                  span {
+                                                       animation: spanAnimation 2s infinite;
+                                                  }
+                                             }
+
+                                             @keyframes spanAnimation {
+                                                  0% {
+                                                       color: v.$primary;
+                                                  }
+                                                  50% {
+                                                       color: v.$tertiary;
+                                                  }
+                                                  100% {
+                                                       color: v.$primary;
+                                                  }
+                                             }
+                                        }
+
+                                        .subtitle-green {
+                                             max-height: fit-content;
+
+                                             p {
+                                                  font-size: clamp(0.7rem, 2vw, 1rem);
+                                                  color: v.$font-color-dark;
+                                             }
+                                        }
+
+                                        .plants {
+                                             position: absolute;
+                                             transform: translate(-2rem, -2rem);
+                                             border-radius: 2rem;
+                                             width: 100%;
+                                             height: 100%;
+                                             display: flex;
+                                             justify-content: end;
+                                             align-items: end;
+                                             overflow: hidden;
+
+                                             .plants-container {
+                                                  width: clamp(180px, 40vw, 830px);
+                                                  aspect-ratio: 3840/2160;
+                                                  position: relative;
+                                                  transform: rotate(230deg);
+
+                                                  .plant {
+                                                       aspect-ratio: 3840/2160;
+                                                       width: 100%;
+                                                       height: auto;
+                                                       position: absolute;
+
+                                                       img {
+                                                            width: 100%;
+                                                            height: 100%;
+                                                       }
+
+                                                       &:nth-child(1) {
+                                                            rotate: 0deg;
+                                                            transform: translate(-5%, 34%);
+                                                       }
+                                                  }
+                                             }
+                                        }
+                                   }
                               }
 
                               &:nth-child(3) {
