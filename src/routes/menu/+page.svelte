@@ -2,6 +2,7 @@
   import { tick, onMount } from "svelte";
   import { fly, fade } from "svelte/transition";
   import NavBar from "$lib/components/NavBar.svelte";
+  import MenuItemModal from "$lib/components/MenuItemModal.svelte";
   import { writable } from 'svelte/store';
   import Footer from "$lib/components/Footer.svelte";
 
@@ -15,13 +16,12 @@
   let scrollPosition = 0;
   let menuElement;
   let containerHeight;
-  let cardDimensions = { width: 0, height: 0 };
-  const originalRotations = [-5, 4, 10, -6];
-  let isMobile = false;
   let menuCategoryCardsElement;
   let scrollDownElement;
   let lastScrollY = 0;
   let lastResize = 0;
+
+  const originalRotations = [-5, 4, 10, -6];
 
   const cards = [
     { id: 1, title: "Appetizers", text: "Kick off your culinary journey with our delightful plant-based appetizers, featuring fresh, innovative bites that tease your taste buds with vibrant flavors and sustainable ingredients." },
@@ -33,8 +33,32 @@
   const menus = {
     Appetizers: [
       { category: "Cold Starters", items: [
-        { name: "Bruschetta with Heirloom Tomatoes", price: "7.95", tags: ["vegan", "contains-gluten"] },
-        { name: "Heritage Caprese Salad", price: "9.50", tags: ["vegetarian", "gluten-free", "contains-lactose"] },
+        { name: "Bruschetta with Heirloom Tomatoes", price: "7.95", tags: ["vegan", "contains-gluten"], detailed: {
+          description: "Our signature bruschetta features locally sourced heirloom tomatoes, fresh basil from our greenhouse, and aged balsamic reduction drizzled over artisanal sourdough bread toasted to perfection.",
+          ingredients: ["Heirloom tomatoes", "Fresh basil", "Organic garlic", "Extra-virgin olive oil", "Aged balsamic reduction", "Artisanal sourdough bread", "Sea salt", "Cracked black pepper"],
+          nutrition: {
+            calories: 215,
+            protein: "4g",
+            carbs: "28g",
+            fat: "10g"
+          },
+          allergens: ["Gluten"],
+          image: "/images/menu/bruschetta.jpg",
+          pairings: ["Elderflower Fizz", "Sparkling Botanical Water"]
+        }},
+        { name: "Heritage Caprese Salad", price: "9.50", tags: ["vegetarian", "gluten-free", "contains-lactose"], detailed: {
+          description: "Our modern take on the classic caprese features locally-produced heritage tomatoes, house-made plant mozzarella, and fresh basil from our own garden, drizzled with our signature aged balsamic reduction.",
+          ingredients: ["Heritage tomatoes", "House-made fresh mozzarella", "Organic basil", "Extra-virgin olive oil", "Aged balsamic reduction", "Sea salt", "Freshly ground black pepper"],
+          nutrition: {
+            calories: 245,
+            protein: "12g",
+            carbs: "8g",
+            fat: "18g"
+          },
+          allergens: ["Lactose"],
+          image: "/images/menu/caprese.jpg",
+          pairings: ["Cold-Brewed Hibiscus Tea", "Berry-Infused Sparkler"]
+        }},
         { name: "House-Marinated Olives", price: "6.25", tags: ["vegan", "gluten-free", "keto"] },
         { name: "Watermelon Gazpacho", price: "8.95", tags: ["vegan", "gluten-free", "seasonal", "raw"], isNew: true },
         { name: "Grilled Peach & Arugula Salad", price: "10.50", tags: ["vegan", "gluten-free", "seasonal"], isNew: true },
@@ -87,7 +111,18 @@
     ],
     Drinks: [
       { category: "Signature Mocktails", items: [
-        { name: "Cucumber Basil Refresher", price: "6.95", tags: ["vegan", "gluten-free"] },
+        { name: "Cucumber Basil Refresher", price: "6.95", tags: ["vegan", "gluten-free"], detailed: {
+          description: "A cooling blend of muddled cucumber, fresh basil, hint of lime, and sparkling water. This signature refresher is the perfect palate cleanser between courses or complement to our lighter dishes.",
+          ingredients: ["Organic cucumbers", "Fresh basil", "Lime juice", "Simple syrup", "Sparkling water", "Basil and cucumber garnish"],
+          nutrition: {
+            calories: 85,
+            sugar: "8g",
+            carbs: "12g"
+          },
+          allergens: [],
+          image: "/images/menu/cucumber-refresher.jpg",
+          recommended: ["Pairs wonderfully with our Heritage Caprese Salad or Grilled Artichoke Hearts"]
+        }},
         { name: "Spicy Ginger Lemonade", price: "6.50", tags: ["vegan", "gluten-free", "spicy"] },
         { name: "Elderflower Fizz", price: "6.95", tags: ["vegan", "gluten-free"] },
         { name: "Rosemary Citrus Splash", price: "6.50", tags: ["vegan", "gluten-free"] },
@@ -123,7 +158,19 @@
     ],
     Desserts: [
       { category: "Frozen Delights", items: [
-        { name: "Seasonal Fruit Sorbet Selection", price: "6.95", tags: ["vegan", "gluten-free", "seasonal"] },
+        { name: "Seasonal Fruit Sorbet Selection", price: "6.95", tags: ["vegan", "gluten-free", "seasonal"], detailed: {
+          description: "A rotating selection of our house-made seasonal fruit sorbets. Current selection includes: Wild Berry, Meyer Lemon, and Tennessee Peach. Each scoop is garnished with an appropriate fresh herb or edible flower.",
+          ingredients: ["Organic seasonal fruits", "Organic cane sugar", "Filtered water", "Fresh herbs", "Edible flowers"],
+          nutrition: {
+            calories: 110,
+            sugar: "22g",
+            carbs: "26g",
+            fat: "0g"
+          },
+          allergens: [],
+          image: "/images/menu/sorbet.jpg",
+          recommended: ["Enjoy with our Rose & Cardamom Latte for a delightful finish to your meal"]
+        }},
         { name: "Artisanal Coconut Milk Gelato", price: "7.50", tags: ["vegan", "gluten-free"] },
         { name: "Banana Date Nice Cream", price: "7.95", tags: ["vegan", "gluten-free"] },
         { name: "Cardamom Mango Lassi Ice Cream", price: "8.50", tags: ["vegetarian", "gluten-free", "contains-lactose"] },
@@ -164,30 +211,32 @@
     }
   ];
 
-  const specialtyDrinkRecommendations = [
-    { 
-      name: "Organic Elderflower Sparkler", 
-      origin: "House-made", 
-      description: "Crisp and vibrant with notes of citrus and subtle floral aromas. Perfect with salads and light starters.",
-      glass: "6.50",
-      carafe: "16.00"
-    },
-    { 
-      name: "Premium Berry Kombucha",  
-      origin: "Local Brewery", 
-      description: "Complex with aromas of red berries and earthy undertones. Pairs well with mushroom dishes.",
-      glass: "7.00",
-      carafe: "18.00"
-    },
-    { 
-      name: "Golden Turmeric Elixir", 
-      origin: "House-made", 
-      description: "Warm notes of turmeric, ginger and citrus. Complements our creamy vegetable dishes.",
-      glass: "6.50",
-      carafe: "16.00"
+  function getUniqueDrinkRecommendations(count = 4) {
+    const allDrinks = [];
+    
+    if (menus.Drinks) {
+      for (const section of menus.Drinks) {
+        for (const item of section.items) {
+          allDrinks.push(item);
+        }
+      }
     }
-  ];
+    
+    const shuffled = [...allDrinks].sort(() => 0.5 - Math.random());
+    
+    return shuffled.slice(0, Math.min(count, shuffled.length));
+  }
   
+  const beveragePairings = getUniqueDrinkRecommendations(4).map(drink => {
+    return {
+      name: drink.name,
+      origin: drink.detailed?.origin || "House-made", 
+      description: drink.detailed?.shortDescription || 
+        `A refreshing ${drink.name.toLowerCase()} that pairs perfectly with our dishes.`,
+      price: drink.price
+    };
+  });
+
   const allergens = [
     { code: "G", name: "Gluten" },
     { code: "L", name: "Lactose" },
@@ -197,32 +246,16 @@
     { code: "SS", name: "Sesame Seeds" }
   ];
 
-  const beveragePairings = [
-    { 
-      name: "Sparkling Elderflower Tonic", 
-      origin: "House-made", 
-      description: "A refreshing blend of elderflower, sparkling water, and citrus. Perfect with our lighter appetizers and salads.",
-      price: "6.50" 
-    },
-    { 
-      name: "Blackberry Sage Spritzer",  
-      origin: "Nashville Craft Beverage Co.", 
-      description: "Rich berry notes with herbaceous undertones. Complements our mushroom and truffle dishes beautifully.",
-      price: "5.95" 
-    },
-    { 
-      name: "Hibiscus Ginger Cooler", 
-      origin: "House-made", 
-      description: "Tart hibiscus balanced with warming ginger and a touch of sweetness. Cuts through rich, creamy dishes.",
-      price: "5.50" 
-    },
-    {
-      name: "Tennessee Cherry Soda",
-      origin: "Local Craft Soda",
-      description: "Made with cherries from Tennessee orchards, this locally-crafted soda pairs perfectly with our heartier main courses.",
-      price: "4.95"
-    }
-  ];
+  let selectedMenuItem = null;
+
+  function showItemDetails(item) {
+    if (!item) return;
+    selectedMenuItem = item;
+  }
+
+  function closeItemDetails() {
+    selectedMenuItem = null;
+  }
 
   function toggleFilter(category, filter) {
     activeFilters.update(filters => {
@@ -308,31 +341,34 @@
     
     const activeCardElement = document.querySelector('.card.active');
     if (activeCardElement) {
-      const activeRect = activeCardElement.getBoundingClientRect();
-      
-      if (isMobile) {
-        containerHeight = activeRect.height + 60;
-        document.querySelectorAll('.card:not(.active)').forEach(c => {
-          c.style.opacity = '0';
-          c.style.pointerEvents = 'none';
-        });
-      } else {
-        containerHeight = activeRect.height + 40;
-      }
+      const activeCardHeight = activeCardElement.offsetHeight;
       
       if (menuCategoryCardsElement) {
-        menuCategoryCardsElement.style.height = `${containerHeight}px`;
+        menuCategoryCardsElement.style.height = `${activeCardHeight + 40}px`;
+        
+        if (window.innerWidth < 768) {
+          menuCategoryCardsElement.style.position = 'relative';
+          activeCardElement.style.top = '0';
+          activeCardElement.style.transform = 'translate3d(-50%, 0, 0) rotateZ(0deg)';
+        }
       }
       
       if (scrollDownElement) {
         scrollDownElement.style.opacity = '1';
+        scrollDownElement.style.position = 'relative';
         scrollDownElement.style.top = 'auto';
         scrollDownElement.style.bottom = '-40px';
-        scrollDownElement.style.position = 'relative';
       }
       
-      const targetScroll = window.scrollY + activeRect.top - (isMobile ? 60 : 100);
-      window.scrollTo({ top: targetScroll, behavior: 'smooth' });
+      if (window.innerWidth < 768) {
+        const containerRect = menuCategoryCardsElement.getBoundingClientRect();
+        const targetScroll = window.scrollY + containerRect.top - 20;
+        window.scrollTo({ top: targetScroll, behavior: 'smooth' });
+      } else {
+        const activeRect = activeCardElement.getBoundingClientRect();
+        const targetScroll = window.scrollY + activeRect.top - 100;
+        window.scrollTo({ top: targetScroll, behavior: 'smooth' });
+      }
     }
     
     await tick();
@@ -359,11 +395,7 @@
     
     if (menuCategoryCardsElement) {
       menuCategoryCardsElement.style.transition = 'none';
-      if (isMobile) {
-        menuCategoryCardsElement.style.height = `${calculateMobileContainerHeight()}px`;
-      } else {
-        menuCategoryCardsElement.style.height = '80vw';
-      }
+      menuCategoryCardsElement.style.height = '80vw';
       
       void menuCategoryCardsElement.offsetHeight;
       menuCategoryCardsElement.style.transition = 'height 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
@@ -378,10 +410,6 @@
     }, 700);
   }
 
-  function calculateCardHeight(width) {
-    return width * (2/3);
-  }
-
   function resetAllCards() {
     cards.forEach((card, i) => {
       const cardElement = document.querySelector(`.card[data-id="${card.id}"]`);
@@ -389,84 +417,82 @@
       
       cardElement.removeAttribute('style');
       
-      if (isMobile) {
-        const cardWidth = window.innerWidth * 0.9;
-        const cardHeight = calculateCardHeight(cardWidth);
-        const spacing = 40;
-        const topPosition = i * (cardHeight + spacing);
+      const isMobileView = window.innerWidth < 768;
+      
+      if (isMobileView) {
+        const cardWidth = '90vw';
+        const cardHeight = `${Math.round(parseInt(cardWidth) * (2/3))}vw`;
+        
+        const calculatedCardHeight = Math.floor(window.innerWidth * 0.9 * 2/3);
+        const spacing = 150;
+        const verticalPosition = `${(i * (calculatedCardHeight + spacing)) + 40}px`;
         
         Object.assign(cardElement.style, {
           position: 'absolute',
-          height: `${cardHeight}px`,
-          width: '90vw',
-          display: 'flex'
+          left: '50%',
+          top: verticalPosition,
+          transform: `translate3d(-50%, 0, 0) rotateZ(${getRotation(i)}deg)`,
+          opacity: '1',
+          zIndex: `${4 - i}`,
+          pointerEvents: 'auto',
+          width: cardWidth,
+          height: cardHeight
         });
       } else {
         const left = i % 2 === 0 ? '33%' : '67%';
         const top = `${25 + (i * 10)}vw`;
+        const cardWidth = '60vw';
+        const cardHeight = `${Math.round(parseInt(cardWidth) * (2/3))}vw`;
         
         Object.assign(cardElement.style, {
           position: 'absolute',
           left: left,
           top: top,
-          transform: `rotateZ(${getOriginalRotation(i)}deg)`,
+          transform: `translate3d(-50%, -50%, 0) rotateZ(${getRotation(i)}deg)`,
           opacity: '1',
           zIndex: `${4 - i}`,
           pointerEvents: 'auto',
-          width: '60vw',
-          height: '40vw'
+          width: cardWidth,
+          height: cardHeight
         });
       }
       
-      cardElement.classList.remove('active', 'mobile-active', 'desktop-active');
+      cardElement.classList.remove('active');
       
       const titleEl = cardElement.querySelector('.title');
       const textEl = cardElement.querySelector('.text');
-      if (titleEl) titleEl.style.width = '40%';
-      if (textEl) textEl.style.width = '55%';
+      if (titleEl) titleEl.style.width = isMobileView ? '100%' : '40%';
+      if (textEl) textEl.style.width = isMobileView ? '100%' : '55%';
     });
-  }
-
-  function calculateMobileContainerHeight() {
-    const cardHeight = window.innerWidth * 0.9 * (2/3);
-    const spacing = 40;
-    return (cardHeight * cards.length) + (spacing * (cards.length - 1)) + 150;
   }
 
   function forceContainerHeight() {
     if (!menuCategoryCardsElement) return;
     
-    if (isMobile) {
-      const height = calculateMobileContainerHeight();
-      menuCategoryCardsElement.style.height = `${height}px`;
-      
-      setTimeout(() => {
-        if (!activeCard && menuCategoryCardsElement) {
-          menuCategoryCardsElement.style.height = `${calculateMobileContainerHeight()}px`;
-        }
-      }, 50);
+    if (window.innerWidth < 768) {
+      const cardHeight = Math.floor(window.innerWidth * 0.9 * 2/3);
+      const spacing = 150;
+      const totalHeight = (cards.length * (cardHeight + spacing)) - spacing + 60;
+      menuCategoryCardsElement.style.height = `${totalHeight}px`;
     } else {
       menuCategoryCardsElement.style.height = '80vw';
     }
   }
 
-  function getCardClass(card, i) {
-    if (!card || !activeCard) return "";
+  function getCardClass(card) {
+    if (!activeCard || !card) return "";
+    
     if (activeCard.id === card.id) return "active";
     
     const activeIndex = cards.findIndex(c => c && c.id === activeCard.id);
     if (activeIndex === -1) return "";
     
-    return `fly-out ${i < activeIndex ? "left" : "right"}`;
+    const cardIndex = cards.findIndex(c => c && c.id === card.id);
+    return `fly-out ${cardIndex < activeIndex ? "left" : "right"}`;
   }
 
-  function getOriginalRotation(index) {
-    return index % 2 === 0 ? -5 : 5;
-  }
-
-  function getCardSizeClass() {
-    if (!activeCard) return "";
-    return window.innerWidth < 768 ? "mobile-active" : "desktop-active";
+  function getRotation(index) {
+    return originalRotations[index % originalRotations.length] || (index % 2 === 0 ? -5 : 5);
   }
 
   function handleScroll() {
@@ -481,7 +507,7 @@
         const offset = Math.min((currentScrollY - scrollPosition) * 0.5, 150); 
         activeCardElement.style.transform = `translate3d(-50%, calc(-50% - ${offset}px), 0) rotateZ(0deg)`;
       } else if (currentScrollY <= scrollPosition) {
-        activeCardElement.style.transform = `translate3d(-50%, -50%, 0) rotateZ(0deg)`;
+        activeCardElement.style.transform = 'translate3d(-50%, -50%, 0) rotateZ(0deg)';
       }
     }
     
@@ -493,33 +519,17 @@
     if (now - lastResize < 100) return;
     lastResize = now;
     
-    isMobile = window.innerWidth < 768;
-    
     if (activeCard) {
       const activeCardElement = document.querySelector('.card.active');
-      if (activeCardElement) {
-        const activeRect = activeCardElement.getBoundingClientRect();
-        
-        if (isMobile) {
-          containerHeight = activeRect.height + 80;
-          activeCardElement.style.transform = 'translate3d(-50%, -50%, 0) rotateZ(0deg)';
-          activeCardElement.style.top = '50%';
-          
-          if (menuCategoryCardsElement) {
-            menuCategoryCardsElement.style.height = `${containerHeight}px`;
-          }
-        } else {
-          containerHeight = activeRect.height + 40;
-          if (menuCategoryCardsElement) {
-            menuCategoryCardsElement.style.height = `${containerHeight}px`;
-          }
-        }
+      if (activeCardElement && menuCategoryCardsElement) {
+        const activeCardHeight = activeCardElement.offsetHeight;
+        menuCategoryCardsElement.style.height = `${activeCardHeight + 40}px`;
       }
     } else if (menuCategoryCardsElement) {
       forceContainerHeight();
       
       setTimeout(() => {
-        if (isMobile) resetAllCards();
+        resetAllCards();
       }, 150);
       
       document.querySelectorAll('.card').forEach(c => {
@@ -529,19 +539,66 @@
     }
   }
   
+  function findMenuItemByName(name) {
+    const normalize = (str) => str.toLowerCase().trim();
+    const searchName = normalize(name);
+    
+    for (const category in menus) {
+      for (const section of menus[category]) {
+        for (const item of section.items) {
+          if (normalize(item.name) === searchName) {
+            return item;
+          }
+        }
+      }
+    }
+    
+    for (const section of menus.Drinks) {
+      for (const item of section.items) {
+        if (normalize(item.name).includes(searchName) || 
+            searchName.includes(normalize(item.name))) {
+          return item;
+        }
+      }
+    }
+    
+    return null;
+  }
+  
   onMount(() => {
     menuCategoryCardsElement = document.querySelector('.menu-category-cards');
     scrollDownElement = document.querySelector('.scroll-down-elegant');
     
-    isMobile = window.innerWidth <= 767;
+    if (menuCategoryCardsElement) {
+      menuCategoryCardsElement.style.height = '80vw';
+    }
     
     setTimeout(() => {
       forceContainerHeight();
-      if (isMobile) resetAllCards();
+      resetAllCards();
     }, 200);
     
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    
+    const handlePairingClick = (event) => {
+      const pairingName = event.detail.pairingName;
+      const pairedItem = findMenuItemByName(pairingName);
+      
+      if (pairedItem) {
+        selectedMenuItem = null;
+        
+        setTimeout(() => {
+          selectedMenuItem = pairedItem;
+        }, 300);
+      }
+    };
+    
+    document.addEventListener('pairingClick', handlePairingClick);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      document.removeEventListener('pairingClick', handlePairingClick);
+    };
   });
 </script>
 
@@ -561,14 +618,14 @@
       </div>
     </div>
     
-    <div class="menu-category-cards" bind:this={menuCategoryCardsElement}>
+    <div class="menu-category-cards {activeCard ? 'with-active-card' : ''}" bind:this={menuCategoryCardsElement}>
       {#each cards as card, i (card.id)}
         <div 
-          class="card {getCardClass(card, i)} {getCardSizeClass()}"
+          class="card {getCardClass(card)}"
           data-id={card.id}
           on:click={(event) => handleCardClick(event, card)}
           in:fly={{ y: 50, duration: 800, delay: i * 100 }}
-          style={activeCard ? '' : `transform: translate3d(-50%, -50%, 0) rotateZ(${getOriginalRotation(i)}deg)`}
+          style={activeCard ? '' : `transform: translate3d(-50%, -50%, 0) rotateZ(${getRotation(i)}deg)`}
         >
           <div class="title">
             <h3>{card.title}</h3>
@@ -721,7 +778,7 @@
                 <ul>
                   {#if section.items && Array.isArray(section.items)}
                     {#each filterItems(section.items) as item}
-                      <li class="menu-item">
+                      <li class="menu-item" on:click={() => showItemDetails(item)} class:has-details={item.detailed}>
                         <div class="item-details">
                           <span class="item-name">{item.name || 'Untitled Item'}</span>
                           <div class="item-tags">
@@ -743,6 +800,9 @@
                             {/if}
                             {#if item.isNew}
                               <span class="new-tag">NEW</span>
+                            {/if}
+                            {#if item.detailed}
+                              <span class="info-tag">INFO</span>
                             {/if}
                           </div>
                         </div>
@@ -778,7 +838,7 @@
                   <div class="beverage-details">
                     <h3>{beverage.name}</h3>
                     <span class="beverage-origin">{beverage.origin}</span>
-                    <p>{beverage.description}</p>
+                    <p>{beverage.detailed?.description || "A perfect complement to our main courses."}</p>
                   </div>
                   <div class="beverage-pricing">
                     <div class="beverage-price">${beverage.price}</div>
@@ -813,6 +873,32 @@
         </div>
       </div>
     </div>
+  {/if}
+
+  {#if selectedMenuItem}
+    <MenuItemModal 
+      item={selectedMenuItem} 
+      onClose={closeItemDetails} 
+      onPairingClick={(pairingName) => {
+        console.log("Drink clicked:", pairingName); // Debug log
+        const pairedItem = findMenuItemByName(pairingName);
+        console.log("Found pairing:", pairedItem); // Debug log
+        
+        if (pairedItem) {
+          // Close current modal first to avoid UI conflicts
+          const currentItem = selectedMenuItem;
+          selectedMenuItem = null;
+          
+          // Small delay to ensure smooth transition between modals
+          setTimeout(() => {
+            console.log("Opening new modal for:", pairingName);
+            selectedMenuItem = pairedItem;
+          }, 300);
+        } else {
+          console.warn("Pairing item not found:", pairingName);
+        }
+      }}
+    />
   {/if}
 
   <section id="philosophy">
@@ -858,7 +944,6 @@
       </div>
     </div>
   </section>
-
   <Footer />
 </main>
 
@@ -880,6 +965,7 @@
     overflow-x: hidden;
   }
   
+  /* Section header styles */
   .section-header {
     text-align: center;
     margin-bottom: 60px;
@@ -929,6 +1015,7 @@
     }
   }
 
+  /* Menu categories section */
   section#menu-categories {
     padding: 80px 0;
     background-color: v.$background-color-light;
@@ -939,6 +1026,7 @@
 
   .menu-category-cards {
     position: relative;
+    height: 80vw;
     transition: height 0.6s cubic-bezier(0.22, 1, 0.36, 1);
     margin-bottom: 60px;
     overflow: visible;
@@ -947,6 +1035,7 @@
     box-sizing: border-box !important;
   }
   
+  /* Card styling */
   .card {
     background-color: #fff;
     cursor: pointer;
@@ -966,10 +1055,13 @@
                 box-shadow 0.4s ease;
     border-left: 6px solid transparent;
     border-radius: 6px;
+    width: 60vw;
+    height: calc(60vw * 2/3); /* Maintain 2:3 ratio */
+    position: absolute;
     
     &:hover {
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
-      transform: translate3d(-50%, calc(-50% - 5px), 0) rotateZ(0.5deg) !important;
+      transform: translate3d(-50%, -55%, 0) rotateZ(0.5deg) !important;
       transition: all 0.3s ease;
       
       .click-me {
@@ -978,19 +1070,27 @@
       }
     }
     
-    .title h3 {
-      font-size: clamp(2.5rem, 5vw, 4rem);
-      letter-spacing: 0.5px;
+    .title {
+      width: 40%;
+      
+      h3 {
+        font-size: clamp(2.5rem, 5vw, 4rem);
+        letter-spacing: 0.5px;
+      }
     }
     
-    .text p {
-      font-weight: 300;
-      font-size: clamp(1rem, 1.2vw, 1.25rem);
-      text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-      transition: all 650ms ease;
-      color: transparent;
-      backdrop-filter: blur(4px);
-      line-height: 1.7;
+    .text {
+      width: 55%;
+      
+      p {
+        font-weight: 300;
+        font-size: clamp(1rem, 1.2vw, 1.25rem);
+        text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        transition: all 650ms ease;
+        color: transparent;
+        backdrop-filter: blur(4px);
+        line-height: 1.7;
+      }
     }
     
     &.active .text p {
@@ -1002,11 +1102,23 @@
     &.fly-out.left {
       transform: translateX(-150vw) !important;
       opacity: 0;
+      pointer-events: none;
     }
     
     &.fly-out.right {
       transform: translateX(150vw) !important;
       opacity: 0;
+      pointer-events: none;
+    }
+
+    &.active {
+      z-index: 10;
+      left: 50% !important;
+      top: 50% !important;
+      transform: translate3d(-50%, -50%, 0) rotateZ(0deg) !important;
+      width: 60vw;
+      min-height: 40vw;
+      max-width: 1200px;
     }
   }
   
@@ -1032,6 +1144,32 @@
     }
   }
 
+  /* Initial card positioning */
+  .menu-category-cards .card:nth-child(1) {
+    left: 33%;
+    top: 25vw;
+    z-index: 4;
+  }
+  
+  .menu-category-cards .card:nth-child(2) {
+    left: 67%;
+    top: 35vw;
+    z-index: 3;
+  }
+  
+  .menu-category-cards .card:nth-child(3) {
+    left: 33%;
+    top: 45vw;
+    z-index: 2;
+  }
+  
+  .menu-category-cards .card:nth-child(4) {
+    left: 67%;
+    top: 55vw;
+    z-index: 1;
+  }
+
+  /* Scroll indicator */
   .scroll-down-elegant {
     position: relative;
     left: 50%;
@@ -1066,6 +1204,7 @@
     }
   }
 
+  /* Menu container */
   .menu-container {
     position: relative;
     z-index: 5;
@@ -1081,7 +1220,6 @@
     width: 85%;
     max-width: 1200px;
     padding: 45px;
-    border-radius: 12px;
     border-radius: 12px;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
     border: none;
@@ -1100,6 +1238,46 @@
     }
   }
   
+  /* Animation keyframes */
+  @keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+      transform: rotate(-45deg) translateY(0);
+    }
+    40% {
+      transform: rotate(-45deg) translateY(-10px);
+    }
+    60% {
+      transform: rotate(-45deg) translateY(-5px);
+    }
+  }
+  
+  /* Responsive adjustments */
+  @media screen and (max-width: 1200px) {
+    .card .title h3 {
+      font-size: clamp(2rem, 4vw, 3.5rem);
+    }
+    
+    .card .text p {
+      font-size: clamp(0.9rem, 1vw, 1.1rem);
+    }
+  }
+
+  @media screen and (max-width: 900px) {
+    .card {
+      padding: 30px;
+    }
+    
+    .click-me {
+      top: 20px;
+      right: 20px;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+    }
+  }
+
+  /* Existing menu content styles... */
+
+  /* Menu header and content styles */
   .menu-header {
     display: flex;
     justify-content: space-between;
@@ -1115,7 +1293,6 @@
       margin: 0;
       font-weight: 400;
       color: v.$tertiary-dark;
-      font-family: "DynaPuff Regular", serif;
       letter-spacing: 1px;
     }
   }
@@ -1163,6 +1340,7 @@
     }
   }
 
+  /* Dietary filters styling */
   .dietary-filters {
     background-color: #f9f6f3;
     border-radius: 8px;
@@ -1176,7 +1354,6 @@
   }
 
   .filter-section-title {
-    font-family: "DynaPuff Regular", serif;
     color: v.$tertiary-dark;
     font-size: 1.4rem;
     margin: 0 0 8px;
@@ -1215,7 +1392,6 @@
     border: 1px solid #e9decf;
     border-radius: 50px;
     padding: 8px 16px;
-    font-family: "Inter 24pt Regular", sans-serif;
     font-size: 0.9rem;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -1234,7 +1410,7 @@
       border-color: v.$tertiary;
       color: white;
       font-weight: 500;
-      box-shadow: 0 2px 6px rgba(2, 92, 72, 0.25);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
       
       &.vegan {
         background: #4CAF50;
@@ -1324,6 +1500,7 @@
     margin-left: 6px;
   }
 
+  /* Chef's specials section */
   .chefs-specials {
     padding: 20px 0 40px;
     border-bottom: 1px solid #e9decf;
@@ -1331,7 +1508,6 @@
   }
   
   .special-heading {
-    font-family: "DynaPuff Regular", serif;
     font-size: 2.2rem;
     color: v.$tertiary-dark;
     text-align: center;
@@ -1347,7 +1523,7 @@
   
   .specials-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 25px;
   }
   
@@ -1378,7 +1554,6 @@
       padding: 20px;
       
       h3 {
-        font-family: "DynaPuff Regular", serif;
         color: v.$tertiary-dark;
         font-size: 1.4rem;
         margin-bottom: 8px;
@@ -1427,12 +1602,12 @@
     }
     
     .special-price {
-      font-family: "DynaPuff Regular", serif;
       font-size: 1.3rem;
       color: v.$primary;
     }
   }
   
+  /* Menu items styling */
   .menu-content {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -1446,32 +1621,31 @@
     &:last-child {
       margin-bottom: 0;
     }
-  }
-
-  .menu-section h3 {
-    font-size: 1.6rem;
-    margin-bottom: 18px;
-    padding-bottom: 10px;
-    font-weight: 400;
-    font-family: "DynaPuff Regular", serif;
-    color: v.$tertiary;
-    position: relative;
     
-    &::after {
-      content: "";
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 60px;
-      height: 2px;
-      background-color: #e9decf;
+    h3 {
+      font-size: 1.6rem;
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+      font-weight: 400;
+      color: v.$tertiary;
+      position: relative;
+      
+      &::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 60px;
+        height: 2px;
+        background-color: #e9decf;
+      }
     }
-  }
-
-  .menu-section ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+    
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
   }
 
   .menu-item {
@@ -1481,13 +1655,45 @@
     padding: 14px 8px;
     border-bottom: 1px dotted #f0e6da;
     transition: all 0.2s ease;
+    cursor: pointer;
+    border-radius: 4px;
     
     &:hover {
-      background-color: rgba(249, 246, 243, 0.7);
+      background-color: rgba(249, 246, 243, 0.9);
+      transform: translateY(-2px);
     }
     
     &:last-child {
       border-bottom: none;
+    }
+
+    &.has-details {
+      position: relative;
+      
+      &::after {
+        content: "i";
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        top: 14px;
+        right: -25px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background-color: #e0d4c5;
+        color: v.$tertiary-dark;
+        font-size: 0.7rem;
+        font-style: italic;
+        font-weight: bold;
+        opacity: 0.7;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+      }
+      
+      &:hover::after {
+        opacity: 1;
+        transform: scale(1.1);
+      }
     }
   }
   
@@ -1498,7 +1704,6 @@
   
   .item-name {
     font-weight: 500;
-    font-family: "Inter 24pt Regular", sans-serif;
     font-size: 1.05rem;
     color: #333;
     display: block;
@@ -1515,7 +1720,6 @@
   .item-price {
     font-weight: 600;
     color: #333;
-    font-family: "Inter 24pt Regular", sans-serif;
     font-size: 1.05rem;
     white-space: nowrap;
     margin-top: 2px;
@@ -1530,355 +1734,18 @@
     border-radius: 6px;
     margin: 15px 0;
   }
-  
-  .menu-footer {
-    text-align: center;
-    
-    .filter-chip {
-      padding: 6px 12px;
-      font-size: 0.85rem;
-      flex-grow: 0;
-    }
-    
-    .legend-items {
-      justify-content: space-around;
-    }
-    
-    .menu-content {
-      grid-template-columns: 1fr;
-      gap: 25px;
-    }
-    
-    .menu-section h3 {
-      font-size: 1.4rem;
-    }
-    
-    .item-name {
-      font-size: 1rem;
-    }
-  }
 
-  section#philosophy {
-    padding: 100px 20px;
-    background-color: v.$background-color-light;
-    min-height: 100vh;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-  }
-
-  .philosophy-container {
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  .philosophy-text {
-    max-width: 800px;
-    margin: 0 auto 60px;
-    text-align: center;
-  }
-
-  .philosophy-text h2 {
-    font-size: 2.5rem;
-    margin-bottom: 30px;
-    font-weight: 300;
+  .info-tag {
+    background-color: #e0d4c5;
     color: v.$tertiary-dark;
+    font-size: 0.65rem;
+    padding: 2px 5px;
+    border-radius: 3px;
+    letter-spacing: 0.5px;
+    font-weight: 600;
   }
 
-  .philosophy-text p {
-    font-size: 1.2rem;
-    line-height: 1.7;
-    margin-bottom: 20px;
-    color: v.$font-color-dark;
-  }
-
-  .philosophy-highlights {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 30px;
-  }
-
-  .highlight {
-    background: #fff;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-    text-align: center;
-    border-top: 4px solid v.$tertiary;
-  }
-
-  .highlight h3 {
-    font-size: 1.5rem;
-    margin-bottom: 15px;
-    color: v.$tertiary-dark;
-    font-weight: 400;
-  }
-
-  .highlight p {
-    font-size: 1.1rem;
-    line-height: 1.5;
-    color: v.$font-color-dark;
-  }
-
-  section#testimonials {
-    padding: 100px 20px;
-    background-color: #f4efe8;
-  }
-
-  .testimonials-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    text-align: center;
-  }
-
-  .testimonials-container h2 {
-    font-size: 2.5rem;
-    margin-bottom: 50px;
-    font-weight: 300;
-    color: #4a2e2e;
-  }
-
-  .testimonials-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 30px;
-  }
-
-  .testimonial {
-    background: #fff;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-    text-align: left;
-  }
-
-  .testimonial .quote {
-    font-size: 1.1rem;
-    line-height: 1.6;
-    margin-bottom: 20px;
-    font-style: italic;
-    color: #333;
-  }
-
-  .testimonial .author {
-    font-weight: 500;
-    color: #4a2e2e;
-  }
-
-  @media screen and (min-width: 768px) {
-    .menu-category-cards {
-      position: relative;
-    }
-    
-    .menu-category-cards .card {
-      width: 60vw;
-      height: 40vw;
-      position: absolute;
-      transform-origin: top center;
-      transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), 
-                  opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-                  width 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-                  height 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    
-    .menu-category-cards .card:nth-child(1) {
-      left: 33%;
-      top: 25vw;
-      z-index: 4;
-    }
-    
-    .menu-category-cards .card:nth-child(2) {
-      left: 67%;
-      top: 35vw;
-      z-index: 3;
-    }
-    
-    .menu-category-cards .card:nth-child(3) {
-      left: 33%;
-      top: 45vw;
-      z-index: 2;
-    }
-    
-    .menu-category-cards .card:nth-child(4) {
-      left: 67%;
-      top: 55vw;
-      z-index: 1;
-    }
-
-    .predictions{
-      padding: 20px;
-      margin: 20px;
-    }
-    
-    .menu-category-cards .card.active {
-      z-index: 10;
-      left: 50% !important;
-      top: 50% !important;
-      transform: translate3d(-50%, -50%, 0) rotateZ(0deg) !important;
-    }
-    
-    .menu-category-cards .card.desktop-active {
-      width: 60vw;
-      min-height: 40vw;
-      max-width: 1200px;
-    }
-    
-    .menu-container {
-      position: relative;
-      z-index: 5;
-      margin-top: 0;
-    }
-
-    .scroll-down {
-      bottom: -50px;
-    }
-  }
-  
-  @media screen and (max-width: 767px) {
-    .menu-category-cards {
-      padding: 20px 0;
-      position: relative !important;
-      min-height: calc(90vw * (2/3));
-   }
-    
-    .menu-category-cards .card {
-      width: 90vw;
-      height: calc(90vw * (2 / 3));
-      position: absolute;
-      left: 50%;
-      transform-origin: center center;
-      will-change: transform, opacity;
-      transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), 
-                 opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-                 width 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-                 height 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-      padding: 25px;
-    }
-    
-    .menu-category-cards .card:nth-child(1) {
-      top: 0;
-    }
-    
-    .menu-category-cards .card:nth-child(2) {
-      top: calc(90vw * (2/3) + 40px);
-    }
-    
-    .menu-category-cards .card:nth-child(3) {
-      top: calc((90vw * (2/3) + 40px) * 2);
-    }
-    
-    .menu-category-cards .card:nth-child(4) {
-      top: calc((90vw * (2/3) + 40px) * 3);
-    }
-    
-    .menu-category-cards .card.active {
-      z-index: 10;
-      left: 50% !important;
-      top: 50% !important;
-      transform: translate3d(-50%, -50%, 0) rotateZ(0deg) !important;
-      height: auto !important;
-      min-height: calc(60vw) !important;
-    }
-    
-    .menu-category-cards .card.mobile-active {
-      width: 92vw;
-      height: auto;
-      min-height: calc(92vw * (2 / 3));
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      
-      .title {
-        margin-bottom: 15px;
-      }
-    }
-    
-    .menu-category-cards .card.mobile-active .title,
-    .menu-category-cards .card.mobile-active .text {
-      width: 100%;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    .menu-category-cards .card .title h3 {
-      font-size: clamp(1.5rem, 8vw, 2.5rem);
-    }
-    
-    .menu-category-cards .card .text p {
-      font-size: clamp(0.9rem, 3vw, 1.1rem);
-      text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-      transition: all 650ms ease;
-      color: transparent;
-    }
-
-    .menu-category-cards .card.active .text p {
-      text-shadow: none;
-      color: v.$font-color-dark;
-    }
-    
-    .menu-container {
-      position: relative;
-      z-index: 5;
-      padding: 40px 0 60px;
-      margin-top: 0;
-    }
-    
-    .scroll-down {
-      top: auto;
-      bottom: -40px;
-    }
-    
-    .specials-grid {
-      grid-template-columns: 1fr;
-      gap: 20px;
-    }
-    
-    .wine-item {
-      flex-direction: column;
-      
-      .wine-pricing {
-        margin-top: 15px;
-        flex-direction: row;
-        justify-content: flex-start;
-        gap: 20px;
-      }
-    }
-    
-    .allergen-grid {
-      gap: 12px;
-    }
-    
-    .allergen-item {
-      width: calc(50% - 6px);
-    }
-
-    .beverage-item {
-      flex-direction: column;
-      
-      .beverage-details h3 {
-        margin-bottom: 6px;
-      }
-      
-      .beverage-pricing {
-        margin-top: 15px;
-        justify-content: flex-start;
-        text-align: left;
-      }
-    }
-  }
-
-  @keyframes bounce {
-    0%, 20%, 50%, 80%, 100% {
-      transform: rotate(-45deg) translateY(0);
-    }
-    40% {
-      transform: rotate(-45deg) translateY(-10px);
-    }
-    60% {
-      transform: rotate(-45deg) translateY(-5px);
-    }
-  }
-
+  /* Beverage pairings section */
   .beverage-pairings {
     margin: 40px 0;
     padding: 30px;
@@ -1912,7 +1779,6 @@
     flex: 1;
     
     h3 {
-      font-family: "DynaPuff Regular", serif;
       font-size: 1.3rem;
       margin-bottom: 4px;
       color: v.$secondary;
@@ -1945,32 +1811,30 @@
     font-size: 1.3rem;
     font-weight: 500;
     color: v.$tertiary;
-    font-family: "DynaPuff Regular", serif;
   }
 
+  /* Allergen information */
   .allergen-information {
-    background-color: #f9f6f3;
-    padding: 25px;
-    border-radius: 8px;
-    margin: 40px 0 30px;
+    margin: 30px 0;
     
     h3 {
-      font-family: "DynaPuff Regular", serif;
-      font-size: 1.2rem;
+      font-size: 1.4rem;
+      margin-bottom: 15px;
       color: v.$tertiary-dark;
-      margin-bottom: 10px;
     }
     
     p {
       margin-bottom: 15px;
-      font-size: 0.95rem;
+      color: #555;
+      line-height: 1.5;
     }
   }
-  
+
   .allergen-grid {
     display: flex;
     flex-wrap: wrap;
     gap: 15px;
+    margin-top: 20px;
   }
   
   .allergen-item {
@@ -1992,10 +1856,12 @@
     font-size: 0.85rem;
   }
 
+  /* Menu footer */
   .menu-footer {
     text-align: center;
     padding-top: 20px;
     border-top: 1px solid #e9decf;
+    margin-top: 30px;
     
     p {
       margin-bottom: 10px;
@@ -2019,30 +1885,184 @@
     }
   }
 
-  .menu-error {
-    padding: 40px 20px;
+  /* Philosophy section styling */
+  section#philosophy {
+    padding: 100px 20px;
+    background-color: v.$background-color-light;
+    align-items: center;
+    justify-content: center;
     text-align: center;
-    background-color: #f9f6f3;
-    border-radius: 8px;
-    margin: 20px 0;
+  }
+
+  .philosophy-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .philosophy-text {
+    max-width: 800px;
+    margin: 0 auto 60px;
+    text-align: center;
+    
+    h2 {
+      font-size: 2.5rem;
+      margin-bottom: 30px;
+      font-weight: 300;
+      color: v.$tertiary-dark;
+    }
     
     p {
-      color: #888;
-      font-style: italic;
-      margin-bottom: 10px;
-      
-      &:last-child {
-        margin-bottom: 0;
-      }
+      font-size: 1.2rem;
+      line-height: 1.7;
+      margin-bottom: 20px;
+      color: v.$font-color-dark;
     }
   }
 
-  @media screen and (max-width: 767px) {
-    .menu-text {
-      width: 95%;
-      padding: 30px 20px;
+  .philosophy-highlights {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+  }
+
+  .highlight {
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    border-top: 4px solid v.$tertiary;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
     }
     
+    h3 {
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+      color: v.$tertiary-dark;
+      font-weight: 400;
+    }
+    
+    p {
+      font-size: 1.1rem;
+      line-height: 1.5;
+      color: v.$font-color-dark;
+    }
+  }
+
+  /* Testimonials section styling */
+  section#testimonials {
+    padding: 100px 20px;
+    background-color: #f4efe8;
+  }
+
+  .testimonials-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+    
+    h2 {
+      font-size: 2.5rem;
+      margin-bottom: 50px;
+      font-weight: 300;
+      color: #4a2e2e;
+    }
+  }
+
+  .testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+  }
+
+  .testimonial {
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    text-align: left;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .quote {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 20px;
+      font-style: italic;
+      color: #333;
+      position: relative;
+      
+      &::before {
+        content: "\""; /* Replace curly smart quotes with standard straight quotes */
+        font-size: 3rem;
+        color: rgba(v.$tertiary-light, 0.2);
+        position: absolute;
+        top: -25px;
+        left: -15px;
+        font-family: serif;
+      }
+    }
+    
+    .author {
+      font-weight: 500;
+      color: #4a2e2e;
+    }
+  }
+  
+  /* Comprehensive responsive styles */
+  @media screen and (max-width: 1200px) {
+    .menu-text {
+      width: 90%;
+      padding: 35px;
+    }
+    
+    .testimonial .quote {
+      font-size: 1rem;
+    }
+  }
+  
+  @media screen and (max-width: 900px) {
+    .menu-text {
+      padding: 30px;
+    }
+    
+    .menu-content {
+      grid-template-columns: 1fr;
+      gap: 30px;
+    }
+    
+    .beverage-item {
+      flex-direction: column;
+      
+      .beverage-pricing {
+        margin-top: 15px;
+        text-align: left;
+        justify-content: flex-start;
+      }
+    }
+    
+    .special-heading, .philosophy-text h2, .testimonials-container h2 {
+      font-size: 2rem;
+    }
+    
+    .filter-chips {
+      gap: 8px;
+    }
+    
+    .filter-chip {
+      padding: 6px 12px;
+      font-size: 0.85rem;
+    }
+  }
+  
+  @media screen and (max-width: 600px) {
     .menu-header {
       flex-direction: column;
       gap: 15px;
@@ -2056,26 +2076,137 @@
       }
       
       h2 {
-        font-size: 2.2rem;
+        font-size: 2rem;
       }
     }
     
     .dietary-filters {
-      padding: 20px 15px;
-      margin: 20px 0 30px;
+      padding: 20px;
     }
     
-    .beverage-pairings {
-      padding: 20px 15px;
+    .dietary-legend .legend-items {
+      justify-content: center;
+      gap: 15px 10px;
     }
     
-    .beverage-item {
-      flex-direction: column;
+    .menu-section h3 {
+      font-size: 1.4rem;
+    }
+    
+    .item-name, .item-price {
+      font-size: 0.95rem;
+    }
+    
+    .allergen-grid {
+      justify-content: center;
+    }
+    
+    .philosophy-text p {
+      font-size: 1rem;
+    }
+    
+    .highlight {
+      padding: 25px 20px;
+    }
+    
+    section#philosophy, section#testimonials {
+      padding: 70px 20px;
+    }
+  }
+
+  /* Media query for mobile devices */
+  @media screen and (max-width: 767px) {
+    .menu-category-cards {
+      height: auto !important; 
+      min-height: 300px; /* Reduce minimum height */
+    }
+    
+    /* Remove fixed top positioning for mobile stacked cards */
+    .menu-category-cards .card:nth-child(1) {
+      top: auto; /* Let JavaScript handle vertical positioning */
+      left: 50% !important;
+      z-index: 4;
+    }
+    
+    .menu-category-cards .card:nth-child(2) {
+      top: auto; /* Let JavaScript handle vertical positioning */
+      left: 50% !important;
+      z-index: 3;
+    }
+    
+    .menu-category-cards .card:nth-child(3) {
+      top: auto; /* Let JavaScript handle vertical positioning */
+      left: 50% !important;
+      z-index: 2;
+    }
+    
+    .menu-category-cards .card:nth-child(4) {
+      top: auto; /* Let JavaScript handle vertical positioning */
+      left: 50% !important;
+      z-index: 1;
+    }
+    
+    .card {
+      width: 90vw !important;
+      height: calc(90vw * 2/3) !important; /* Maintain 2:3 ratio */
+      flex-direction: column !important;
+      align-items: flex-start;
+      position: absolute;
+      left: 50% !important;
+      pointer-events: auto;
+    }
+    
+    .card .title {
+      width: 100% !important;
+      margin-bottom: 15px;
       
-      .beverage-pricing {
-        margin-top: 15px;
-        justify-content: flex-start;
+      h3 {
+        font-size: 2rem !important;
       }
+    }
+    
+    .card .text {
+      width: 100% !important;
+      
+      p {
+        font-size: 1rem !important;
+      }
+    }
+    
+    .menu-category-cards .card:nth-child(1) {
+      top: 100px !important;
+      left: 50% !important;
+      z-index: 4;
+    }
+    
+    .menu-category-cards .card:nth-child(2) {
+      top: 280px !important;
+      left: 50% !important;
+      z-index: 3;
+    }
+    
+    .menu-category-cards .card:nth-child(3) {
+      top: 460px !important;
+      left: 50% !important;
+      z-index: 2;
+    }
+    
+    .menu-category-cards .card:nth-child(4) {
+      top: 640px !important;
+      left: 50% !important;
+      z-index: 1;
+    }
+    
+    .card.active {
+      height: auto !important;
+      min-height: 60vw !important;
+    }
+    
+    .click-me {
+      top: 20px;
+      right: 20px;
+      padding: 8px 14px;
+      font-size: 0.9rem;
     }
   }
 </style>
