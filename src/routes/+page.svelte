@@ -1,16 +1,23 @@
 <script lang="ts">
      import { onMount } from "svelte";
      import branch1 from "$lib/assets/branches/branch_1.png";
+     import branch1d from "$lib/assets/branches/branch_1d.png";
      import branch2 from "$lib/assets/branches/branch_2.png";
+     import branch2d from "$lib/assets/branches/branch_2d.png";
      import branch3 from "$lib/assets/branches/branch_3.png";
      import branch4 from "$lib/assets/branches/branch_4.png";
      import branch5 from "$lib/assets/branches/branch_5.png";
+     import branch5d from "$lib/assets/branches/branch_5d.png";
      import branch6 from "$lib/assets/branches/branch_6.png";
+     import branch6d from "$lib/assets/branches/branch_6d.png";
      import branch7 from "$lib/assets/branches/branch_7.png";
+     import branch7d from "$lib/assets/branches/branch_7d.png";
      import branch8 from "$lib/assets/branches/branch_8.png";
+     import branch8d from "$lib/assets/branches/branch_8d.png";
      import branch9 from "$lib/assets/branches/branch_9.png";
      import branch10 from "$lib/assets/branches/branch_10.png";
      import branch11 from "$lib/assets/branches/branch_11.png";
+     import branch11d from "$lib/assets/branches/branch_11d.png";
      import branch12 from "$lib/assets/branches/branch_12.png";
      import branch13 from "$lib/assets/branches/branch_13.png";
      import branch14 from "$lib/assets/branches/branch_14.png";
@@ -42,6 +49,17 @@
           'windowBorderRadius': '1000px',
           'horizontalOpacity': '1'
      };
+
+     let plantsFirstBox = [
+          { plant: branch11d, word: 'THERE', plantOpacity: '0', plantTransform: 'translateY(50px)' },
+          { plant: branch1d, word: 'IS', plantOpacity: '0', plantTransform: 'translateY(50px)' },
+          { plant: branch5d, word: 'NO', plantOpacity: '0', plantTransform: 'translateY(50px)' },
+          { plant: branch6d, word: 'REASON', plantOpacity: '0', plantTransform: 'translateY(50px)' },
+          { plant: branch11d, word: 'NOT', plantOpacity: '0', plantTransform: 'translateY(50px)' },
+          { plant: branch8d, word: 'TO', plantOpacity: '0', plantTransform: 'translateY(50px)' },
+          { plant: branch2d, word: 'DO', plantOpacity: '0', plantTransform: 'translateY(50px)' },
+          { plant: branch7d, word: 'IT', plantOpacity: '0', plantTransform: 'translateY(50px)' }
+     ];
 
      let centerTitle: HTMLHeadingElement;
      let navTitle: HTMLHeadingElement;
@@ -141,6 +159,31 @@
           } else if (visibleSection === 2) {
                styles['windowHeight'] = '70%';
           }
+          
+          if (visibleSection === 1 && e.deltaY > 0) {
+               // let i = 0;
+               
+               setTimeout(() => {
+                    /*
+                    let interval = setInterval(() => {
+                         plantsFirstBox[i].plantOpacity = '1';
+                         plantsFirstBox[i].plantTransform = 'translateY(0)';
+                         i++;
+                    }, 400);
+
+                    setTimeout(() => {
+                         clearInterval(interval);
+                    }, 100 * plantsFirstBox.length);
+                    */
+
+                    for (let i = 0; i < plantsFirstBox.length; i++) {
+                         setTimeout(() => {
+                              plantsFirstBox[i].plantOpacity = '1';
+                              plantsFirstBox[i].plantTransform = 'translateY(0)';
+                         }, i * (100 - i));
+                    }
+               }, 200);
+          }
 
           styles['progress'] = `${visibleSection * 33.3334}%`;
           styles['translateHorizontalScroll'] = `${translateBefore}px`;
@@ -232,22 +275,17 @@
                <div class="horizontal-content">
                     <div class="boxes">
                          <div class="box">
-                              <div class="green">
-                                   <div class="plants">
-                                        <div class="plants-container">
-                                             <img src={branch2} alt="Plant 1" class="plant">
+                              <div class="first-content">
+                                   {#each plantsFirstBox as plant, i}
+                                        <div class="word-container">
+                                             <div class="plant" style="animation-delay: {i * 0.05}s; opacity: {plant.plantOpacity}; transform: {plant.plantTransform};">
+                                                  <img src={plant.plant} alt="Plant" />
+                                             </div>
+                                             <div class="word">
+                                                  <p>{plant.word}</p>
+                                             </div>
                                         </div>
-                                   </div>
-                                   <div class="header-green">
-                                        <h1>
-                                             There is no reason not to<br><span>do it</span>.
-                                        </h1>
-                                   </div>
-                                   <div class="subtitle-green">
-                                        <p>
-                                             It has never been easier to eat healthy, while saving animals life, <br>and protecting the environment. All while not draining your wallet.
-                                        </p>
-                                   </div>
+                                   {/each}
                               </div>
                          </div>
                          <div class="box"></div>
@@ -588,89 +626,41 @@
                                    margin-left: calc(100vw);
 
                                    display: flex;
-                                   justify-content: space-between;
-                                   gap: 2rem;
+                                   justify-content: center;
+                                   align-items: center;
 
-                                   .green {
-                                        height: 100%;
-                                        width: 100%;
-                                        display: flex;
-                                        flex-direction: column;
-                                        justify-content: space-between;
-                                        position: relative;
+                                   .first-content {
+                                        display: grid;
+                                        grid-template-columns: repeat(8, 1fr);
 
-                                        background-color: v.$font-color-light-2;
-                                        border-radius: 2rem;
-                                        padding: 2rem;
-
-                                        .header-green {
-                                             height: 70%;
+                                        .word-container {
+                                             margin-top: -105px;
                                              display: flex;
+                                             flex-direction: column;
                                              align-items: center;
+                                             justify-content: center;
+                                             width: clamp(100px, 10vw, 200px);
+                                             gap: 1rem;
 
-                                             h1 {
-                                                  color: v.$tertiary-dark;
-                                                  font-size: clamp(2.5rem, 6vw, 4rem);
+                                             .plant {
+                                                  width: 100%;
+                                                  display: flex;
+                                                  justify-content: center;
+                                                  transition: all 0.2s;
 
-                                                  span {
-                                                       animation: spanAnimation 2s infinite;
+                                                  img {
+                                                       width: 180%;
                                                   }
                                              }
 
-                                             @keyframes spanAnimation {
-                                                  0% {
-                                                       color: v.$primary;
-                                                  }
-                                                  50% {
-                                                       color: v.$tertiary;
-                                                  }
-                                                  100% {
-                                                       color: v.$primary;
-                                                  }
-                                             }
-                                        }
+                                             .word {
+                                                  width: 100%;
+                                                  display: flex;
+                                                  justify-content: center;
 
-                                        .subtitle-green {
-                                             max-height: fit-content;
-
-                                             p {
-                                                  font-size: clamp(0.7rem, 2vw, 1rem);
-                                                  color: v.$font-color-dark;
-                                             }
-                                        }
-
-                                        .plants {
-                                             position: absolute;
-                                             transform: translate(-2rem, -2rem);
-                                             border-radius: 2rem;
-                                             width: 100%;
-                                             height: 100%;
-                                             display: flex;
-                                             justify-content: end;
-                                             align-items: end;
-                                             overflow: hidden;
-
-                                             .plants-container {
-                                                  width: clamp(180px, 40vw, 830px);
-                                                  aspect-ratio: 3840/2160;
-                                                  position: relative;
-                                                  transform: rotate(230deg);
-
-                                                  .plant {
-                                                       aspect-ratio: 3840/2160;
-                                                       width: 100%;
-                                                       height: auto;
-                                                       position: absolute;
-
-                                                       img {
-                                                            width: 100%;
-                                                            height: 100%;
-                                                       }
-
-                                                       &:nth-child(1) {
-                                                            rotate: 0deg;
-                                                            transform: translate(-5%, 34%);
-                                                       }
+                                                  p {
+                                                       color: black;
+                                                       font-size: clamp(1rem, 2.3vw, 1.7rem);
                                                   }
                                              }
                                         }
