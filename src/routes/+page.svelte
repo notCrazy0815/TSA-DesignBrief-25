@@ -1,21 +1,31 @@
 <script lang="ts">
      import { onMount } from "svelte";
      import branch1 from "$lib/assets/branches/branch_1.png";
+     import branch1d from "$lib/assets/branches/branch_1d.png";
      import branch2 from "$lib/assets/branches/branch_2.png";
+     import branch2d from "$lib/assets/branches/branch_2d.png";
      import branch3 from "$lib/assets/branches/branch_3.png";
      import branch4 from "$lib/assets/branches/branch_4.png";
      import branch5 from "$lib/assets/branches/branch_5.png";
+     import branch5d from "$lib/assets/branches/branch_5d.png";
      import branch6 from "$lib/assets/branches/branch_6.png";
+     import branch6d from "$lib/assets/branches/branch_6d.png";
      import branch7 from "$lib/assets/branches/branch_7.png";
+     import branch7d from "$lib/assets/branches/branch_7d.png";
      import branch8 from "$lib/assets/branches/branch_8.png";
+     import branch8d from "$lib/assets/branches/branch_8d.png";
      import branch9 from "$lib/assets/branches/branch_9.png";
      import branch10 from "$lib/assets/branches/branch_10.png";
      import branch11 from "$lib/assets/branches/branch_11.png";
+     import branch11d from "$lib/assets/branches/branch_11d.png";
      import branch12 from "$lib/assets/branches/branch_12.png";
      import branch13 from "$lib/assets/branches/branch_13.png";
      import branch14 from "$lib/assets/branches/branch_14.png";
      import branch15 from "$lib/assets/branches/branch_15.png";
      import orange from "$lib/assets/icons/orange.png";
+     import lavender from "$lib/assets/icons/lavender.png";
+     import leaf from "$lib/assets/icons/leaf.png";
+     import flower from "$lib/assets/icons/flower.png";
 
      let branches = [branch1, branch2, branch3, branch4, branch5, branch6, branch7, branch8, branch9, branch10, branch11, branch12, branch13, branch14, branch15];
 
@@ -40,11 +50,22 @@
           'horizontalOpacity': '1'
      };
 
+     let plantsFirstBox = [
+          { plant: branch11d, word: 'THERE', plantOpacity: '0', plantTransform: 'translateY(50px)' },
+          { plant: branch1d, word: 'IS', plantOpacity: '0', plantTransform: 'translateY(50px)' },
+          { plant: branch5d, word: 'NO', plantOpacity: '0', plantTransform: 'translateY(50px)' },
+          { plant: branch6d, word: 'REASON', plantOpacity: '0', plantTransform: 'translateY(50px)' },
+          { plant: branch11d, word: 'NOT', plantOpacity: '0', plantTransform: 'translateY(50px)' },
+          { plant: branch8d, word: 'TO', plantOpacity: '0', plantTransform: 'translateY(50px)' },
+          { plant: branch2d, word: 'DO', plantOpacity: '0', plantTransform: 'translateY(50px)' },
+          { plant: branch7d, word: 'IT', plantOpacity: '0', plantTransform: 'translateY(50px)' }
+     ];
+
      let centerTitle: HTMLHeadingElement;
      let navTitle: HTMLHeadingElement;
 
      let active = false;
-     let showHero = true;
+     let showHero = false;
      let showHorizontal = true;
      let showWindow = true; // for testing "false", should be true
      let windowY = 0;
@@ -138,6 +159,31 @@
           } else if (visibleSection === 2) {
                styles['windowHeight'] = '70%';
           }
+          
+          if (visibleSection === 1 && e.deltaY > 0) {               
+               setTimeout(() => {
+                    for (let i = 0; i < plantsFirstBox.length; i++) {
+                         setTimeout(() => {
+                              plantsFirstBox[i].plantOpacity = '1';
+                              plantsFirstBox[i].plantTransform = 'translateY(0)';
+                         }, i * (100 - i));
+                    }
+               }, 200);
+          } else if (visibleSection === 2 && e.deltaY > 0) {
+               for (let i = 0; i < plantsFirstBox.length; i++) {
+                    setTimeout(() => {
+                         plantsFirstBox[i].plantOpacity = '0';
+                         plantsFirstBox[i].plantTransform = 'translateY(50px)';
+                    }, i * (50 - i));
+               }
+          } else if (visibleSection === 1 && e.deltaY < 0) {
+               for (let i = plantsFirstBox.length; i >= 0; i--) {
+                    setTimeout(() => {
+                         plantsFirstBox[i].plantOpacity = '1';
+                         plantsFirstBox[i].plantTransform = 'translateY(0)';
+                    }, 500 - i * 50);
+               }
+          }
 
           styles['progress'] = `${visibleSection * 33.3334}%`;
           styles['translateHorizontalScroll'] = `${translateBefore}px`;
@@ -228,9 +274,21 @@
                {/if}
                <div class="horizontal-content">
                     <div class="boxes">
-                         {#each Array(2) as _, i}
-                              <div class="box"></div>
-                         {/each}
+                         <div class="box">
+                              <div class="first-content">
+                                   {#each plantsFirstBox as plant, i}
+                                        <div class="word-container">
+                                             <div class="plant" style="animation-delay: {i * 0.05}s; opacity: {plant.plantOpacity}; transform: {plant.plantTransform};">
+                                                  <img src={plant.plant} alt="Plant" />
+                                             </div>
+                                             <div class="word">
+                                                  <p>{plant.word}</p>
+                                             </div>
+                                        </div>
+                                   {/each}
+                              </div>
+                         </div>
+                         <div class="box"></div>
                          <div class="box">
                               <div class="window"></div>
                          </div>
@@ -566,6 +624,47 @@
 
                               &:nth-child(1) {
                                    margin-left: calc(100vw);
+
+                                   display: flex;
+                                   justify-content: center;
+                                   align-items: center;
+
+                                   .first-content {
+                                        display: grid;
+                                        grid-template-columns: repeat(8, 1fr);
+
+                                        .word-container {
+                                             margin-top: -105px;
+                                             display: flex;
+                                             flex-direction: column;
+                                             align-items: center;
+                                             justify-content: center;
+                                             width: clamp(100px, 10vw, 200px);
+                                             gap: 1rem;
+
+                                             .plant {
+                                                  width: 100%;
+                                                  display: flex;
+                                                  justify-content: center;
+                                                  transition: all 0.2s;
+
+                                                  img {
+                                                       width: 180%;
+                                                  }
+                                             }
+
+                                             .word {
+                                                  width: 100%;
+                                                  display: flex;
+                                                  justify-content: center;
+
+                                                  p {
+                                                       color: black;
+                                                       font-size: clamp(1rem, 2.3vw, 1.7rem);
+                                                  }
+                                             }
+                                        }
+                                   }
                               }
 
                               &:nth-child(3) {
