@@ -160,22 +160,8 @@
                styles['windowHeight'] = '70%';
           }
           
-          if (visibleSection === 1 && e.deltaY > 0) {
-               // let i = 0;
-               
+          if (visibleSection === 1 && e.deltaY > 0) {               
                setTimeout(() => {
-                    /*
-                    let interval = setInterval(() => {
-                         plantsFirstBox[i].plantOpacity = '1';
-                         plantsFirstBox[i].plantTransform = 'translateY(0)';
-                         i++;
-                    }, 400);
-
-                    setTimeout(() => {
-                         clearInterval(interval);
-                    }, 100 * plantsFirstBox.length);
-                    */
-
                     for (let i = 0; i < plantsFirstBox.length; i++) {
                          setTimeout(() => {
                               plantsFirstBox[i].plantOpacity = '1';
@@ -183,6 +169,20 @@
                          }, i * (100 - i));
                     }
                }, 200);
+          } else if (visibleSection === 2 && e.deltaY > 0) {
+               for (let i = 0; i < plantsFirstBox.length; i++) {
+                    setTimeout(() => {
+                         plantsFirstBox[i].plantOpacity = '0';
+                         plantsFirstBox[i].plantTransform = 'translateY(50px)';
+                    }, i * (50 - i));
+               }
+          } else if (visibleSection === 1 && e.deltaY < 0) {
+               for (let i = plantsFirstBox.length; i >= 0; i--) {
+                    setTimeout(() => {
+                         plantsFirstBox[i].plantOpacity = '1';
+                         plantsFirstBox[i].plantTransform = 'translateY(0)';
+                    }, 500 - i * 50);
+               }
           }
 
           styles['progress'] = `${visibleSection * 33.3334}%`;
