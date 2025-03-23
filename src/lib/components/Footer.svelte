@@ -144,7 +144,7 @@
               stroke-linecap="round"
               stroke-linejoin="round"
               ><path
-                d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
+                d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
               ></path></svg
             >
             <a href="tel:+16151234567">(615) 123-4567</a>
@@ -162,7 +162,7 @@
                 d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
               ></path><polyline points="22,6 12,13 2,6"></polyline></svg
             >
-            <a href="mailto:verdantia@tsaostwald.de">verdantia@tsaostwald.de</a>
+            <a href="mailto:info@verdantia.com">info@verdantia.com</a>
           </p>
         </address>
       </div>
@@ -174,7 +174,7 @@
           © {currentYear} Verdantia. All rights reserved.
         </p>
         <div class="footer-bottom-links">
-          <a href="//tsaostwald.de">Ostwald TSA</a>
+          <a href="//verdantia.com">Verdantia</a>
         </div>
       </div>
     </div>
@@ -217,20 +217,22 @@
     font-size: 2rem;
     margin-bottom: 0.5rem;
     font-family: "DynaPuff Regular", serif;
-    color: white;
+    color: v.$font-color-light;
   }
 
   .tagline {
     font-style: italic;
     margin-bottom: 1rem;
-    color: rgba(255, 255, 255, 0.8);
+    color: v.$font-color-light;
+    opacity: 0.8;
   }
 
   .description {
     margin-bottom: 1.5rem;
     line-height: 1.5;
     font-size: 0.95rem;
-    color: rgba(255, 255, 255, 0.7);
+    color: v.$font-color-light;
+    opacity: 0.7;
   }
 
   .social-links {
@@ -243,9 +245,9 @@
       justify-content: center;
       width: 40px;
       height: 40px;
-      background-color: rgba(255, 255, 255, 0.1);
+      background-color: rgba(v.$font-color-light, 0.1);
       border-radius: 50%;
-      color: white;
+      color: v.$font-color-light;
       transition: all 0.3s ease;
 
       &:hover {
@@ -264,7 +266,7 @@
     h3 {
       position: relative;
       font-family: "DynaPuff Regular", serif;
-      color: white;
+      color: v.$font-color-light;
       font-size: 1.2rem;
       margin-bottom: 1.5rem;
       padding-bottom: 0.75rem;
@@ -293,7 +295,8 @@
         }
 
         a {
-          color: rgba(255, 255, 255, 0.8);
+          color: v.$font-color-light;
+          opacity: 0.8;
           text-decoration: none;
           transition: all 0.3s ease;
           display: inline-block;
@@ -311,7 +314,8 @@
           }
 
           &:hover {
-            color: white;
+            color: v.$font-color-light;
+            opacity: 1;
 
             &::after {
               width: 100%;
@@ -327,14 +331,16 @@
       display: flex;
       justify-content: space-between;
       margin-bottom: 0.5rem;
-      color: rgba(255, 255, 255, 0.8);
+      color: v.$font-color-light;
+      opacity: 0.8;
 
       .day {
         font-weight: 500;
       }
 
       .time {
-        color: rgba(255, 255, 255, 0.6);
+        color: v.$font-color-light;
+        opacity: 0.6;
       }
     }
   }
@@ -342,9 +348,10 @@
   .special-hours {
     margin-top: 1rem;
     padding-top: 1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid rgba(v.$font-color-light, 0.1);
     font-style: italic;
-    color: rgba(255, 255, 255, 0.7);
+    color: v.$font-color-light;
+    opacity: 0.7;
     font-size: 0.9rem;
   }
 
@@ -356,7 +363,8 @@
       align-items: flex-start;
       gap: 0.75rem;
       margin-bottom: 1rem;
-      color: rgba(255, 255, 255, 0.8);
+      color: v.$font-color-light;
+      opacity: 0.8;
 
       svg {
         width: 18px;
@@ -413,7 +421,8 @@
   }
 
   .copyright {
-    color: rgba(255, 255, 255, 0.6);
+    color: v.$font-color-light;
+    opacity: 0.6;
     font-size: 0.9rem;
   }
 
@@ -424,7 +433,8 @@
     flex-wrap: wrap;
 
     a {
-      color: rgba(255, 255, 255, 0.6);
+      color: v.$font-color-light;
+      opacity: 0.6;
       text-decoration: none;
       font-size: 0.9rem;
       transition: color 0.3s ease;
@@ -435,7 +445,8 @@
     }
 
     .separator {
-      color: rgba(255, 255, 255, 0.3);
+      color: v.$font-color-light;
+      opacity: 0.3;
       font-size: 0.8rem;
     }
   }
