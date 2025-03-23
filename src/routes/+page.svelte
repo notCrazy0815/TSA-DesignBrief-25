@@ -26,6 +26,8 @@
      import lavender from "$lib/assets/icons/lavender.png";
      import leaf from "$lib/assets/icons/leaf.png";
      import flower from "$lib/assets/icons/flower.png";
+     import cloud from "$lib/assets/icons/cloud.png";
+    import { fly } from "svelte/transition";
 
      let branches = [branch1, branch2, branch3, branch4, branch5, branch6, branch7, branch8, branch9, branch10, branch11, branch12, branch13, branch14, branch15];
 
@@ -47,7 +49,9 @@
           'progress': '0%',
           'windowHeight': '70%',
           'windowBorderRadius': '1000px',
-          'horizontalOpacity': '1'
+          'horizontalOpacity': '1',
+          'itemsOpacity': '0',
+          'itemsScale': '0'
      };
 
      let plantsFirstBox = [
@@ -60,6 +64,13 @@
           { plant: branch2d, word: 'DO', plantOpacity: '0', plantTransform: 'translateY(50px)' },
           { plant: branch7d, word: 'IT', plantOpacity: '0', plantTransform: 'translateY(50px)' }
      ];
+
+     let fourIngredients = [
+          { ingredient: 'Local' },
+          { ingredient: 'Fresh' },
+          { ingredient: 'Vegetarian' },
+          { ingredient: 'Real' }
+     ]
 
      let centerTitle: HTMLHeadingElement;
      let navTitle: HTMLHeadingElement;
@@ -138,7 +149,6 @@
           if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
 
           let innerWidth = window.innerWidth;
-
           let translateBefore: number = parseInt(styles['translateHorizontalScroll'].split('px')[0]);
 
           if (e.deltaY > 0) {
@@ -185,6 +195,14 @@
                }
           }
 
+          if (visibleSection === 2) {
+               styles['itemsOpacity'] = '0.6';
+               styles['itemsScale'] = '1';
+          } else {
+               styles['itemsOpacity'] = '0';
+               styles['itemsScale'] = '0';
+          }
+
           styles['progress'] = `${visibleSection * 33.3334}%`;
           styles['translateHorizontalScroll'] = `${translateBefore}px`;
 
@@ -214,7 +232,7 @@
 <svelte:window on:scroll={handleScroll} bind:scrollY={windowY} on:wheel={handleMouseWheel} />
 
 <div class="content" style={cssVarStyles}>
-     <!--{#if false}-->
+     <!-- {#if false} -->
      {#if showHero}
           <section class="hero-section" on:mousemove={e => handleMouseMove(e)} role="presentation">
                <div class="branches-stack">
@@ -288,7 +306,21 @@
                                    {/each}
                               </div>
                          </div>
-                         <div class="box"></div>
+                         <div class="box">
+                              <div class="second-bg">
+                                   <img src={lavender} alt="Lavender" />
+                                   <img src={leaf} alt="Leaf" />
+                                   <img src={flower} alt="Flower" />
+                                   <img src={orange} alt="Orange" />
+                              </div>
+                              <p class="second-content">
+                                   <span>Verdantia</span> was born from a simple idea:<br>
+                                   to serve fresh, local ingredients that truly taste better.<br>
+                                   We believe in real food, with no shortcuts or substitutes,<br>
+                                   sourced with care and served with purpose.<br>
+                                   Always vegetarian.
+                              </p>
+                         </div>
                          <div class="box">
                               <div class="window"></div>
                          </div>
@@ -309,11 +341,31 @@
           <section class="blue-section">
                <div class="blue-content">
                     <div class="heading">
-                         <h1>Still not convinced?</h1>
+                         <h1>Let's dive deeper</h1>
                     </div>
-                    <div class="clouds"></div>
+                    <div class="clouds">
+                         <img src={cloud} alt="cloud" />
+                         <img src={cloud} alt="cloud" />
+                         <img src={cloud} alt="cloud" />
+                         <img src={cloud} alt="cloud" />
+                    </div>
                </div>
                <div class="white-content">
+                    <div class="four-ingredients">
+                         <div class="header">
+                              <p>Our four most important ingredients</p>
+                         </div>
+                         <div class="ingredients-container">
+                              {#each fourIngredients as ingredient}
+                                   <div class="ingredient">
+                                        <p>{ingredient.ingredient}</p>
+                                   </div>
+                              {/each}
+                         </div>
+                    </div>
+                    <div class="ingredients-info">
+                         <p></p>
+                    </div>
                     <div class="further-links">
                          <h3>Now that you know who we are, find out what food we serve</h3>
                          <a href="/menu">View our menu</a>
@@ -660,8 +712,57 @@
 
                                                   p {
                                                        color: black;
-                                                       font-size: clamp(1rem, 2.3vw, 1.7rem);
+                                                       font-size: clamp(1rem, 2vw, 1.7rem);
                                                   }
+                                             }
+                                        }
+                                   }
+                              }
+
+                              &:nth-child(2) {
+                                   display: flex;
+                                   justify-content: center;
+                                   align-items: center;
+                                   position: relative;
+
+                                   .second-content {
+                                        text-align: center;
+                                        font-size: clamp(1.1rem, 3.2vw, 2.6rem);
+
+                                        span {
+                                             font-family: "DynaPuff Regular";
+                                             color: v.$tertiary;
+                                        }
+                                   }
+
+                                   .second-bg {
+                                        position: absolute;
+                                        width: 100%;
+                                        height: 100%;
+
+                                        img {
+                                             aspect-ratio: 1/1;
+                                             width: clamp(55px, 10vw, 200px);
+                                             height: auto;
+                                             position: absolute;
+                                             opacity: var(--itemsOpacity);
+                                             transition: all 2s,
+                                                  transform 1s cubic-bezier(0.6, 0, 0.735, 0.045);
+
+                                             &:nth-child(1) {
+                                                  transform: translateX(100px) translateY(8vh) rotate(45deg);
+                                             }
+
+                                             &:nth-child(2) {
+                                                  transform: translateX(30vw) translateY(55vh) rotate(-30deg);
+                                             }
+
+                                             &:nth-child(3) {
+                                                  transform: translateX(70vw) translateY(40vh) rotate(30deg);
+                                             }
+
+                                             &:nth-child(4) {
+                                                  transform: translateX(65vw) translateY(3vh) rotate(0deg) scale(var(--itemsScale));
                                              }
                                         }
                                    }
@@ -682,6 +783,10 @@
                                         border-top-right-radius: var(--windowBorderRadius);
                                         transition: border-radius 0.5s,
                                              height 1s;
+
+                                        display: flex;
+                                        justify-content: center;
+                                        align-items: center;
                                    }
                               }
                          }
@@ -700,11 +805,12 @@
 
                .blue-content {
                     width: 100%;
-                    display: flex;
-                    justify-content: center;
-                    flex-direction: column;
+                    height: 100%;
+                    min-height: 100vh;
                     opacity: 0;
                     animation: fadeIn 1s forwards;
+                    display: grid;
+                    grid-template-rows: 1fr clamp(300px, 40vw, 1300px);
 
                     @keyframes fadeIn {
                          0% {
@@ -717,9 +823,9 @@
 
                     .heading {
                          background-color: v.$quaternary;
-                         height: 90%;
-                         min-height: 90vh;
                          width: 100%;
+                         height: 100%;
+                         padding-top: 10vh;
                          display: flex;
                          justify-content: center;
                          align-items: center;
@@ -732,10 +838,30 @@
                     }
 
                     .clouds {
-                         background-image: linear-gradient(180deg, v.$quaternary, v.$font-color-light);
-                         height: 10%;
-                         min-height: 200px;
-                         width: 100%;
+                         background-image: linear-gradient(v.$quaternary 0 64%, v.$background-color-light 64% 100%);
+
+                         position: relative;
+                         display: flex;
+                         
+                         img {
+                              position: absolute;
+                              aspect-ratio: 1/1 !important;
+                              height: 100%;
+                              pointer-events: none;
+
+                              &:nth-child(1) {
+                                   left: 0%;
+                              }
+                              &:nth-child(2) {
+                                   left: 70%;
+                              }
+                              &:nth-child(3) {
+                                   left: 40%;
+                              }
+                              &:nth-child(4) {
+                                   left: 25%;
+                              }
+                         }
                     }
                }
 
@@ -745,7 +871,65 @@
                     background-color: v.$background-color-light;
                     padding: 0 3rem;
                     display: flex;
-                    align-items: end;
+                    flex-direction: column;
+                    align-items: center;
+
+                    .four-ingredients {
+                         display: flex;
+                         flex-direction: column;
+                         align-items: center;
+
+                         width: 100%;
+                         min-height: 100vh;
+
+                         .header {
+                              p {
+                                   font-size: clamp(1.1rem, 3vw, 2rem);
+                                   text-align: center;
+                                   padding: 1rem;
+                                   text-transform: uppercase;
+                              }
+                         }
+                         
+                         .ingredients-container {
+                              display: grid;
+                              grid-template-columns: repeat(2, 25vw);
+
+                              justify-content: center;
+                              gap: 2rem;
+                              width: 100%;
+                              padding: 4rem 2rem;
+
+                              .ingredient {
+                                   display: flex;
+                                   justify-content: center;
+                                   align-items: center;
+                                   border-radius: 2rem;
+                                   height: 12rem;
+
+                                   &:nth-child(1) {
+                                        background-color: v.$primary;
+                                   }
+
+                                   &:nth-child(2) {
+                                        background-color: v.$secondary;
+                                   }
+
+                                   &:nth-child(3) {
+                                        background-color: v.$tertiary;
+                                   }
+
+                                   &:nth-child(4) {
+                                        background-color: v.$quaternary;
+                                   }
+
+                                   p {
+                                        font-size: clamp(1rem, 3vw, 2rem);
+                                        color: v.$font-color-light;
+                                   }
+                              }
+                         }
+                    }
 
                     .further-links {
                          padding: 4rem 2rem;
