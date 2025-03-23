@@ -1,6 +1,11 @@
 import adapter from '@sveltejs/adapter-auto';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
+// no linting error for adapter
+/* #vsc-svelte 
+	-node-dependencies:@sveltejs/adapter-auto
+  !#vsc-svelte */
+
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
 	// Consult https://svelte.dev/docs/kit/integrations
