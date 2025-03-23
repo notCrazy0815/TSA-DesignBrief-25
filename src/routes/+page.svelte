@@ -27,7 +27,7 @@
      import leaf from "$lib/assets/icons/leaf.png";
      import flower from "$lib/assets/icons/flower.png";
      import cloud from "$lib/assets/icons/cloud.png";
-    import { fly } from "svelte/transition";
+     import { fly } from "svelte/transition";
 
      let branches = [branch1, branch2, branch3, branch4, branch5, branch6, branch7, branch8, branch9, branch10, branch11, branch12, branch13, branch14, branch15];
 
@@ -75,6 +75,7 @@
      let centerTitle: HTMLHeadingElement;
      let navTitle: HTMLHeadingElement;
 
+     let firstBoxScrolled = false;
      let active = false;
      let showHero = false;
      let showHorizontal = true;
@@ -169,6 +170,10 @@
           } else if (visibleSection === 2) {
                styles['windowHeight'] = '70%';
           }
+
+          if (visibleSection !== 1) {
+               firstBoxScrolled = false;
+          }
           
           if (visibleSection === 1 && e.deltaY > 0) {               
                setTimeout(() => {
@@ -179,6 +184,10 @@
                          }, i * (100 - i));
                     }
                }, 200);
+
+               setTimeout(() => {
+                    firstBoxScrolled = true;
+               }, 800);
           } else if (visibleSection === 2 && e.deltaY > 0) {
                for (let i = 0; i < plantsFirstBox.length; i++) {
                     setTimeout(() => {
@@ -193,6 +202,10 @@
                          plantsFirstBox[i].plantTransform = 'translateY(0)';
                     }, 500 - i * 50);
                }
+
+               setTimeout(() => {
+                    firstBoxScrolled = true;
+               }, 500);
           }
 
           if (visibleSection === 2) {
@@ -295,7 +308,18 @@
                          <div class="box">
                               <div class="first-content">
                                    {#each plantsFirstBox as plant, i}
-                                        <div class="word-container">
+                                        <div class="word-container"
+                                             on:mouseenter={() => {
+                                                  if (firstBoxScrolled) {
+                                                       plantsFirstBox[i].plantTransform = 'translateY(-2rem)';
+                                                  }
+                                             }}
+                                             on:mouseleave={() => {
+                                                  plantsFirstBox[i].plantTransform = 'translateY(0)';
+                                             }}
+                                             role="button"
+                                             tabindex={i}
+                                        >
                                              <div class="plant" style="animation-delay: {i * 0.05}s; opacity: {plant.plantOpacity}; transform: {plant.plantTransform};">
                                                   <img src={plant.plant} alt="Plant" />
                                              </div>
@@ -668,7 +692,6 @@
                          transform: translateX(var(--translateHorizontalScroll));
                          transition: all 1s;
                          height: 90%;
-                         z-index: -2;
 
                          .box {
                               width: 90vw;
