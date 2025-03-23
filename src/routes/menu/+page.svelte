@@ -1,5 +1,5 @@
 <script>
-  import { tick, onMount } from "svelte";
+  import { tick, onMount, onDestroy } from "svelte";  // Add onDestroy import
   import { fly, fade } from "svelte/transition";
   import NavBar from "$lib/components/NavBar.svelte";
   import MenuItemModal from "$lib/components/MenuItemModal.svelte";
@@ -8,7 +8,9 @@
 
   const activeFilters = writable({
     dietary: new Set(['all']),
-    features: new Set()
+    features: new Set(),
+    allergens: new Set(),
+    price: null
   });
 
   let activeCard = null;
@@ -20,6 +22,9 @@
   let scrollDownElement;
   let lastScrollY = 0;
   let lastResize = 0;
+  let activeTab = 'diet';  // Add this for the filter tabs
+  let totalItemsCount = 0;
+  let filteredItemsCount = 0;
 
   const originalRotations = [-5, 4, 10, -6];
 
@@ -187,30 +192,6 @@
     ]
   };
 
-  const chefsSpecials = [
-    {
-      name: "Seasonal Truffle Risotto",
-      description: "Our chef's special risotto with local forest truffles and seasonal vegetables",
-      price: "18.95",
-      tags: ["vegetarian", "gluten-free"],
-      image: "/images/menu/truffle-risotto.jpg"
-    },
-    {
-      name: "Plant-Based Wellington",
-      description: "A delicate pastry filled with roasted mushrooms, walnuts, and seasonal vegetables",
-      price: "19.50",
-      tags: ["vegan"],
-      image: "/images/menu/wellington.jpg"
-    },
-    {
-      name: "Artisanal Tasting Platter",
-      description: "A selection of our finest house-made vegan cheeses, fermented vegetables, and sourdough bread",
-      price: "22.95",
-      tags: ["vegan"],
-      image: "/images/menu/tasting-platter.jpg"
-    }
-  ];
-
   function getUniqueDrinkRecommendations(count = 4) {
     const allDrinks = [];
     
@@ -258,40 +239,141 @@
   }
 
   function toggleFilter(category, filter) {
-    activeFilters.update(filters => {
-      if (category === 'dietary' && filter === 'all') {
-        filters.dietary = new Set(['all']);
-      } else if (category === 'dietary') {
-        filters.dietary.delete('all');
+    console.log(`Toggle ${category}:${filter}`);
+    
+    // Create a copy of the current filters
+    const newFilters = { ...$activeFilters };
+    
+    if (category === 'dietary') {
+      if (filter === 'all') {
+        // If 'all' is selected, clear other diet filters
+        newFilters.dietary = new Set(['all']);
+      } else {
+        // Create a new Set for the dietary filters
+        const newDietary = new Set([...newFilters.dietary]);
         
-        if (filters.dietary.has(filter)) {
-          filters.dietary.delete(filter);
-          if (filters.dietary.size === 0) {
-            filters.dietary.add('all');
+        // Remove 'all' when selecting a specific diet
+        newDietary.delete('all');
+        
+        // Toggle the selected diet
+        if (newDietary.has(filter)) {
+          newDietary.delete(filter);
+          
+          // If removing vegan, check if we should also remove vegetarian
+          if (filter === 'vegan' && !newDietary.has('vegetarian')) {
+            // Keep vegetarian if it was explicitly selected
+          }
+          
+          // If no specific diets selected, go back to 'all'
+          if (newDietary.size === 0) {
+            newDietary.add('all');
           }
         } else {
-          filters.dietary.add(filter);
+          newDietary.add(filter);
+          
+          // If adding vegan, automatically add vegetarian
+          if (filter === 'vegan') {
+            newDietary.add('vegetarian');
+          }
         }
-      } else if (category === 'features') {
-        if (filters.features.has(filter)) {
-          filters.features.delete(filter);
-        } else {
-          filters.features.add(filter);
+        
+        newFilters.dietary = newDietary;
+      }
+    } 
+    else if (category === 'features' || category === 'allergens') {
+      const newSet = new Set([...newFilters[category]]);
+      
+      if (newSet.has(filter)) {
+        newSet.delete(filter);
+      } else {
+        newSet.add(filter);
+      }
+      
+      newFilters[category] = newSet;
+    } else if (category === 'price') {
+      newFilters.price = newFilters.price === filter ? null : filter;
+    }
+    
+    activeFilters.set(newFilters);
+    
+    setTimeout(announceFilterChange, 10);
+    updateFilteredCounts();
+  }
+
+  function updateFilteredCounts() {
+    if (activeCard && menus[activeCard.title]) {
+      totalItemsCount = 0;
+      let filteredCount = 0;
+      
+      for (const section of menus[activeCard.title]) {
+        if (section.items && Array.isArray(section.items)) {
+          totalItemsCount += section.items.length;
+          filteredCount += filterItems(section.items).length;
         }
       }
       
-      return filters;
-    });
+      filteredItemsCount = filteredCount;
+    }
+  }
+  
+  const unsubscribe = activeFilters.subscribe(() => {
+    updateFilteredCounts();
+  });
+  
+  onDestroy(() => {
+    if (unsubscribe) unsubscribe();
+  });
+
+  function debugFilterClick(category, filter) {
+    console.log(`Clicking ${category}:${filter}`);
+    toggleFilter(category, filter);
+  }
+
+  function announceFilterChange() {
+    // Implementation for accessibility - announce filter changes
+    const announcement = document.getElementById('filter-announcement');
+    if (announcement) {
+      const dietaryFilters = Array.from($activeFilters.dietary).join(', ');
+      const featureFilters = Array.from($activeFilters.features).join(', ');
+      const allergenFilters = Array.from($activeFilters.allergens).join(', ');
+      
+      announcement.textContent = `Filters applied: ${dietaryFilters} ${featureFilters} ${allergenFilters}`;
+    }
   }
   
   function isFilterActive(category, filter) {
-    return $activeFilters[category].has(filter);
+    if (!$activeFilters) return false;
+    
+    if (category === 'price') {
+      return $activeFilters.price === filter;
+    }
+    
+    return $activeFilters[category]?.has(filter) || false;
+  }
+  
+  function clearAllFilters() {
+    activeFilters.update(filters => {
+      filters.dietary = new Set(['all']);
+      filters.features = new Set();
+      filters.allergens = new Set();
+      filters.price = null;
+      return filters;
+    });
+    
+    // Announce cleared filters to screen readers
+    const announcement = document.getElementById('filter-announcement');
+    if (announcement) {
+      announcement.textContent = 'All filters cleared';
+    }
   }
   
   function filterItems(items) {
     if (!items || !Array.isArray(items)) return [];
     
-    if ($activeFilters.dietary.has('all') && $activeFilters.features.size === 0) {
+    if ($activeFilters.dietary.has('all') && 
+        $activeFilters.features.size === 0 && 
+        $activeFilters.allergens.size === 0 && 
+        $activeFilters.price === null) {
       return items;
     }
     
@@ -299,13 +381,16 @@
       if (!item) return false;
       
       let passesBasicFilter = false;
-      
       if ($activeFilters.dietary.has('all')) {
         passesBasicFilter = true;
       } else {
-        passesBasicFilter = Array.from($activeFilters.dietary).some(filter => 
-          item.tags && Array.isArray(item.tags) && item.tags.includes(filter)
-        );
+        if ($activeFilters.dietary.has('vegan')) {
+          passesBasicFilter = item.tags && Array.isArray(item.tags) && item.tags.includes('vegan');
+        } else {
+          passesBasicFilter = Array.from($activeFilters.dietary).some(filter => 
+            item.tags && Array.isArray(item.tags) && item.tags.includes(filter)
+          );
+        }
       }
       
       let passesFeatureFilters = true;
@@ -315,8 +400,63 @@
         );
       }
       
-      return passesBasicFilter && passesFeatureFilters;
+      // Allergen filter check
+      let passesAllergenFilters = true;
+      if ($activeFilters.allergens.size > 0) {
+        passesAllergenFilters = Array.from($activeFilters.allergens).every(allergen => {
+          // If allergen is selected, the item should NOT have this allergen
+          return !(item.tags && Array.isArray(item.tags) && 
+                  item.tags.includes(`contains-${allergen.toLowerCase()}`));
+        });
+      }
+      
+      // Price filter check
+      let passesPriceFilter = true;
+      if ($activeFilters.price !== null) {
+        const itemPrice = parseFloat(item.price);
+        
+        if ($activeFilters.price === 'under10' && itemPrice >= 10) {
+          passesPriceFilter = false;
+        } else if ($activeFilters.price === '10to15' && (itemPrice < 10 || itemPrice > 15)) {
+          passesPriceFilter = false;
+        } else if ($activeFilters.price === 'over15' && itemPrice <= 15) {
+          passesPriceFilter = false;
+        }
+      }
+      
+      return passesBasicFilter && passesFeatureFilters && passesAllergenFilters && passesPriceFilter;
     });
+  }
+  
+  function countAllMenuItems() {
+    let count = 0;
+    
+    for (const category in menus) {
+      for (const section of menus[category]) {
+        if (section.items && Array.isArray(section.items)) {
+          count += section.items.length;
+        }
+      }
+    }
+    
+    return count;
+  }
+  
+  // Update filtered counts when activeFilters changes
+  $: {
+    if (activeCard && menus[activeCard.title]) {
+      let filteredCount = 0;
+      totalItemsCount = 0;
+      
+      for (const section of menus[activeCard.title]) {
+        if (section.items && Array.isArray(section.items)) {
+          totalItemsCount += section.items.length;
+          filteredCount += filterItems(section.items).length;
+        }
+      }
+      
+      filteredItemsCount = filteredCount;
+    }
   }
 
   function handleCardClick(event, card) {
@@ -346,11 +486,7 @@
       if (menuCategoryCardsElement) {
         menuCategoryCardsElement.style.height = `${activeCardHeight + 40}px`;
         
-        if (window.innerWidth < 768) {
-          menuCategoryCardsElement.style.position = 'relative';
-          activeCardElement.style.top = '0';
-          activeCardElement.style.transform = 'translate3d(-50%, 0, 0) rotateZ(0deg)';
-        }
+        // Mobile-specific styling is handled by CSS
       }
       
       if (scrollDownElement) {
@@ -360,15 +496,15 @@
         scrollDownElement.style.bottom = '-40px';
       }
       
-      if (window.innerWidth < 768) {
-        const containerRect = menuCategoryCardsElement.getBoundingClientRect();
-        const targetScroll = window.scrollY + containerRect.top - 20;
-        window.scrollTo({ top: targetScroll, behavior: 'smooth' });
-      } else {
-        const activeRect = activeCardElement.getBoundingClientRect();
-        const targetScroll = window.scrollY + activeRect.top - 100;
-        window.scrollTo({ top: targetScroll, behavior: 'smooth' });
-      }
+      const topPadding = 0; 
+      const menuCategoryRect = menuCategoryCardsElement.getBoundingClientRect();
+      const elementTop = window.scrollY + menuCategoryRect.top;
+      const targetScroll = elementTop + topPadding;
+      
+      window.scrollTo({ 
+        top: targetScroll, 
+        behavior: 'smooth' 
+      });
     }
     
     await tick();
@@ -394,20 +530,27 @@
     activeCard = null;
     
     if (menuCategoryCardsElement) {
-      menuCategoryCardsElement.style.transition = 'none';
-      menuCategoryCardsElement.style.height = '80vw';
-      
-      void menuCategoryCardsElement.offsetHeight;
-      menuCategoryCardsElement.style.transition = 'height 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
+      if (window.innerWidth < 768) {
+        menuCategoryCardsElement.style.transition = 'none';
+        menuCategoryCardsElement.style.height = '80vw';
+      } else {
+        menuCategoryCardsElement.style.transition = 'none';
+        menuCategoryCardsElement.style.height = '80vw';
+        
+        void menuCategoryCardsElement.offsetHeight;
+        menuCategoryCardsElement.style.transition = 'height 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
+      }
     }
     
     resetAllCards();
-    window.scrollTo({ top: scrollPosition, behavior: 'smooth' });
+    window.scrollTo({ top: scrollPosition, behavior: window.innerWidth < 768 ? 'auto' : 'smooth' });
     
+
+    const timeoutDuration = window.innerWidth < 768 ? 300 : 700;
     setTimeout(() => {
       forceContainerHeight();
       isTransitioning = false;
-    }, 700);
+    }, timeoutDuration);
   }
 
   function resetAllCards() {
@@ -423,15 +566,13 @@
         const cardWidth = '90vw';
         const cardHeight = `${Math.round(parseInt(cardWidth) * (2/3))}vw`;
         
-        const calculatedCardHeight = Math.floor(window.innerWidth * 0.9 * 2/3);
-        const spacing = 150;
-        const verticalPosition = `${(i * (calculatedCardHeight + spacing)) + 40}px`;
+        
         
         Object.assign(cardElement.style, {
           position: 'absolute',
           left: '50%',
-          top: verticalPosition,
-          transform: `translate3d(-50%, 0, 0) rotateZ(${getRotation(i)}deg)`,
+          top: top,
+          transform: `translate3d(-50%, -50%, 0) rotateZ(${getRotation(i)}deg)`,
           opacity: '1',
           zIndex: `${4 - i}`,
           pointerEvents: 'auto',
@@ -471,8 +612,8 @@
     
     if (window.innerWidth < 768) {
       const cardHeight = Math.floor(window.innerWidth * 0.9 * 2/3);
-      const spacing = 150;
-      const totalHeight = (cards.length * (cardHeight + spacing)) - spacing + 60;
+      const spacing = 0;
+      const totalHeight = (cards.length * (cardHeight + spacing)) - spacing;
       menuCategoryCardsElement.style.height = `${totalHeight}px`;
     } else {
       menuCategoryCardsElement.style.height = '80vw';
@@ -504,8 +645,7 @@
     const activeCardElement = document.querySelector('.card.active');
     if (activeCardElement) {
       if (scrollDelta > 0 && currentScrollY > scrollPosition) {
-        const offset = Math.min((currentScrollY - scrollPosition) * 0.5, 150); 
-        activeCardElement.style.transform = `translate3d(-50%, calc(-50% - ${offset}px), 0) rotateZ(0deg)`;
+        activeCardElement.style.transform = 'translate3d(-50%, -50%, 0) rotateZ(0deg)';
       } else if (currentScrollY <= scrollPosition) {
         activeCardElement.style.transform = 'translate3d(-50%, -50%, 0) rotateZ(0deg)';
       }
@@ -600,6 +740,287 @@
       document.removeEventListener('pairingClick', handlePairingClick);
     };
   });
+
+  // Update the menus data structure to include source information for selected items
+  const menuWithSourceInfo = {
+    Appetizers: [
+      { category: "Cold Starters", items: [
+        { name: "Bruschetta with Heirloom Tomatoes", price: "7.95", tags: ["vegan", "contains-gluten"], detailed: {
+          description: "Our signature bruschetta features locally sourced heirloom tomatoes, fresh basil from our greenhouse, and aged balsamic reduction drizzled over artisanal sourdough bread toasted to perfection.",
+          ingredients: ["Heirloom tomatoes", "Fresh basil", "Organic garlic", "Extra-virgin olive oil", "Aged balsamic reduction", "Artisanal sourdough bread", "Sea salt", "Cracked black pepper"],
+          ingredientSources: [
+            {
+              name: "Heirloom tomatoes",
+              farm: "Green Door Gourmet",
+              distance: 9,
+              farmSince: 2007,
+              market: "Nashville Farmers' Market",
+              organic: true,
+              nonGMO: true,
+              season: "June through September",
+              latestHarvest: "2023-09-05",
+              farmDescription: "Green Door Gourmet is a 350-acre USDA Certified Organic farm and agritourism destination located just 12 minutes from downtown Nashville. They focus on sustainable growing practices and provide the community with seasonal produce, flowers, and herbs.",
+              farmerName: "Sylvia Ganier",
+              farmerPhoto: "/images/ingredients/sylvia-ganier.jpg",
+              farmerBio: "Sylvia Ganier, owner of Green Door Gourmet, is a chef-turned-farmer dedicated to sustainable agriculture and connecting the community with local food systems. Her background in culinary arts informs her approach to growing exceptional produce.",
+              coordinates: { x: 70, y: 45 },
+              description: "These vibrant, flavorful heirloom tomatoes are grown using traditional methods. Each variety is selected for its exceptional taste and texture, with seeds carefully preserved from previous harvests to maintain heritage varieties unique to Tennessee.",
+              image: "/images/ingredients/heirloom-tomatoes.jpg",
+              peakSeason: "Mid-July through late August",
+              harvestMethods: "Hand-picked at peak ripeness to ensure maximum flavor and nutrition. Each tomato is harvested in the early morning when temperatures are cooler to preserve freshness.",
+              storageInfo: "Store at room temperature away from direct sunlight. Never refrigerate as it diminishes flavor and alters texture.",
+              shelfLife: "5-7 days after harvest when stored properly",
+              freshnessTips: "Look for firm fruits with vibrant color and earthy aroma. The stem should be fresh and green if still attached.",
+              nutritionDescription: "Heirloom tomatoes contain higher levels of antioxidants and micronutrients compared to conventional varieties. They're rich in vitamins A, C, and K, and contain lycopene, a powerful antioxidant.",
+              nutritionComparison: {
+                "Vitamin C": { local: 38, conventional: 18, max: 40 },
+                "Lycopene": { local: 25, conventional: 12, max: 25 },
+                "Antioxidants": { local: 32, conventional: 15, max: 35 },
+                "Flavor Compounds": { local: 28, conventional: 10, max: 30 }
+              },
+              nutritionBenefits: [
+                { 
+                  name: "Lycopene-Rich", 
+                  description: "Contains up to 40% more lycopene than conventional tomatoes, supporting heart and skin health", 
+                  icon: "L" 
+                },
+                { 
+                  name: "Vitamin C", 
+                  description: "Excellent source of vitamin C, boosting immune function and collagen production", 
+                  icon: "C" 
+                },
+                { 
+                  name: "Potassium", 
+                  description: "High in potassium, helping to maintain healthy blood pressure", 
+                  icon: "K" 
+                }
+              ],
+              seasonalData: [
+                { month: "Jan", availability: 0 },
+                { month: "Feb", availability: 0 },
+                { month: "Mar", availability: 0 },
+                { month: "Apr", availability: 0 },
+                { month: "May", availability: 15 },
+                { month: "Jun", availability: 70 },
+                { month: "Jul", availability: 100 },
+                { month: "Aug", availability: 95 },
+                { month: "Sep", availability: 60 },
+                { month: "Oct", availability: 10 },
+                { month: "Nov", availability: 0 },
+                { month: "Dec", availability: 0 }
+              ],
+              environmentalImpact: "Organic farming practices at Green Door Gourmet promote soil health, biodiversity, and water conservation. Growing heirloom varieties helps preserve genetic diversity in our food system.",
+              carbonFootprint: {
+                local: "0.5 kg CO₂e per pound",
+                conventional: "5.3 kg CO₂e per pound",
+                savings: 90
+              },
+              communityImpact: "Green Door Gourmet employs local workers year-round and provides educational programs for schools and community groups to learn about sustainable agriculture.",
+              jobsSupported: 32,
+              farmVisit: "Green Door Gourmet welcomes visitors Thursday through Sunday, 9am-5pm. You can take a self-guided tour, participate in U-pick events (seasonal), or shop at their on-farm market.",
+              practices: [
+                { name: "Non-GMO", icon: "N", description: "Preserves heirloom varieties with no genetic modification" },
+                { name: "Sustainable Watering", icon: "W", description: "Drip irrigation systems reduce water usage by 60%" },
+                { name: "Pesticide-Free", icon: "P", description: "Uses natural pest management techniques instead of synthetic chemicals" },
+                { name: "Soil Stewardship", icon: "S", description: "Builds healthy soil through cover cropping and composting" }
+              ]
+            },
+            {
+              name: "Artisanal sourdough bread",
+              farm: "Dozen Bakery",
+              distance: 3,
+              farmSince: 2015,
+              market: null,
+              organic: false,
+              nonGMO: true,
+              description: "Our sourdough bread is baked fresh daily by Dozen Bakery, a local Nashville artisan bakery known for their traditional bread-making techniques and commitment to quality ingredients.",
+              image: "/images/ingredients/sourdough-bread.jpg",
+              peakSeason: "Available year-round",
+              harvestMethods: "Baked fresh daily using traditional fermentation techniques with a 15-year-old sourdough starter.",
+              nutritionDescription: "Traditional sourdough fermentation increases the bioavailability of nutrients and makes gluten easier to digest for many people.",
+              environmentalImpact: "Dozen Bakery sources local organic flour whenever possible, reducing transportation emissions and supporting regional grain farmers.",
+              carbonFootprint: {
+                local: "0.7 kg CO₂e per loaf",
+                conventional: "2.2 kg CO₂e per loaf",
+                savings: 68
+              },
+              nutritionBenefits: [
+                { 
+                  name: "Digestibility", 
+                  description: "Traditional fermentation breaks down gluten and phytic acid for easier digestion", 
+                  icon: "D" 
+                },
+                { 
+                  name: "Probiotic", 
+                  description: "Contains beneficial bacteria that support gut health", 
+                  icon: "P" 
+                }
+              ],
+              practices: [
+                { name: "Traditional Methods", icon: "T", description: "24-hour slow fermentation process" },
+                { name: "Local Grain", icon: "L", description: "Uses flour from small-scale regional mills" },
+                { name: "Zero Waste", icon: "Z", description: "Day-old bread is repurposed or composted" }
+              ]
+            }
+          ],
+          nutrition: {
+            calories: 215,
+            protein: "4g",
+            carbs: "28g",
+            fat: "10g"
+          },
+          allergens: ["Gluten"],
+          image: "/images/menu/bruschetta.jpg",
+          pairings: ["Elderflower Fizz", "Sparkling Botanical Water"]
+        }},
+        // ...other items remain the same
+      ]},
+      // ...other categories remain the same
+    ],
+    Main: [
+      { category: "Pasta & Risotto", items: [
+        { name: "Artisanal Mushroom Risotto", price: "16.95", tags: ["vegetarian", "gluten-free", "contains-lactose", "seasonal"], isNew: true, detailed: {
+          description: "A creamy arborio rice dish featuring locally foraged mushrooms, house-made vegetable stock, and a touch of our plant-based parmesan. Each bite is a celebration of seasonal Tennessee flavors.",
+          ingredients: ["Arborio rice", "Seasonal mushrooms", "Vegetable stock", "Plant-based parmesan", "Organic herbs", "Cold-pressed olive oil", "White wine reduction"],
+          ingredientSources: [
+            {
+              name: "Seasonal mushrooms",
+              farm: "Possum Creek Mushroom Farm",
+              distance: 17,
+              farmSince: 2012,
+              market: "East Nashville Farmers Market",
+              organic: true,
+              nonGMO: true,
+              season: "Year-round (varieties change by season)",
+              latestHarvest: "2023-09-12",
+              farmDescription: "Possum Creek specializes in gourmet and medicinal mushrooms grown in controlled indoor environments and on hardwood logs outdoors. Their facility uses cutting-edge technology to create perfect growing conditions while maintaining sustainable practices.",
+              farmerName: "Marcus Johnson",
+              farmerBio: "Marcus Johnson founded Possum Creek after discovering the fascinating world of mycology in college. With a background in biology and ecology, he applies scientific principles to mushroom cultivation while maintaining a deep respect for natural ecosystems.",
+              coordinates: { x: 25, y: 65 },
+              description: "These gourmet mushrooms are grown in a controlled environment. They cultivate their mushrooms on sustainable hardwood logs and organic substrates derived from agricultural by-products.",
+              image: "/images/ingredients/local-mushrooms.jpg",
+              harvestMethods: "Each mushroom variety is harvested at its optimal development stage to ensure perfect texture and flavor. Indoor varieties are available year-round, while outdoor log-grown varieties follow seasonal cycles.",
+              storageInfo: "Store in a paper bag in the refrigerator; never wash until ready to use.",
+              shelfLife: "5-7 days when properly stored",
+              freshnessTips: "Look for firm caps with vibrant color. Avoid slimy or dried-out specimens.",
+              nutritionDescription: "Fresh, local mushrooms retain more nutrients than commercially-grown varieties that may sit in distribution chains for days. They're rich in B vitamins, selenium, copper, and contain immune-supporting beta-glucans.",
+              nutritionComparison: {
+                "Beta-glucans": { local: 32, conventional: 18, max: 35 },
+                "B Vitamins": { local: 28, conventional: 15, max: 30 },
+                "Selenium": { local: 26, conventional: 12, max: 30 },
+                "Protein": { local: 22, conventional: 20, max: 25 }
+              },
+              nutritionBenefits: [
+                { 
+                  name: "Immune Support", 
+                  description: "Beta-glucans in mushrooms help regulate the immune system", 
+                  icon: "I" 
+                },
+                { 
+                  name: "Vitamin D", 
+                  description: "One of the few plant sources of vitamin D when exposed to light", 
+                  icon: "D" 
+                }
+              ],
+              seasonalData: [
+                { month: "Jan", availability: 60 },
+                { month: "Feb", availability: 60 },
+                { month: "Mar", availability: 70 },
+                { month: "Apr", availability: 85 },
+                { month: "May", availability: 90 },
+                { month: "Jun", availability: 75 },
+                { month: "Jul", availability: 60 },
+                { month: "Aug", availability: 60 },
+                { month: "Sep", availability: 85 },
+                { month: "Oct", availability: 100 },
+                { month: "Nov", availability: 95 },
+                { month: "Dec", availability: 70 }
+              ],
+              environmentalImpact: "Mushroom cultivation is incredibly sustainable, requiring minimal water and space while capable of converting agricultural waste into nutrient-dense food. Possum Creek operates a near zero-waste facility.",
+              carbonFootprint: {
+                local: "0.3 kg CO₂e per pound",
+                conventional: "2.8 kg CO₂e per pound",
+                savings: 89
+              },
+              communityImpact: "Possum Creek offers monthly workshops on mycology, medicinal mushrooms, and sustainable growing techniques for home gardeners and aspiring farmers.",
+              jobsSupported: 8,
+              farmVisit: "Possum Creek offers guided tours of their indoor growing facilities on the first Saturday of each month. Advance booking required through their website.",
+              practices: [
+                { name: "Sustainable Growing", icon: "S", description: "Uses agricultural by-products as growing substrate" },
+                { name: "Zero Waste", icon: "Z", description: "Spent substrate becomes compost for local gardens" },
+                { name: "Organic Certified", icon: "O", description: "USDA certified organic growing methods" },
+                { name: "Energy Efficient", icon: "E", description: "Growing facilities powered by solar energy" }
+              ]
+            },
+            {
+              name: "Organic herbs",
+              farm: "Bloomsbury Farm",
+              distance: 25,
+              farmSince: 2009,
+              market: "12 South Farmers Market",
+              organic: true,
+              nonGMO: true,
+              season: "March through October",
+              latestHarvest: "2023-09-10",
+              description: "Our herbs come from Bloomsbury Farm, a certified organic farm in Smyrna, TN. Their herbs are grown without pesticides and harvested by hand to ensure the highest quality and flavor.",
+              image: "/images/ingredients/organic-herbs.jpg",
+              freshnessTips: "Fresh herbs should have vibrant color and aroma, with no wilting or browning.",
+              environmentalImpact: "Bloomsbury Farm's herb gardens support native pollinators and beneficial insects, creating habitat for biodiversity.",
+              practices: [
+                { name: "Organic Certified", icon: "O", description: "USDA certified organic growing methods" },
+                { name: "Sustainable Farming", icon: "S", description: "Employs companion planting and integrated pest management" },
+                { name: "Hand Harvested", icon: "H", description: "Carefully harvested by hand for minimal damage" }
+              ]
+            }
+          ],
+          nutrition: {
+            calories: 320,
+            protein: "8g",
+            carbs: "45g",
+            fat: "12g"
+          },
+          allergens: ["Lactose"],
+          image: "/images/menu/mushroom-risotto.jpg",
+          pairings: ["Beetroot & Ginger Infusion", "Chilled Almond Horchata"]
+        }}
+        // ...other items remain the same
+      ]},
+      // ...other categories remain the same
+    ],
+    // ...other menu sections remain the same
+  };
+  
+  // Merge the source info into the main menus object
+  function mergeSourceInfo() {
+    // For Bruschetta
+    if (menus.Appetizers && 
+        menus.Appetizers[0].items && 
+        menus.Appetizers[0].items[0] && 
+        menus.Appetizers[0].items[0].name === "Bruschetta with Heirloom Tomatoes") {
+      menus.Appetizers[0].items[0].detailed.ingredientSources = 
+        menuWithSourceInfo.Appetizers[0].items[0].detailed.ingredientSources;
+    }
+    
+    // For Mushroom Risotto
+    if (menus.Main && 
+        menus.Main[0].items && 
+        menus.Main[0].items[0] && 
+        menus.Main[0].items[0].name === "Artisanal Mushroom Risotto") {
+      menus.Main[0].items[0].detailed = {
+        ...menus.Main[0].items[0].detailed,
+        ingredientSources: menuWithSourceInfo.Main[0].items[0].detailed.ingredientSources,
+        ingredients: menuWithSourceInfo.Main[0].items[0].detailed.ingredients,
+        description: menuWithSourceInfo.Main[0].items[0].detailed.description
+      };
+    }
+  }
+  
+  onMount(() => {
+    // ...existing onMount code...
+    
+    // Add the source information
+    mergeSourceInfo();
+  });
 </script>
 
 <svelte:window on:scroll={handleScroll} on:resize={handleResize}/>
@@ -665,111 +1086,294 @@
         </div>
         
         <div class="dietary-filters">
-          <div class="filter-header">
-            <h3 class="filter-section-title">Dietary Preferences</h3>
-            <p class="filter-description">Select your dietary preferences to personalize our menu</p>
+  <div class="filter-header">
+    <h3 class="filter-section-title">Customize Your Menu</h3>
+    <p class="filter-description">Select your preferences to personalize our offerings</p>
+    
+    {#if $activeFilters.dietary.size > 0 && !($activeFilters.dietary.size === 1 && $activeFilters.dietary.has('all')) || 
+        $activeFilters.features.size > 0 || 
+        $activeFilters.allergens.size > 0 ||
+        $activeFilters.price !== null}
+      <div class="filter-summary">
+        <div class="active-filters">
+          <div class="count-badge">
+            <span class="count">{filteredItemsCount}</span> of {totalItemsCount} items shown
           </div>
           
-          <div class="filter-group">
-            <h4 class="filter-group-title">Select Diet</h4>
-            <div class="filter-chips">
-              <button 
-                class="filter-chip {isFilterActive('dietary', 'all') ? 'active' : ''}" 
-                on:click={() => toggleFilter('dietary', 'all')}
-              >
-                <span class="filter-icon">✓</span>
-                <span>All Options</span>
-              </button>
-              <button 
-                class="filter-chip {isFilterActive('dietary', 'vegan') ? 'active vegan' : ''}" 
-                on:click={() => toggleFilter('dietary', 'vegan')}
-              >
-                <span class="filter-icon">●</span>
-                <span>Vegan</span>
-              </button>
-              <button 
-                class="filter-chip {isFilterActive('dietary', 'vegetarian') ? 'active vegetarian' : ''}" 
-                on:click={() => toggleFilter('dietary', 'vegetarian')}
-              >
-                <span class="filter-icon">●</span>
-                <span>Vegetarian</span>
-              </button>
-            </div>
-          </div>
-          
-          <div class="filter-group">
-            <h4 class="filter-group-title">Additional Requirements</h4>
-            <div class="filter-chips">
-              <button 
-                class="filter-chip {isFilterActive('features', 'gluten-free') ? 'active gluten-free' : ''}" 
-                on:click={() => toggleFilter('features', 'gluten-free')}
-              >
-                <span class="filter-icon">◯</span>
-                <span>Gluten-Free</span>
-              </button>
-              <button 
-                class="filter-chip {isFilterActive('features', 'seasonal') ? 'active seasonal' : ''}" 
-                on:click={() => toggleFilter('features', 'seasonal')}
-              >
-                <span class="filter-icon">◯</span>
-                <span>Seasonal</span>
-              </button>
-              <button 
-                class="filter-chip {isFilterActive('features', 'raw') ? 'active raw' : ''}" 
-                on:click={() => toggleFilter('features', 'raw')}
-              >
-                <span class="filter-icon">◯</span>
-                <span>Raw</span>
-              </button>
-              <button 
-                class="filter-chip {isFilterActive('features', 'high-protein') ? 'active protein' : ''}" 
-                on:click={() => toggleFilter('features', 'high-protein')}
-              >
-                <span class="filter-icon">◯</span>
-                <span>High-Protein</span>
-              </button>
-            </div>
-          </div>
-          
-          <div class="dietary-legend">
-            <div class="legend-items">
-              <div class="legend-item"><span class="diet-symbol vegan">V</span> Vegan</div>
-              <div class="legend-item"><span class="diet-symbol vegetarian">VG</span> Vegetarian</div>
-              <div class="legend-item"><span class="diet-symbol gluten-free">GF</span> Gluten-Free</div>
-              <div class="legend-item"><span class="diet-symbol seasonal">S</span> Seasonal</div>
-              <div class="legend-item"><span class="new-tag">NEW</span> Chef's Special</div>
-              <div class="legend-item"><span class="diet-symbol spicy">🌶️</span> Spicy</div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="chefs-specials">
-          <h2 class="special-heading">Chef's Specials</h2>
-          <p class="special-tagline">Our chef's handcrafted seasonal creations</p>
-          
-          <div class="specials-grid">
-            {#each chefsSpecials as special}
-              <div class="special-card">
-                {#if special.image}
-                  <div class="special-image" style="background-image: url('{special.image || '/images/menu/placeholder.jpg'}')"></div>
+          <div class="applied-filters">
+            {#if !$activeFilters.dietary.has('all')}
+              {#each Array.from($activeFilters.dietary) as diet}
+                {#if !(diet === 'vegetarian' && $activeFilters.dietary.has('vegan'))}
+                  <span class="filter-tag diet {diet}">
+                    {diet === 'vegan' ? 'Vegan' : diet === 'vegetarian' ? 'Vegetarian' : diet}
+                    <button on:click={() => toggleFilter('dietary', diet)} aria-label={`Remove ${diet} filter`}>×</button>
+                  </span>
                 {/if}
-                <div class="special-content">
-                  <h3>{special.name}</h3>
-                  <p>{special.description}</p>
-                  <div class="special-footer">
-                    <div class="special-tags">
-                      {#each special.tags as tag}
-                        <span class="special-tag {tag}">{tag === 'vegan' ? 'V' : tag === 'vegetarian' ? 'VG' : tag}</span>
-                      {/each}
-                    </div>
-                    <span class="special-price">${special.price}</span>
-                  </div>
-                </div>
-              </div>
+              {/each}
+            {/if}
+            
+            {#each Array.from($activeFilters.features) as feature}
+              <span class="filter-tag feature">
+                {feature === 'high-protein' ? 'High Protein' : 
+                  feature === 'gluten-free' ? 'Gluten-Free' : 
+                  feature.charAt(0).toUpperCase() + feature.slice(1)}
+                <button on:click={() => toggleFilter('features', feature)} aria-label={`Remove ${feature} filter`}>×</button>
+              </span>
             {/each}
+            
+            {#each Array.from($activeFilters.allergens) as allergen}
+              <span class="filter-tag allergen">
+                No {allergen.charAt(0).toUpperCase() + allergen.slice(1)}
+                <button on:click={() => toggleFilter('allergens', allergen)} aria-label={`Remove ${allergen} filter`}>×</button>
+              </span>
+            {/each}
+            
+            {#if $activeFilters.price}
+              <span class="filter-tag price">
+                {$activeFilters.price === 'under10' ? 'Under $10' : 
+                  $activeFilters.price === '10to15' ? '$10-$15' : 'Over $15'}
+                <button on:click={() => toggleFilter('price', $activeFilters.price)} aria-label="Remove price filter">×</button>
+              </span>
+            {/if}
           </div>
         </div>
         
+        <button class="reset-filters" on:click={clearAllFilters}>
+          <span class="reset-icon">↺</span>
+          <span>Reset All</span>
+        </button>
+      </div>
+    {/if}
+  </div>
+  
+  <!-- Enhanced tab UI with more elegant styling -->
+  <div class="filter-tabs">
+  <div class="tab-buttons">
+    <button 
+      class="tab-button {activeTab === 'diet' ? 'active' : ''}" 
+      on:click={() => activeTab = 'diet'}>
+      <span class="tab-icon diet-icon">D</span>
+      Dietary
+    </button>
+    <button 
+      class="tab-button {activeTab === 'features' ? 'active' : ''}" 
+      on:click={() => activeTab = 'features'}>
+      <span class="tab-icon feature-icon">F</span>
+      Features
+    </button>
+    <button 
+      class="tab-button {activeTab === 'allergens' ? 'active' : ''}" 
+      on:click={() => activeTab = 'allergens'}>
+      <span class="tab-icon allergen-icon">A</span>
+      Allergens
+    </button>
+    <button 
+      class="tab-button {activeTab === 'price' ? 'active' : ''}" 
+      on:click={() => activeTab = 'price'}>
+      <span class="tab-icon price-icon">$</span>
+      Price
+    </button>
+  </div>
+
+  <div class="tab-content">
+    <!-- Diet tab with improved visualization -->
+    {#if activeTab === 'diet'}
+      <div class="filter-group diet-options" transition:fade={{ duration: 150 }}>
+        <div class="dietary-info">
+          {#if $activeFilters.dietary.has('vegan')}
+            <div class="info-bubble">
+              <span class="info-icon">i</span>
+              <span>When selecting Vegan, Vegetarian is automatically included as all vegan dishes are vegetarian</span>
+            </div>
+          {/if}
+        </div>
+        <div class="filter-buttons">
+          <button 
+            class="filter-option-button {isFilterActive('dietary', 'all') ? 'active' : ''}" 
+            on:click={() => toggleFilter('dietary', 'all')}
+            aria-pressed={isFilterActive('dietary', 'all')}>
+            <span class="check-icon">✓</span>
+            <span>All Diets</span>
+          </button>
+          <button 
+            class="filter-option-button vegan {isFilterActive('dietary', 'vegan') ? 'active' : ''}" 
+            on:click={() => toggleFilter('dietary', 'vegan')}
+            aria-pressed={isFilterActive('dietary', 'vegan')}>
+            <span class="check-icon vegan-icon">V</span>
+            <span>Vegan</span>
+          </button>
+          <button 
+            class="filter-option-button vegetarian {isFilterActive('dietary', 'vegetarian') ? 'active' : ''} {isFilterActive('dietary', 'vegan') ? 'implicit' : ''}" 
+            on:click={() => toggleFilter('dietary', 'vegetarian')}
+            aria-pressed={isFilterActive('dietary', 'vegetarian')}>
+            <span class="check-icon vegetarian-icon">VG</span>
+            <span>Vegetarian</span>
+            {#if isFilterActive('dietary', 'vegan') && isFilterActive('dietary', 'vegetarian')}
+              <span class="auto-selected-badge">Auto</span>
+            {/if}
+          </button>
+        </div>
+      </div>
+    {/if}
+
+    <!-- Features tab with toggle switches -->
+    {#if activeTab === 'features'}
+      <div class="filter-group feature-options" transition:fade={{ duration: 150 }}>
+        <div class="feature-checkbox-group">
+          <label class="feature-toggle">
+            <input 
+              type="checkbox" 
+              checked={isFilterActive('features', 'seasonal')}
+              on:change={() => toggleFilter('features', 'seasonal')}
+            />
+            <span class="toggle-slider"></span>
+            <span class="toggle-text">Seasonal</span>
+            <span class="feature-icon seasonal-icon">S</span>
+          </label>
+          
+          <label class="feature-toggle">
+            <input 
+              type="checkbox" 
+              checked={isFilterActive('features', 'raw')}
+              on:change={() => toggleFilter('features', 'raw')}
+            />
+            <span class="toggle-slider"></span>
+            <span class="toggle-text">Raw Food</span>
+            <span class="feature-icon raw-icon">R</span>
+          </label>
+          
+          <label class="feature-toggle">
+            <input 
+              type="checkbox" 
+              checked={isFilterActive('features', 'high-protein')}
+              on:change={() => toggleFilter('features', 'high-protein')}
+            />
+            <span class="toggle-slider"></span>
+            <span class="toggle-text">High Protein</span>
+            <span class="feature-icon protein-icon">P</span>
+          </label>
+          
+          <label class="feature-toggle">
+            <input 
+              type="checkbox" 
+              checked={isFilterActive('features', 'gluten-free')}
+              on:change={() => toggleFilter('features', 'gluten-free')}
+            />
+            <span class="toggle-slider"></span>
+            <span class="toggle-text">Gluten-Free</span>
+            <span class="feature-icon gf-icon">GF</span>
+          </label>
+        </div>
+      </div>
+    {/if}
+
+    <!-- Allergens tab with toggles -->
+    {#if activeTab === 'allergens'}
+      <div class="filter-group allergen-options" transition:fade={{ duration: 150 }}>
+        <div class="allergen-checkbox-group">
+          <label class="allergen-toggle">
+            <input 
+              type="checkbox" 
+              checked={isFilterActive('allergens', 'gluten')}
+              on:change={() => toggleFilter('allergens', 'gluten')}
+            />
+            <span class="toggle-slider"></span>
+            <span class="toggle-text">Exclude Gluten</span>
+            <span class="allergen-icon gluten-icon">G</span>
+          </label>
+          
+          <label class="allergen-toggle">
+            <input 
+              type="checkbox" 
+              checked={isFilterActive('allergens', 'lactose')}
+              on:change={() => toggleFilter('allergens', 'lactose')}
+            />
+            <span class="toggle-slider"></span>
+            <span class="toggle-text">Exclude Lactose</span>
+            <span class="allergen-icon lactose-icon">L</span>
+          </label>
+          
+          <label class="allergen-toggle">
+            <input 
+              type="checkbox" 
+              checked={isFilterActive('allergens', 'nuts')}
+              on:change={() => toggleFilter('allergens', 'nuts')}
+            />
+            <span class="toggle-slider"></span>
+            <span class="toggle-text">Exclude Nuts</span>
+            <span class="allergen-icon nuts-icon">N</span>
+          </label>
+        </div>
+      </div>
+    {/if}
+
+    <!-- Price tab with radio buttons -->
+    {#if activeTab === 'price'}
+      <div class="filter-group price-options" transition:fade={{ duration: 150 }}>
+        <div class="price-radio-group">
+          <label class="price-option">
+            <input 
+              type="radio" 
+              name="price-range" 
+              value="under10" 
+              checked={isFilterActive('price', 'under10')}
+              on:change={() => toggleFilter('price', 'under10')}
+            />
+            <span class="radio-label">Under $10</span>
+            <span class="price-tag">$</span>
+          </label>
+          
+          <label class="price-option">
+            <input 
+              type="radio" 
+              name="price-range" 
+              value="10to15" 
+              checked={isFilterActive('price', '10to15')}
+              on:change={() => toggleFilter('price', '10to15')}
+            />
+            <span class="radio-label">$10 - $15</span>
+            <span class="price-tag">$$</span>
+          </label>
+          
+          <label class="price-option">
+            <input 
+              type="radio" 
+              name="price-range" 
+              value="over15" 
+              checked={isFilterActive('price', 'over15')}
+              on:change={() => toggleFilter('price', 'over15')}
+            />
+            <span class="radio-label">Over $15</span>
+            <span class="price-tag">$$$</span>
+          </label>
+          
+          {#if $activeFilters.price}
+            <button 
+              class="clear-price" 
+              on:click={() => toggleFilter('price', $activeFilters.price)}
+            >
+              <span>Clear price filter</span>
+            </button>
+          {/if}
+        </div>
+      </div>
+    {/if}
+  </div>
+</div>
+
+  <div class="dietary-legend">
+    <h4 class="legend-title">Key to Symbols</h4>
+    <div class="legend-items">
+      <div class="legend-item"><span class="diet-symbol vegan">V</span> Vegan</div>
+      <div class="legend-item"><span class="diet-symbol vegetarian">VG</span> Vegetarian</div>
+      <div class="legend-item"><span class="diet-symbol gluten-free">GF</span> Gluten-Free</div>
+      <div class="legend-item"><span class="diet-symbol seasonal">S</span> Seasonal</div>
+      <div class="legend-item"><span class="new-tag">NEW</span> New Item</div>
+      <div class="legend-item"><span class="diet-symbol spicy"><span class="spicy-text">SP</span></span> Spicy</div>
+    </div>
+  </div>
+</div>
+
         <div class="menu-content">
           {#if menus[activeCard.title] && Array.isArray(menus[activeCard.title])}
             {#each menus[activeCard.title] as section}
@@ -795,7 +1399,7 @@
                                 <span class="diet-symbol seasonal" title="Seasonal">S</span>
                               {/if}
                               {#if item.tags.includes('spicy')}
-                                <span class="diet-symbol spicy" title="Spicy">🌶️</span>
+                                <span class="diet-symbol spicy" title="Spicy"><span class="spicy-text">SP</span></span>
                               {/if}
                             {/if}
                             {#if item.isNew}
@@ -880,16 +1484,14 @@
       item={selectedMenuItem} 
       onClose={closeItemDetails} 
       onPairingClick={(pairingName) => {
-        console.log("Drink clicked:", pairingName); // Debug log
+        console.log("Drink clicked:", pairingName);
         const pairedItem = findMenuItemByName(pairingName);
-        console.log("Found pairing:", pairedItem); // Debug log
+        console.log("Found pairing:", pairedItem);
         
         if (pairedItem) {
-          // Close current modal first to avoid UI conflicts
           const currentItem = selectedMenuItem;
           selectedMenuItem = null;
           
-          // Small delay to ensure smooth transition between modals
           setTimeout(() => {
             console.log("Opening new modal for:", pairingName);
             selectedMenuItem = pairedItem;
@@ -947,6 +1549,9 @@
   <Footer />
 </main>
 
+<!-- Accessibility announcement element for screen readers -->
+<div id="filter-announcement" class="sr-only" role="status" aria-live="polite"></div>
+
 <style lang="scss">
   @use "../../lib/styles/variables" as v;
   @use "../../lib/styles/global" as g;
@@ -965,7 +1570,6 @@
     overflow-x: hidden;
   }
   
-  /* Section header styles */
   .section-header {
     text-align: center;
     margin-bottom: 60px;
@@ -1015,7 +1619,6 @@
     }
   }
 
-  /* Menu categories section */
   section#menu-categories {
     padding: 80px 0;
     background-color: v.$background-color-light;
@@ -1028,14 +1631,13 @@
     position: relative;
     height: 80vw;
     transition: height 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-    margin-bottom: 60px;
+    margin-bottom: 0;
     overflow: visible;
     min-height: 0;
     will-change: height;
     box-sizing: border-box !important;
   }
   
-  /* Card styling */
   .card {
     background-color: #fff;
     cursor: pointer;
@@ -1056,7 +1658,7 @@
     border-left: 6px solid transparent;
     border-radius: 6px;
     width: 60vw;
-    height: calc(60vw * 2/3); /* Maintain 2:3 ratio */
+    height: calc(60vw * 2/3);
     position: absolute;
     
     &:hover {
@@ -1144,7 +1746,6 @@
     }
   }
 
-  /* Initial card positioning */
   .menu-category-cards .card:nth-child(1) {
     left: 33%;
     top: 25vw;
@@ -1169,13 +1770,11 @@
     z-index: 1;
   }
 
-  /* Scroll indicator */
   .scroll-down-elegant {
     position: relative;
     left: 50%;
     transform: translateX(-50%);
     text-align: center;
-    margin-top: 28px;
     z-index: 20;
     display: flex;
     flex-direction: column;
@@ -1204,7 +1803,6 @@
     }
   }
 
-  /* Menu container */
   .menu-container {
     position: relative;
     z-index: 5;
@@ -1238,7 +1836,6 @@
     }
   }
   
-  /* Animation keyframes */
   @keyframes bounce {
     0%, 20%, 50%, 80%, 100% {
       transform: rotate(-45deg) translateY(0);
@@ -1251,7 +1848,6 @@
     }
   }
   
-  /* Responsive adjustments */
   @media screen and (max-width: 1200px) {
     .card .title h3 {
       font-size: clamp(2rem, 4vw, 3.5rem);
@@ -1275,9 +1871,6 @@
     }
   }
 
-  /* Existing menu content styles... */
-
-  /* Menu header and content styles */
   .menu-header {
     display: flex;
     justify-content: space-between;
@@ -1340,31 +1933,33 @@
     }
   }
 
-  /* Dietary filters styling */
   .dietary-filters {
-    background-color: #f9f6f3;
-    border-radius: 8px;
-    padding: 25px 30px;
-    margin: 30px 0 40px;
-    border-left: 3px solid v.$tertiary-light;
+    background: linear-gradient(to right, #f9f6f3 0%, #ffffff 100%);
+    border-radius: 12px;
+    padding: 30px;
+    margin: 35px 0 45px;
+    border-left: 4px solid v.$tertiary-light;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   }
   
   .filter-header {
-    margin-bottom: 22px;
+    margin-bottom: 25px;
   }
 
   .filter-section-title {
     color: v.$tertiary-dark;
-    font-size: 1.4rem;
-    margin: 0 0 8px;
+    font-size: 1.5rem;
+    margin: 0 0 10px;
     font-weight: 400;
+    letter-spacing: 0.3px;
   }
   
   .filter-description {
-    color: #777;
-    font-size: 0.95rem;
+    color: #666;
+    font-size: 1rem;
     font-style: italic;
     margin: 0;
+    line-height: 1.5;
   }
 
   .filter-group {
@@ -1422,6 +2017,16 @@
         border-color: #d17d00;
       }
       
+      &.allergen {
+        background: #E91E63;
+        border-color: darken(#E91E63, 10%);
+      }
+      
+      &.price {
+        background: #673AB7;
+        border-color: darken(#673AB7, 10%);
+      }
+      
       .filter-icon {
         color: white;
       }
@@ -1435,21 +2040,31 @@
 
   .dietary-legend {
     background-color: white;
-    padding: 15px 20px;
-    border-radius: 6px;
+    padding: 18px 22px;
+    border-radius: 8px;
     border: 1px solid #e9decf;
+    margin-top: 25px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    
+    .legend-title {
+      font-size: 1rem;
+      color: v.$tertiary;
+      margin: 0 0 12px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
     
     .legend-items {
       display: flex;
       flex-wrap: wrap;
-      gap: 20px;
+      gap: 22px;
       
       .legend-item {
         display: flex;
         align-items: center;
-        gap: 5px;
-        font-size: 0.85rem;
-        color: #555;
+        gap: 6px;
+        font-size: 0.9rem;
+        color: #444;
       }
     }
   }
@@ -1484,8 +2099,13 @@
     }
     &.spicy { 
       color: #F44336; 
-      border: none;
-      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      .spicy-text {
+        font-size: 0.6rem;
+      }
     }
   }
 
@@ -1500,114 +2120,6 @@
     margin-left: 6px;
   }
 
-  /* Chef's specials section */
-  .chefs-specials {
-    padding: 20px 0 40px;
-    border-bottom: 1px solid #e9decf;
-    margin-bottom: 40px;
-  }
-  
-  .special-heading {
-    font-size: 2.2rem;
-    color: v.$tertiary-dark;
-    text-align: center;
-    margin-bottom: 8px;
-  }
-  
-  .special-tagline {
-    text-align: center;
-    font-style: italic;
-    color: #777;
-    margin-bottom: 30px;
-  }
-  
-  .specials-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 25px;
-  }
-  
-  .special-card {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-    overflow: hidden;
-    transition: all 0.3s ease;
-    
-    &:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
-      
-      .special-image {
-        transform: scale(1.05);
-      }
-    }
-    
-    .special-image {
-      height: 180px;
-      background-size: cover;
-      background-position: center;
-      transition: transform 0.5s ease;
-    }
-    
-    .special-content {
-      padding: 20px;
-      
-      h3 {
-        color: v.$tertiary-dark;
-        font-size: 1.4rem;
-        margin-bottom: 8px;
-      }
-      
-      p {
-        color: #555;
-        line-height: 1.5;
-        margin-bottom: 15px;
-      }
-    }
-  }
-  
-  .special-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    
-    .special-tags {
-      display: flex;
-      gap: 6px;
-    }
-    
-    .special-tag {
-      font-size: 0.7rem;
-      font-weight: 600;
-      padding: 3px 8px;
-      border-radius: 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      
-      &.vegan {
-        background-color: rgba(76, 175, 80, 0.15);
-        color: #3d8b40;
-      }
-      
-      &.vegetarian {
-        background-color: rgba(255, 152, 0, 0.15);
-        color: #e67e00;
-      }
-      
-      &.gluten-free {
-        background-color: rgba(141, 110, 99, 0.15);
-        color: #6D4C41;
-      }
-    }
-    
-    .special-price {
-      font-size: 1.3rem;
-      color: v.$primary;
-    }
-  }
-  
-  /* Menu items styling */
   .menu-content {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -1745,7 +2257,6 @@
     font-weight: 600;
   }
 
-  /* Beverage pairings section */
   .beverage-pairings {
     margin: 40px 0;
     padding: 30px;
@@ -1813,7 +2324,6 @@
     color: v.$tertiary;
   }
 
-  /* Allergen information */
   .allergen-information {
     margin: 30px 0;
     
@@ -1856,7 +2366,6 @@
     font-size: 0.85rem;
   }
 
-  /* Menu footer */
   .menu-footer {
     text-align: center;
     padding-top: 20px;
@@ -1885,7 +2394,6 @@
     }
   }
 
-  /* Philosophy section styling */
   section#philosophy {
     padding: 100px 20px;
     background-color: v.$background-color-light;
@@ -1953,7 +2461,6 @@
     }
   }
 
-  /* Testimonials section styling */
   section#testimonials {
     padding: 100px 20px;
     background-color: #f4efe8;
@@ -2000,7 +2507,7 @@
       position: relative;
       
       &::before {
-        content: "\""; /* Replace curly smart quotes with standard straight quotes */
+        content: "\"";
         font-size: 3rem;
         color: rgba(v.$tertiary-light, 0.2);
         position: absolute;
@@ -2016,7 +2523,6 @@
     }
   }
   
-  /* Comprehensive responsive styles */
   @media screen and (max-width: 1200px) {
     .menu-text {
       width: 90%;
@@ -2062,6 +2568,117 @@
     }
   }
   
+  /* Media query for mobile devices */
+  @media screen and (max-width: 767px) {
+    .menu-category-cards {
+      min-height: 300px; /* Reduce minimum height */
+      /* Remove smooth transition on mobile for faster response */
+      transition: none !important;
+    }
+    
+    /* When active card is present, still use transition but make it much faster */
+    .menu-category-cards.with-active-card {
+      transition: height 0.2s linear !important;
+    }
+    
+    .card {
+      width: 90vw !important;
+      height: calc(90vw * 2/3) !important; /* Maintain 2:3 ratio */
+      flex-direction: column !important;
+      align-items: flex-start;
+      position: absolute;
+      left: 50% !important;
+      pointer-events: auto;
+    }
+    
+    .card .title {
+      width: 100% !important;
+      margin-bottom: 15px;
+      
+      h3 {
+        font-size: 2rem !important;
+      }
+    }
+    
+    .card .text {
+      width: 100% !important;
+      
+      p {
+        font-size: 3vw !important;
+      }
+    }
+    
+    .menu-category-cards .card:nth-child(1) {
+      left: 50% !important;
+      z-index: 4;
+    }
+    
+    .menu-category-cards .card:nth-child(2) {
+      top: calc((90vw * 2/3) + 100px);
+      left: 50% !important;
+      z-index: 3;
+    }
+    
+    .menu-category-cards .card:nth-child(3) {
+      top: calc((90vw * 2/3 * 2) + 100px);
+      left: 50% !important;
+      z-index: 2;
+    }
+    
+    .menu-category-cards .card:nth-child(4) {
+      top: calc((90vw * 2/3 * 3) + 70px);
+      left: 50% !important;
+      z-index: 1;
+    }
+    
+    .card.active {
+      height: auto !important;
+      min-height: 60vw !important;
+      top: 0 !important; /* Ensure the card is at the top of container */
+      transform: translate3d(-50%, 0, 0) rotateZ(0deg) !important; /* Translate X only, not Y */
+      position: relative !important; /* Position relative to container */
+    }
+    
+    .click-me {
+      top: 20px;
+      right: 20px;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+    }
+    
+    .filters-container {
+      grid-template-columns: 1fr;
+      gap: 15px;
+    }
+    
+    .filter-chips {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    
+    .filter-chip {
+      justify-content: center;
+      width: 100%;
+    }
+    
+    .filter-actions {
+      flex-direction: column;
+      gap: 10px;
+      
+      .filter-count {
+        width: 100%;
+        text-align: center;
+      }
+      
+      .reset-filters {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  }
+
+  /* Fix for smaller mobile screens */
   @media screen and (max-width: 600px) {
     .menu-header {
       flex-direction: column;
@@ -2114,99 +2731,711 @@
     }
   }
 
-  /* Media query for mobile devices */
-  @media screen and (max-width: 767px) {
-    .menu-category-cards {
-      height: auto !important; 
-      min-height: 300px; /* Reduce minimum height */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+  
+  .filter-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dashed rgba(v.$tertiary-light, 0.2);
+  }
+  
+  .filter-count {
+    font-size: 0.9rem;
+    color: v.$tertiary;
+    background: rgba(v.$tertiary-light, 0.05);
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(v.$tertiary-light, 0.1);
+  }
+  
+  .reset-filters {
+    background: none;
+    border: none;
+    color: v.$primary;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 5px 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      color: darken(v.$primary, 10%);
+      text-decoration: underline;
     }
     
-    /* Remove fixed top positioning for mobile stacked cards */
-    .menu-category-cards .card:nth-child(1) {
-      top: auto; /* Let JavaScript handle vertical positioning */
-      left: 50% !important;
-      z-index: 4;
+    .reset-icon {
+      font-size: 1.2rem;
+      line-height: 1;
+    }
+  }
+  
+  /* New styles for improved filter UI */
+  .filter-hint {
+    font-size: 0.75rem;
+    font-weight: normal;
+    color: #666;
+    font-style: italic;
+    margin-left: 8px;
+  }
+  
+  .filter-group-title {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(v.$tertiary-light, 0.1);
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+  }
+  
+  .filter-chip {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s ease;
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
     }
     
-    .menu-category-cards .card:nth-child(2) {
-      top: auto; /* Let JavaScript handle vertical positioning */
-      left: 50% !important;
-      z-index: 3;
-    }
-    
-    .menu-category-cards .card:nth-child(3) {
-      top: auto; /* Let JavaScript handle vertical positioning */
-      left: 50% !important;
-      z-index: 2;
-    }
-    
-    .menu-category-cards .card:nth-child(4) {
-      top: auto; /* Let JavaScript handle vertical positioning */
-      left: 50% !important;
-      z-index: 1;
-    }
-    
-    .card {
-      width: 90vw !important;
-      height: calc(90vw * 2/3) !important; /* Maintain 2:3 ratio */
-      flex-direction: column !important;
-      align-items: flex-start;
+    &::before {
+      content: '';
       position: absolute;
-      left: 50% !important;
-      pointer-events: auto;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(45deg, transparent 50%, rgba(255,255,255,0.1) 50%);
+      z-index: 0;
+      transition: all 0.3s ease;
+      opacity: 0;
     }
     
-    .card .title {
-      width: 100% !important;
-      margin-bottom: 15px;
+    &:hover::before {
+      opacity: 1;
+    }
+    
+    &.active::before {
+      opacity: 1;
+      background: linear-gradient(45deg, transparent 50%, rgba(0,0,0,0.1) 50%);
+    }
+    
+    .vegan-icon {
+      color: #4CAF50;
+    }
+    
+    .vegetarian-icon {
+      color: #FF9800;
+    }
+  }
+  
+  .legend-title {
+    font-size: 0.9rem;
+    color: v.$tertiary;
+    margin: 0 0 10px;
+    font-family: "Inter 24pt Regular", sans-serif;
+    font-weight: 600;
+  }
+  
+  // New filter system styles
+  .filter-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 18px;
+    background: white;
+    border-radius: 8px;
+    padding: 12px 18px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(v.$tertiary-light, 0.1);
+  }
+  
+  .active-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+  }
+  
+  .count-badge {
+    font-size: 0.95rem;
+    color: v.$tertiary-dark;
+    
+    .count {
+      font-weight: 700;
+      color: v.$primary;
+    }
+  }
+  
+  .applied-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  
+  .filter-tag {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.85rem;
+    padding: 4px 10px;
+    border-radius: 50px;
+    background: #f6f6f6;
+    color: #555;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+    
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
+    }
+    
+    button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      width: 20px;
+      height: 20px;
+      margin-left: 6px;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 0;
+      color: #777;
+      transition: all 0.2s ease;
       
-      h3 {
-        font-size: 2rem !important;
+      &:hover {
+        background: rgba(0,0,0,0.1);
+        color: #333;
       }
     }
     
-    .card .text {
-      width: 100% !important;
+    &.diet {
+      background: rgba(76, 175, 80, 0.1);
+      color: #2E7D32;
+      font-weight: 500;
       
-      p {
-        font-size: 1rem !important;
+      &.vegan {
+        background: rgba(76, 175, 80, 0.15);
+        color: #1B5E20;
+        border: 1px solid rgba(76, 175, 80, 0.2);
+      }
+      
+      &.vegetarian {
+        background: rgba(255, 152, 0, 0.15);
+        color: #E65100;
+        border: 1px solid rgba(255, 152, 0, 0.2);
+      }
+      
+      button:hover {
+        background: rgba(76, 175, 80, 0.2);
       }
     }
     
-    .menu-category-cards .card:nth-child(1) {
-      top: 100px !important;
-      left: 50% !important;
-      z-index: 4;
+    &.feature {
+      background: rgba(3, 169, 244, 0.1);
+      color: #0277BD;
+      font-weight: 500;
+      
+      button:hover {
+        background: rgba(3, 169, 244, 0.2);
+      }
     }
     
-    .menu-category-cards .card:nth-child(2) {
-      top: 280px !important;
-      left: 50% !important;
-      z-index: 3;
+    &.allergen {
+      background: rgba(244, 67, 54, 0.1);
+      color: #C62828;
+      font-weight: 500;
+      
+      button:hover {
+        background: rgba(244, 67, 54, 0.2);
+      }
     }
     
-    .menu-category-cards .card:nth-child(3) {
-      top: 460px !important;
-      left: 50% !important;
-      z-index: 2;
+    &.price {
+      background: rgba(156, 39, 176, 0.1);
+      color: #7B1FA2;
+      font-weight: 500;
+      
+      button:hover {
+        background: rgba(156, 39, 176, 0.2);
+      }
+    }
+  }
+  
+  .reset-filters {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(v.$tertiary-light, 0.04);
+    border: 1px solid rgba(v.$tertiary-light, 0.15);
+    color: v.$tertiary-dark;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background: rgba(v.$tertiary-light, 0.08);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
     }
     
-    .menu-category-cards .card:nth-child(4) {
-      top: 640px !important;
-      left: 50% !important;
-      z-index: 1;
+    .reset-icon {
+      font-size: 1.2rem;
+    }
+  }
+  
+  .tab-buttons {
+    display: flex;
+    border-bottom: 1px solid #e0d4c5;
+    margin-bottom: 20px;
+    gap: 5px;
+  }
+  
+  .tab-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 18px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #777;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    
+    .tab-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      background: rgba(v.$tertiary-light, 0.1);
+      border-radius: 50%;
+      font-size: 0.8rem;
+      font-weight: 600;
+      opacity: 0.8;
+      transition: all 0.3s ease;
+      
+      &.diet-icon {
+        color: #43A047;
+        background: rgba(67, 160, 71, 0.1);
+      }
+      
+      &.feature-icon {
+        color: #2196F3;
+        background: rgba(33, 150, 243, 0.1);
+      }
+      
+      &.allergen-icon {
+        color: #E91E63;
+        background: rgba(233, 30, 99, 0.1);
+      }
+      
+      &.price-icon {
+        color: #9C27B0;
+        background: rgba(156, 39, 176, 0.1);
+      }
     }
     
-    .card.active {
-      height: auto !important;
-      min-height: 60vw !important;
+    &:hover {
+      color: v.$tertiary;
+      
+      .tab-icon {
+        opacity: 1;
+        transform: scale(1.1);
+      }
     }
     
-    .click-me {
-      top: 20px;
-      right: 20px;
-      padding: 8px 14px;
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -3px;
+      left: 50%;
+      width: 0;
+      height: 3px;
+      background-color: v.$primary;
+      transition: all 0.3s ease;
+      transform: translateX(-50%);
+    }
+    
+    &.active {
+      color: v.$tertiary-dark;
+      
+      .tab-icon {
+        opacity: 1;
+        
+        &.diet-icon {
+          background: rgba(67, 160, 71, 0.2);
+        }
+        
+        &.feature-icon {
+          background: rgba(33, 150, 243, 0.2);
+        }
+        
+        &.allergen-icon {
+          background: rgba(233, 30, 99, 0.2);
+        }
+        
+        &.price-icon {
+          background: rgba(156, 39, 176, 0.2);
+        }
+      }
+      
+      &::after {
+        width: 100%;
+      }
+    }
+  }
+  
+  .tab-content {
+    min-height: 120px;
+    position: relative;
+    padding: 5px;
+  }
+  
+  .filter-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  .filter-option-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: 1px solid #e0d4c5;
+    background: white;
+    font-size: 1.05rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    
+    .check-icon {
+      opacity: 0.4;
+      transition: all 0.25s ease;
+      font-size: 1.1rem;
+    }
+    
+    &:hover {
+      background: #f9f6f3;
+      border-color: #d5c7b7;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    &.active {
+      background: v.$tertiary-light;
+      border-color: v.$tertiary;
+      color: white;
+      box-shadow: 0 4px 10px rgba(v.$tertiary-light, 0.3);
+      
+      .check-icon {
+        opacity: 1;
+      }
+    }
+    
+    &.vegan.active {
+      background: #43A047;
+      border-color: #2E7D32;
+      box-shadow: 0 4px 10px rgba(67, 160, 71, 0.3);
+    }
+    
+    &.vegetarian.active {
+      background: #F57C00;
+      border-color: #E65100;
+      box-shadow: 0 4px 10px rgba(245, 124, 0, 0.3);
+    }
+    
+    &.implicit {
+      border-style: dashed;
+    }
+  }
+  
+  .auto-selected-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
+  .dietary-info {
+    margin-bottom: 15px;
+  }
+  
+  .info-bubble {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(3, 169, 244, 0.08);
+    border: 1px solid rgba(3, 169, 244, 0.2);
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: #0277BD;
+    margin-bottom: 15px;
+    
+    .info-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      background: rgba(3, 169, 244, 0.15);
+      border-radius: 50%;
       font-size: 0.9rem;
+      font-weight: 700;
+      font-style: italic;
+      color: #0277BD;
+    }
+  }
+  
+  .feature-checkbox-group, .allergen-checkbox-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 18px;
+  }
+  
+  .feature-toggle, .allergen-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    background: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid #e9decf;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+      border-color: #d5c7b7;
+    }
+    
+    input[type="checkbox"] {
+      position: absolute;
+      opacity: 0;
+      height: 0;
+      width: 0;
+    }
+    
+    .toggle-slider {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+      background-color: #e0d4c5;
+      border-radius: 24px;
+      transition: all 0.3s ease;
+      
+      &:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+      }
+    }
+    
+    input:checked + .toggle-slider {
+      background-color: v.$tertiary;
+    }
+    
+    input:checked + .toggle-slider:before {
+      transform: translateX(20px);
+    }
+    
+    .toggle-text {
+      font-size: 1rem;
+      color: #333;
+      font-weight: 500;
+      flex: 1;
+    }
+    
+    .feature-icon, .allergen-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      font-size: 0.75rem;
+      font-weight: 600;
+      
+      &.seasonal-icon {
+        background: rgba(255, 87, 34, 0.1);
+        color: #FF5722;
+      }
+      
+      &.raw-icon {
+        background: rgba(76, 175, 80, 0.1);
+        color: #4CAF50;
+      }
+      
+      &.protein-icon {
+        background: rgba(0, 150, 136, 0.1);
+        color: #00796B;
+      }
+      
+      &.gf-icon {
+        background: rgba(121, 85, 72, 0.1);
+        color: #795548;
+        font-size: 0.65rem;
+      }
+      
+      &.gluten-icon, &.lactose-icon, &.nuts-icon {
+        background: rgba(233, 30, 99, 0.1);
+        color: #C2185B;
+      }
+    }
+  }
+  
+  .allergen-toggle input:checked + .toggle-slider {
+    background-color: #E91E63;
+  }
+  
+  .price-radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  
+  .price-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    background: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid #e9decf;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+      border-color: #d5c7b7;
+    }
+    
+    input[type="radio"] {
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border: 2px solid #e0d4c5;
+      border-radius: 50%;
+      outline: none;
+      transition: all 0.3s ease;
+      
+      &:checked {
+        border-color: v.$tertiary;
+        background: white;
+        box-shadow: inset 0 0 0 6px v.$tertiary;
+      }
+    }
+    
+    .radio-label {
+      font-size: 1rem;
+      color: #333;
+      font-weight: 500;
+      flex: 1;
+    }
+    
+    .price-tag {
+      color: #9C27B0;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+  }
+  
+  .clear-price {
+    margin-top: 5px;
+    background: rgba(v.$primary, 0.05);
+    border: 1px solid rgba(v.$primary, 0.1);
+    color: v.$primary;
+    font-size: 0.9rem;
+    cursor: pointer;
+    align-self: flex-start;
+    padding: 8px 14px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    margin-left: auto;
+    
+    &:hover {
+      background: rgba(v.$primary, 0.1);
+      transform: translateY(-1px);
+    }
+  }
+  
+  @media screen and (max-width: 768px) {
+    .filter-summary {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    
+    .reset-filters {
+      align-self: flex-end;
+      margin-top: 5px;
+    }
+    
+    .feature-checkbox-group, .allergen-checkbox-group {
+      grid-template-columns: 1fr;
+    }
+    
+    .tab-buttons {
+      overflow-x: auto;
+      padding-bottom: 5px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+    
+    .tab-button {
+      white-space: nowrap;
+      flex-shrink: 0;
     }
   }
 </style>
