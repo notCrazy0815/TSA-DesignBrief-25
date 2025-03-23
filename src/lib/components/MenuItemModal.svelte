@@ -1,10 +1,12 @@
 <script>
   import { fly, fade } from "svelte/transition";
-  
+  import IngredientSourceModal from "./IngredientSourceModal.svelte";
   
   export let item = null;
   export let onClose = () => {};
   export let onPairingClick = null;
+  
+  let selectedIngredient = null;
   
   function handlePairingClick(pairingName) {
     console.log(`Pairing clicked: ${pairingName}`);
@@ -19,6 +21,30 @@
       return [];
       
     return [...new Set(item.detailed.pairings)];
+  }
+  
+  function handleIngredientClick(ingredientSource) {
+    if (ingredientSource) {
+      selectedIngredient = ingredientSource;
+    }
+  }
+  
+  function closeIngredientModal() {
+    selectedIngredient = null;
+  }
+  
+  function hasSourceInfo(ingredientName) {
+    if (!item?.detailed?.ingredientSources) return false;
+    
+    return item.detailed.ingredientSources.some(src => 
+      src.name.toLowerCase() === ingredientName.toLowerCase());
+  }
+  
+  function getSourceInfo(ingredientName) {
+    if (!item?.detailed?.ingredientSources) return null;
+    
+    return item.detailed.ingredientSources.find(src => 
+      src.name.toLowerCase() === ingredientName.toLowerCase());
   }
 </script>
 
@@ -63,10 +89,28 @@
           <div class="modal-info-grid">
             {#if item.detailed.ingredients?.length > 0}
               <div class="modal-info-section">
-                <h4>Ingredients</h4>
+                <h4>
+                  Ingredients
+                  {#if item.detailed.ingredientSources?.length > 0}
+                    <span class="farm-to-table-badge">Farm to Table</span>
+                  {/if}
+                </h4>
                 <ul class="ingredients-list">
                   {#each item.detailed.ingredients as ingredient}
-                    <li>{ingredient}</li>
+                    {#if hasSourceInfo(ingredient)}
+                      <li 
+                        class="ingredient-item traceable" 
+                        on:click={() => handleIngredientClick(getSourceInfo(ingredient))}
+                        title="Click to see source information"
+                      >
+                        <span class="ingredient-name">{ingredient}</span>
+                        <span class="source-icon">
+                          <span class="icon-text">TN</span>
+                        </span>
+                      </li>
+                    {:else}
+                      <li>{ingredient}</li>
+                    {/if}
                   {/each}
                 </ul>
               </div>
@@ -146,6 +190,20 @@
               </div>
             </div>
           {/if}
+          
+          {#if item.detailed.ingredientSources?.length > 0}
+            <div class="farm-to-table-section">
+              <h4>Our Farm-to-Table Commitment</h4>
+              <p class="farm-to-table-description">
+                We pride ourselves on sourcing ingredients locally from sustainable farms around Nashville. 
+                Click on highlighted ingredients to learn about their origins and our partners.
+              </p>
+              <div class="local-sources-badge">
+                <span class="badge-percentage">{Math.round((item.detailed.ingredientSources.length / item.detailed.ingredients.length) * 100)}%</span> 
+                locally sourced ingredients
+              </div>
+            </div>
+          {/if}
         {:else}
           <div class="modal-description">
             <p>We're working on adding more information about this item. Please ask your server for details.</p>
@@ -154,6 +212,13 @@
       </div>
     </div>
   </div>
+{/if}
+
+{#if selectedIngredient}
+  <IngredientSourceModal 
+    ingredient={selectedIngredient} 
+    onClose={closeIngredientModal} 
+  />
 {/if}
 
 <style lang="scss">
@@ -435,6 +500,41 @@
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
       }
     }
+    
+    .ingredient-item.traceable {
+      position: relative;
+      cursor: pointer;
+      border: 1px solid rgba(67, 160, 71, 0.2);
+      background-color: rgba(67, 160, 71, 0.05);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      
+      &:hover {
+        background-color: rgba(67, 160, 71, 0.1);
+        transform: translateY(-2px);
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+      }
+      
+      .source-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        background-color: #43A047;
+        border-radius: 50%;
+        margin-left: 8px;
+        
+        .icon-text {
+          color: white;
+          font-size: 0.6rem;
+          font-weight: bold;
+          font-family: "Inter 24pt Regular", sans-serif;
+        }
+      }
+    }
   }
   
   .nutrition-info {
@@ -602,6 +702,56 @@
     font-family: "Inter 24pt Regular", sans-serif;
   }
   
+  .farm-to-table-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    background-color: #43A047;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    vertical-align: middle;
+    font-family: "Inter 24pt Regular", sans-serif;
+  }
+  
+  .farm-to-table-section {
+    padding: 20px 28px 28px;
+    background-color: rgba(67, 160, 71, 0.05);
+    border-top: 1px solid rgba(67, 160, 71, 0.1);
+    
+    h4 {
+      font-family: "DynaPuff Regular", cursive;
+      font-size: 1.2rem;
+      color: #2E7D32;
+      margin: 0 0 12px;
+    }
+    
+    .farm-to-table-description {
+      line-height: 1.6;
+      color: #444;
+      margin-bottom: 15px;
+      font-family: "Inter 24pt Regular", sans-serif;
+    }
+    
+    .local-sources-badge {
+      display: inline-block;
+      font-size: 0.85rem;
+      background-color: white;
+      color: #2E7D32;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-weight: 500;
+      border: 1px solid rgba(67, 160, 71, 0.2);
+      font-family: "Inter 24pt Regular", sans-serif;
+      
+      .badge-percentage {
+        font-weight: bold;
+        font-size: 1.1rem;
+      }
+    }
+  }
 
   @media screen and (max-width: 600px) {
     .modal-content {
