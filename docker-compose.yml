@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # Development service with hot-reloading
+  dev:
+    image: node:20-alpine
+    container_name: verdantia-dev
+    working_dir: /app
+    command: npm run dev -- --host
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    environment:
+      - NODE_ENV=development
+
+  # Production build service
+  build:
+    image: node:20-alpine
+    container_name: verdantia-build
+    working_dir: /app
+    command: npm run build
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    environment:
+      - NODE_ENV=production
+
+  # Production service to serve the built application
+  prod:
+    image: node:20-alpine
+    container_name: verdantia-prod
+    working_dir: /app
+    command: npm run preview -- --host
+    ports:
+      - "4173:4173"
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - build
+
+volumes:
+  node_modules:
