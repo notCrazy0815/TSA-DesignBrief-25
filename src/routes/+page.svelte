@@ -65,33 +65,6 @@
           { plant: branch7d, word: 'IT', plantOpacity: '0', plantTransform: 'translateY(50px)' }
      ];
 
-     let fourAspects = [
-          { 
-               title: 'Real',
-               description: 'No shortcuts. No artificial substitutes. No pretending. Just honest ingredients, prepared with care, for food that tastes as good as it should. Because real food doesn’t need to be anything else.',
-               opacity: '1' },
-          { 
-               title: 'Fresh ingredients',
-               description: 'Freshness isn’t a luxury; it’s our standard. Every ingredient we use is fresh, never highly processed, because real food should nourish you. That’s also why our menu changes with the seasons—when an ingredient isn’t at its best, we won’t serve it. Eating fresh just feels better, and at Verdantia, that’s exactly what you get.',
-               opacity: '1' },
-          { 
-               title: 'Vegetarian',
-               description: 'We believe vegetarian and vegan food should be exciting, satisfying, and accessible to everyone. No compromises, no bland salads—just bold flavors and hearty dishes that happen to be meat-free. We’re here to prove that going vegetarian doesn’t mean giving anything up. Even meat lovers will find something to love.',
-               opacity: '1' 
-          },
-          { 
-               title: 'Local ingredients',
-               description: 'Most of our ingredients come from U.S. farmers, supporting both sustainability and the local economy. Knowing where your food comes from isn’t just reassuring—it’s the way it should be. That’s why we value transparency. On our menu page, you can explore every dish, see exactly what’s inside, and learn where each ingredient comes from. We have nothing to hide—just real food, grown close to home.',
-               opacity: '1'
-          }
-     ];
-
-     let aspectCard1 = null;
-     let aspectCard2 = null;
-     let aspectCard3 = null;
-     let aspectCard4 = null;
-     let aspectCards: any[] = [aspectCard1, aspectCard2, aspectCard3, aspectCard4];
-
      let centerTitle: HTMLHeadingElement;
      let navTitle: HTMLHeadingElement;
 
@@ -263,17 +236,50 @@
                window.scrollTo(0, 0);
           }, 1000);
      }
-     
+
+     let fourAspects = [
+          { 
+               title: 'Real',
+               description: 'No shortcuts. No artificial substitutes. No pretending. Just honest ingredients, prepared with care, for food that tastes as good as it should. Because real food doesn’t need to be anything else.',
+               opacity: '1',
+               transform: 'translateY(30rem) rotate(1.2deg);'
+          },
+          { 
+               title: 'Fresh ingredients',
+               description: 'Freshness isn’t a luxury; it’s our standard. Every ingredient we use is fresh, never highly processed, because real food should nourish you. That’s also why our menu changes with the seasons—when an ingredient isn’t at its best, we won’t serve it. Eating fresh just feels better, and at Verdantia, that’s exactly what you get.',
+               opacity: '1',
+               transform: 'translateY(22.5rem) rotate(-2deg);'
+          },
+          { 
+               title: 'Vegetarian',
+               description: 'We believe vegetarian and vegan food should be exciting, satisfying, and accessible to everyone. No compromises, no bland salads—just bold flavors and hearty dishes that happen to be meat-free. We’re here to prove that going vegetarian doesn’t mean giving anything up. Even meat lovers will find something to love.',
+               opacity: '1',
+               transform: 'translateY(15rem) rotate(2deg);'
+          },
+          { 
+               title: 'Local ingredients',
+               description: 'Most of our ingredients come from U.S. farmers, supporting both sustainability and the local economy. Knowing where your food comes from isn’t just reassuring—it’s the way it should be. That’s why we value transparency. On our menu page, you can explore every dish, see exactly what’s inside, and learn where each ingredient comes from. We have nothing to hide—just real food, grown close to home.',
+               opacity: '1',
+               transform: 'translateY(7.5rem) rotate(-2deg);'
+          }
+     ];
+
+     let aspectCard1 = null;
+     let aspectCard2 = null;
+     let aspectCard3 = null;
+     let aspectCard4 = null;
+     let aspectCards: any[] = [aspectCard1, aspectCard2, aspectCard3, aspectCard4];
+
      function getCardOffset(card: HTMLElement): number {
           const rect = card.getBoundingClientRect();
           const cardMid = rect.top + rect.height / 2;
-          const screenMid = window.innerHeight / 2 + window.innerHeight * 0.1;
+          const screenMid = window.innerHeight / 2;
           return screenMid - cardMid;
      }
 
      function handleScrollBlueSection() {
           const offsets = aspectCards.map(card => getCardOffset(card));
-          
+
           offsets.map((offset, i) => {
                if (offset < 100) {
                     fourAspects[i].opacity = '1';
@@ -422,7 +428,7 @@
                          {#each fourAspects as aspect, i}
                               <div 
                                    class="aspect-card"
-                                   style="opacity: {aspect.opacity}"
+                                   style="opacity: {aspect.opacity}; transform: {aspect.transform}"
                                    bind:this={aspectCards[i]}
                                    >
                                    <h3>{aspect.title}</h3>
@@ -952,7 +958,7 @@
                          align-items: center;
                          min-height: 80vh;
                          justify-content: center;
-                         margin-bottom: 50vh;
+                         margin-bottom: 100vh;
 
                          .aspect-card {
                               position: absolute;
@@ -979,22 +985,6 @@
 
                               p {
                                    width: 80%;
-                              }
-
-                              &:nth-child(1) {
-                                   transform: translateY(20rem) rotate(1.2deg);
-                              }
-
-                              &:nth-child(2) {
-                                   transform: translateY(15rem) rotate(-2deg);
-                              }
-
-                              &:nth-child(3) {
-                                   transform: translateY(10rem) rotate(2deg);
-                              }
-                              
-                              &:nth-child(4) {
-                                   transform: translateY(5rem) rotate(-2deg);
                               }
                          }
                     }
