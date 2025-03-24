@@ -11,6 +11,8 @@
     padding: 0;
     background-color: v.$background-color-light;
     overflow-x: hidden;
+    overscroll-behavior: none;
+    overflow: none;
 }
 
 @font-face {
@@ -39,4 +41,9 @@ p, a {
 a {
     color: v.$font-color-dark;
     text-decoration: none;
+}
+
+:global(html) {
+    overscroll-behavior: none;
+    overflow: none;
 }
