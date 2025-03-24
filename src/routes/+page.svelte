@@ -65,12 +65,32 @@
           { plant: branch7d, word: 'IT', plantOpacity: '0', plantTransform: 'translateY(50px)' }
      ];
 
-     let fourIngredients = [
-          { ingredient: 'Local' },
-          { ingredient: 'Fresh' },
-          { ingredient: 'Vegetarian' },
-          { ingredient: 'Real' }
-     ]
+     let fourAspects = [
+          { 
+               title: 'Real',
+               description: 'No shortcuts. No artificial substitutes. No pretending. Just honest ingredients, prepared with care, for food that tastes as good as it should. Because real food doesn’t need to be anything else.',
+               opacity: '1' },
+          { 
+               title: 'Fresh ingredients',
+               description: 'Freshness isn’t a luxury; it’s our standard. Every ingredient we use is fresh, never highly processed, because real food should nourish you. That’s also why our menu changes with the seasons—when an ingredient isn’t at its best, we won’t serve it. Eating fresh just feels better, and at Verdantia, that’s exactly what you get.',
+               opacity: '1' },
+          { 
+               title: 'Vegetarian',
+               description: 'We believe vegetarian and vegan food should be exciting, satisfying, and accessible to everyone. No compromises, no bland salads—just bold flavors and hearty dishes that happen to be meat-free. We’re here to prove that going vegetarian doesn’t mean giving anything up. Even meat lovers will find something to love.',
+               opacity: '1' 
+          },
+          { 
+               title: 'Local ingredients',
+               description: 'Most of our ingredients come from U.S. farmers, supporting both sustainability and the local economy. Knowing where your food comes from isn’t just reassuring—it’s the way it should be. That’s why we value transparency. On our menu page, you can explore every dish, see exactly what’s inside, and learn where each ingredient comes from. We have nothing to hide—just real food, grown close to home.',
+               opacity: '1'
+          }
+     ];
+
+     let aspectCard1 = null;
+     let aspectCard2 = null;
+     let aspectCard3 = null;
+     let aspectCard4 = null;
+     let aspectCards: any[] = [aspectCard1, aspectCard2, aspectCard3, aspectCard4];
 
      let centerTitle: HTMLHeadingElement;
      let navTitle: HTMLHeadingElement;
@@ -79,7 +99,7 @@
      let active = false;
      let showHero = false;
      let showHorizontal = true;
-     let showWindow = true; // for testing "false", should be true
+     let showWindow = false; // for testing "false", should be true
      let windowY = 0;
 
      onMount(() => {
@@ -113,6 +133,11 @@
      }
 
      function handleScroll(e: Event) {
+          if (!showWindow) {
+               handleScrollBlueSection();
+               return;
+          }
+
           if (!showHero) return;
 
           const { innerHeight } = window;
@@ -238,6 +263,25 @@
                window.scrollTo(0, 0);
           }, 1000);
      }
+     
+     function getCardOffset(card: HTMLElement): number {
+          const rect = card.getBoundingClientRect();
+          const cardMid = rect.top + rect.height / 2;
+          const screenMid = window.innerHeight / 2 + window.innerHeight * 0.1;
+          return screenMid - cardMid;
+     }
+
+     function handleScrollBlueSection() {
+          const offsets = aspectCards.map(card => getCardOffset(card));
+          
+          offsets.map((offset, i) => {
+               if (offset < 100) {
+                    fourAspects[i].opacity = '1';
+               } else {
+                    fourAspects[i].opacity = '0';
+               }
+          });
+     }
 
      $: cssVarStyles = Object.entries(styles).map(([key, value]) => `--${key}:${value}`).join(';');
 </script>
@@ -245,8 +289,8 @@
 <svelte:window on:scroll={handleScroll} bind:scrollY={windowY} on:wheel={handleMouseWheel} />
 
 <div class="content" style={cssVarStyles}>
-     <!-- {#if false} -->
-     {#if showHero}
+     {#if false}
+     <!-- {#if showHero} -->
           <section class="hero-section" on:mousemove={e => handleMouseMove(e)} role="presentation">
                <div class="branches-stack">
                     <div class="left">
@@ -284,21 +328,21 @@
                          <div class="links">
                               <div class="link">
                               <a href="/">Home</a>
-                              {#if showHero}
-                                   <div class="active-icon"></div>
-                              {:else}
-                                   <div class="active-icon active">
+                                   {#if showHero}
+                                        <div class="active-icon"></div>
+                                   {:else}
+                                        <div class="active-icon active">
                                              <img src={orange} alt="Active" />
-                                   </div>
+                                        </div>
                                    {/if}
                               </div>
                               <div class="link">
-                              <a href="/menu">Menu</a>
-                              <div class="active-icon"></div>
+                                   <a href="/menu">Menu</a>
+                                   <div class="active-icon"></div>
                               </div>
                               <div class="link">
-                              <a href="/news">News</a>
-                              <div class="active-icon"></div>
+                                   <a href="/news">News</a>
+                                   <div class="active-icon"></div>
                               </div>
                          </div>
                     </div>
@@ -367,32 +411,24 @@
                     <div class="heading">
                          <h1>Let's dive deeper</h1>
                     </div>
-                    <div class="clouds">
-                         <img src={cloud} alt="cloud" />
-                         <img src={cloud} alt="cloud" />
-                         <img src={cloud} alt="cloud" />
-                         <img src={cloud} alt="cloud" />
-                    </div>
                </div>
                <div class="white-content">
-                    <div class="four-ingredients">
-                         <div class="header">
-                              <p>Our four most important ingredients</p>
-                         </div>
-                         <div class="ingredients-container">
-                              {#each fourIngredients as ingredient}
-                                   <div class="ingredient">
-                                        <p>{ingredient.ingredient}</p>
-                                   </div>
-                              {/each}
+                    <div class="main-aspects">
+                         <div class="intro">
+                              <p>Verdantia is created by bringing together 4 key aspects.</p>
                          </div>
                     </div>
-                    <div class="ingredients-info">
-                         <p></p>
-                    </div>
-                    <div class="further-links">
-                         <h3>Now that you know who we are, find out what food we serve</h3>
-                         <a href="/menu">View our menu</a>
+                    <div class="aspects">
+                         {#each fourAspects as aspect, i}
+                              <div 
+                                   class="aspect-card"
+                                   style="opacity: {aspect.opacity}"
+                                   bind:this={aspectCards[i]}
+                                   >
+                                   <h3>{aspect.title}</h3>
+                                   <p>{aspect.description}</p>
+                              </div>
+                         {/each}
                     </div>
                </div>
           </section>
@@ -832,8 +868,10 @@
                     min-height: 100vh;
                     opacity: 0;
                     animation: fadeIn 1s forwards;
-                    display: grid;
-                    grid-template-rows: 1fr clamp(300px, 40vw, 1300px);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background-image: linear-gradient(v.$quaternary 0 60%, v.$background-color-light);
 
                     @keyframes fadeIn {
                          0% {
@@ -845,44 +883,32 @@
                     }
 
                     .heading {
-                         background-color: v.$quaternary;
                          width: 100%;
                          height: 100%;
-                         padding-top: 10vh;
                          display: flex;
                          justify-content: center;
                          align-items: center;
+                         flex: 1;
 
                          h1 {
                               font-size: clamp(4rem, 10vw, 6rem);
                               font-weight: bold;
                               color: v.$font-color-light;
+                              animation: h1-fadein 1.3s forwards;
                          }
-                    }
 
-                    .clouds {
-                         background-image: linear-gradient(v.$quaternary 0 64%, v.$background-color-light 64% 100%);
-
-                         position: relative;
-                         display: flex;
-                         
-                         img {
-                              position: absolute;
-                              aspect-ratio: 1/1 !important;
-                              height: 100%;
-                              pointer-events: none;
-
-                              &:nth-child(1) {
-                                   left: 0%;
+                         @keyframes h1-fadein {
+                              0% {
+                                   opacity: 0;
+                                   transform: translateY(50px);
                               }
-                              &:nth-child(2) {
-                                   left: 70%;
+                              20% {
+                                   opacity: 0;
+                                   transform: translateY(50px);
                               }
-                              &:nth-child(3) {
-                                   left: 40%;
-                              }
-                              &:nth-child(4) {
-                                   left: 25%;
+                              100% {
+                                   opacity: 1;
+                                   transform: translateY(0);
                               }
                          }
                     }
@@ -890,103 +916,85 @@
 
                .white-content {
                     width: 100%;
-                    height: 100vh;
                     background-color: v.$background-color-light;
                     padding: 0 3rem;
                     display: flex;
                     flex-direction: column;
                     align-items: center;
 
-                    .four-ingredients {
+                    .main-aspects {
+                         width: 100%;
                          display: flex;
                          flex-direction: column;
                          align-items: center;
+                         gap: 2rem;
+                         padding-top: 5rem;
 
-                         width: 100%;
-                         min-height: 100vh;
-
-                         .header {
-                              p {
-                                   font-size: clamp(1.1rem, 3vw, 2rem);
-                                   text-align: center;
-                                   padding: 1rem;
-                                   text-transform: uppercase;
-                              }
-                         }
-                         
-                         .ingredients-container {
-                              display: grid;
-                              grid-template-columns: repeat(2, 25vw);
-
-                              justify-content: center;
-                              gap: 2rem;
+                         .intro {
                               width: 100%;
-                              padding: 4rem 2rem;
+                              display: flex;
+                              flex-direction: column;
+                              align-items: center;
+                              gap: 1rem;
 
-                              .ingredient {
-                                   display: flex;
-                                   justify-content: center;
-                                   align-items: center;
-                                   border-radius: 2rem;
-                                   height: 12rem;
-
-                                   &:nth-child(1) {
-                                        background-color: v.$primary;
-                                   }
-
-                                   &:nth-child(2) {
-                                        background-color: v.$secondary;
-                                   }
-
-                                   &:nth-child(3) {
-                                        background-color: v.$tertiary;
-                                   }
-
-                                   &:nth-child(4) {
-                                        background-color: v.$quaternary;
-                                   }
-
-                                   p {
-                                        font-size: clamp(1rem, 3vw, 2rem);
-                                        color: v.$font-color-light;
-                                   }
+                              p {
+                                   color: v.$font-color-dark;
+                                   font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+                                   text-align: center;
+                                   text-transform: uppercase;
                               }
                          }
                     }
 
-                    .further-links {
-                         padding: 4rem 2rem;
-                         background-color: v.$tertiary-light;
+                    .aspects {
+                         position: relative;
                          display: flex;
-                         flex-direction: column;
                          align-items: center;
-                         border-radius: 2rem;
-                         width: 100%;
-                         margin-bottom: 2rem;
-                         gap: 2rem;
+                         min-height: 80vh;
+                         justify-content: center;
+                         margin-bottom: 50vh;
 
-                         h3 {
-                              font-size: clamp(1.5rem, 3vw, 2rem);
-                              color: v.$font-color-light;
-                              text-align: center;
-                              padding: 1rem;
-                         }
+                         .aspect-card {
+                              position: absolute;
 
-                         a {
-                              background-color: rgba(v.$primary, 0.85);
-                              color: v.$font-color-light;
-                              padding: 10px 16px;
-                              border-radius: 30px;
-                              font-size: 0.95rem;
-                              font-weight: 500;
-                              letter-spacing: 0.5px;
-                              cursor: pointer;
-                              transition: all 0.3s ease;
+                              padding: 2rem;
+                              background-color: #fff;
 
-                              &::after {
-                                   content: "→";
-                                   margin-left: 8px;
-                                   font-size: 1.1em;
+                              width: clamp(400px, 80vw, 800px);
+                              aspect-ratio: 3/2;
+                              box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+                              border-radius: 6px;
+
+                              display: flex;
+                              flex-direction: column;
+                              gap: 1rem;
+
+                              transition: all 0.5s;
+
+                              h3 {
+                                   font-size: clamp(1.5rem, 3vw, 2rem);
+                                   color: v.$font-color-dark;
+                                   text-transform: uppercase;
+                              }
+
+                              p {
+                                   width: 80%;
+                              }
+
+                              &:nth-child(1) {
+                                   transform: translateY(20rem) rotate(1.2deg);
+                              }
+
+                              &:nth-child(2) {
+                                   transform: translateY(15rem) rotate(-2deg);
+                              }
+
+                              &:nth-child(3) {
+                                   transform: translateY(10rem) rotate(2deg);
+                              }
+                              
+                              &:nth-child(4) {
+                                   transform: translateY(5rem) rotate(-2deg);
                               }
                          }
                     }
