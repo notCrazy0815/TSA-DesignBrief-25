@@ -28,6 +28,7 @@
      import flower from "$lib/assets/icons/flower.png";
      import cloud from "$lib/assets/icons/cloud.png";
      import { fly } from "svelte/transition";
+    import Footer from "$lib/components/Footer.svelte";
 
      let branches = [branch1, branch2, branch3, branch4, branch5, branch6, branch7, branch8, branch9, branch10, branch11, branch12, branch13, branch14, branch15];
 
@@ -65,13 +66,6 @@
           { plant: branch7d, word: 'IT', plantOpacity: '0', plantTransform: 'translateY(50px)' }
      ];
 
-     let fourIngredients = [
-          { ingredient: 'Local' },
-          { ingredient: 'Fresh' },
-          { ingredient: 'Vegetarian' },
-          { ingredient: 'Real' }
-     ]
-
      let centerTitle: HTMLHeadingElement;
      let navTitle: HTMLHeadingElement;
 
@@ -79,7 +73,7 @@
      let active = false;
      let showHero = false;
      let showHorizontal = true;
-     let showWindow = true; // for testing "false", should be true
+     let showWindow = false; // for testing "false", should be true
      let windowY = 0;
 
      onMount(() => {
@@ -113,6 +107,11 @@
      }
 
      function handleScroll(e: Event) {
+          if (!showWindow) {
+               handleScrollBlueSection();
+               return;
+          }
+
           if (!showHero) return;
 
           const { innerHeight } = window;
@@ -239,14 +238,66 @@
           }, 1000);
      }
 
+     let fourAspects = [
+          { 
+               title: 'Transparency',
+               description: 'No shortcuts. No artificial substitutes. No pretending. Just honest ingredients, prepared with care, for food that tastes as good as it should. Because real food doesn’t need to be anything else. On our menu page, you have the ability to explore every dish, see exactly what’s inside, and learn where each ingredient comes from.',
+               opacity: '1',
+               transform: 'translateY(30rem) rotate(1.2deg);'
+          },
+          { 
+               title: 'Fresh ingredients',
+               description: 'Freshness isn’t a luxury; it’s our standard. Every ingredient we use is fresh, never highly processed, because real food should nourish you. That’s also why our menu changes with the seasons—when an ingredient isn’t at its best, we won’t serve it. Eating fresh just feels better, and at Verdantia, that’s exactly what you get.',
+               opacity: '1',
+               transform: 'translateY(22.5rem) rotate(-2deg);'
+          },
+          { 
+               title: 'Vegetarian',
+               description: 'We believe vegetarian and vegan food should be exciting, satisfying, and accessible to everyone. No compromises, no bland salads—just bold flavors and hearty dishes that happen to be meat-free. We’re here to prove that going vegetarian doesn’t mean giving anything up. Even meat lovers will find something to love.',
+               opacity: '1',
+               transform: 'translateY(15rem) rotate(2deg);'
+          },
+          { 
+               title: 'Local ingredients',
+               description: 'Most of our ingredients come from U.S. farmers, supporting both sustainability and the local economy. Knowing where your food comes from isn’t just reassuring—it’s the way it should be. That’s why we value transparency. On our menu page, you can explore every dish, see exactly what’s inside, and learn where each ingredient comes from. We have nothing to hide—just real food, grown close to home.',
+               opacity: '1',
+               transform: 'translateY(7.5rem) rotate(-2deg);'
+          }
+     ];
+
+     let aspectCard1 = null;
+     let aspectCard2 = null;
+     let aspectCard3 = null;
+     let aspectCard4 = null;
+     let aspectCards: any[] = [aspectCard1, aspectCard2, aspectCard3, aspectCard4];
+
+     function getCardOffset(card: HTMLElement): number {
+          const rect = card.getBoundingClientRect();
+          const cardMid = rect.top + rect.height / 2;
+          const screenMid = window.innerHeight / 2;
+          return screenMid - cardMid;
+     }
+
+     function handleScrollBlueSection() {
+          const offsets = aspectCards.map(card => getCardOffset(card));
+
+          offsets.map((offset, i) => {
+               if (offset < 100) {
+                    fourAspects[i].opacity = '1';
+               } else {
+                    fourAspects[i].opacity = '0';
+               }
+          });
+     }
+
      $: cssVarStyles = Object.entries(styles).map(([key, value]) => `--${key}:${value}`).join(';');
 </script>
 
 <svelte:window on:scroll={handleScroll} bind:scrollY={windowY} on:wheel={handleMouseWheel} />
 
 <div class="content" style={cssVarStyles}>
-     <!-- {#if false} -->
-     {#if showHero}
+     {#if false}
+     <!-- {#if showHero} -->
           <section class="hero-section" on:mousemove={e => handleMouseMove(e)} role="presentation">
                <div class="branches-stack">
                     <div class="left">
@@ -284,21 +335,21 @@
                          <div class="links">
                               <div class="link">
                               <a href="/">Home</a>
-                              {#if showHero}
-                                   <div class="active-icon"></div>
-                              {:else}
-                                   <div class="active-icon active">
+                                   {#if showHero}
+                                        <div class="active-icon"></div>
+                                   {:else}
+                                        <div class="active-icon active">
                                              <img src={orange} alt="Active" />
-                                   </div>
+                                        </div>
                                    {/if}
                               </div>
                               <div class="link">
-                              <a href="/menu">Menu</a>
-                              <div class="active-icon"></div>
+                                   <a href="/menu">Menu</a>
+                                   <div class="active-icon"></div>
                               </div>
                               <div class="link">
-                              <a href="/news">News</a>
-                              <div class="active-icon"></div>
+                                   <a href="/news">News</a>
+                                   <div class="active-icon"></div>
                               </div>
                          </div>
                     </div>
@@ -367,34 +418,50 @@
                     <div class="heading">
                          <h1>Let's dive deeper</h1>
                     </div>
-                    <div class="clouds">
-                         <img src={cloud} alt="cloud" />
-                         <img src={cloud} alt="cloud" />
-                         <img src={cloud} alt="cloud" />
-                         <img src={cloud} alt="cloud" />
-                    </div>
                </div>
                <div class="white-content">
-                    <div class="four-ingredients">
-                         <div class="header">
-                              <p>Our four most important ingredients</p>
-                         </div>
-                         <div class="ingredients-container">
-                              {#each fourIngredients as ingredient}
-                                   <div class="ingredient">
-                                        <p>{ingredient.ingredient}</p>
-                                   </div>
-                              {/each}
+                    <div class="main-aspects">
+                         <div class="intro">
+                              <p>Verdantia is created by bringing together 4 key aspects.</p>
                          </div>
                     </div>
-                    <div class="ingredients-info">
-                         <p></p>
+                    <div class="aspects">
+                         {#each fourAspects as aspect, i}
+                              <div 
+                                   class="aspect-card"
+                                   style="opacity: {aspect.opacity}; transform: {aspect.transform}"
+                                   bind:this={aspectCards[i]}
+                                   >
+                                   <h3>{aspect.title}</h3>
+                                   <p>{@html aspect.description}</p>
+
+                                   {#if i == 1}
+                                        <div class="card-bg card-bg-1">
+                                             <img src={branch7} alt="branch">
+                                        </div>
+                                   {:else if i == 2}
+                                        <div class="card-bg card-bg-2">
+                                             <img src={leaf} alt="leaf">
+                                             <img src={leaf} alt="leaf">
+                                             <img src={leaf} alt="leaf">
+                                        </div>
+                                   {/if}
+                              </div>
+                         {/each}
                     </div>
-                    <div class="further-links">
-                         <h3>Now that you know who we are, find out what food we serve</h3>
-                         <a href="/menu">View our menu</a>
+                    <div class="links">
+                         <div class="link">
+                              <h3>Find out what we serve</h3>
+                              <a href="/menu">View menu</a>
+                         </div>
+                         <div class="link">
+                              <h3>Or read the latest news</h3>
+                              <a href="/news">Read news</a>
+                         </div>
                     </div>
                </div>
+
+               <Footer />
           </section>
      {/if}
 </div>
@@ -832,8 +899,10 @@
                     min-height: 100vh;
                     opacity: 0;
                     animation: fadeIn 1s forwards;
-                    display: grid;
-                    grid-template-rows: 1fr clamp(300px, 40vw, 1300px);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background-image: linear-gradient(v.$quaternary 0 60%, v.$background-color-light);
 
                     @keyframes fadeIn {
                          0% {
@@ -845,44 +914,33 @@
                     }
 
                     .heading {
-                         background-color: v.$quaternary;
                          width: 100%;
                          height: 100%;
-                         padding-top: 10vh;
                          display: flex;
                          justify-content: center;
                          align-items: center;
+                         flex: 1;
 
                          h1 {
                               font-size: clamp(4rem, 10vw, 6rem);
                               font-weight: bold;
                               color: v.$font-color-light;
+                              animation: h1-fadein 1.3s forwards;
+                              text-align: center;
                          }
-                    }
 
-                    .clouds {
-                         background-image: linear-gradient(v.$quaternary 0 64%, v.$background-color-light 64% 100%);
-
-                         position: relative;
-                         display: flex;
-                         
-                         img {
-                              position: absolute;
-                              aspect-ratio: 1/1 !important;
-                              height: 100%;
-                              pointer-events: none;
-
-                              &:nth-child(1) {
-                                   left: 0%;
+                         @keyframes h1-fadein {
+                              0% {
+                                   opacity: 0;
+                                   transform: translateY(100px);
                               }
-                              &:nth-child(2) {
-                                   left: 70%;
+                              20% {
+                                   opacity: 0;
+                                   transform: translateY(100px);
                               }
-                              &:nth-child(3) {
-                                   left: 40%;
-                              }
-                              &:nth-child(4) {
-                                   left: 25%;
+                              100% {
+                                   opacity: 1;
+                                   transform: translateY(0);
                               }
                          }
                     }
@@ -890,103 +948,172 @@
 
                .white-content {
                     width: 100%;
-                    height: 100vh;
                     background-color: v.$background-color-light;
                     padding: 0 3rem;
                     display: flex;
                     flex-direction: column;
                     align-items: center;
 
-                    .four-ingredients {
+                    .main-aspects {
+                         width: 100%;
                          display: flex;
                          flex-direction: column;
                          align-items: center;
+                         gap: 2rem;
+                         padding-top: 5rem;
 
-                         width: 100%;
-                         min-height: 100vh;
+                         .intro {
+                              width: 100%;
+                              display: flex;
+                              flex-direction: column;
+                              align-items: center;
+                              gap: 1rem;
 
-                         .header {
                               p {
-                                   font-size: clamp(1.1rem, 3vw, 2rem);
+                                   color: v.$font-color-dark;
+                                   font-size: clamp(1.2rem, 2.5vw, 1.6rem);
                                    text-align: center;
-                                   padding: 1rem;
                                    text-transform: uppercase;
                               }
                          }
-                         
-                         .ingredients-container {
-                              display: grid;
-                              grid-template-columns: repeat(2, 25vw);
+                    }
 
-                              justify-content: center;
-                              gap: 2rem;
-                              width: 100%;
-                              padding: 4rem 2rem;
+                    .aspects {
+                         position: relative;
+                         display: flex;
+                         align-items: center;
+                         min-height: 80vh;
+                         justify-content: center;
+                         margin-bottom: 40rem;
 
-                              .ingredient {
+                         .aspect-card {
+                              position: absolute;
+
+                              padding: 2rem;
+                              background-color: #fff;
+
+                              width: clamp(400px, 80vw, 800px);
+                              aspect-ratio: 3/2;
+                              box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+                              border-radius: 6px;
+
+                              display: flex;
+                              flex-direction: column;
+                              gap: 1rem;
+
+                              transition: all 0.5s;
+
+                              h3 {
+                                   font-size: clamp(1.5rem, 3vw, 2rem);
+                                   color: v.$font-color-dark;
+                                   text-transform: uppercase;
+                              }
+
+                              p {
+                                   width: 80%;
+                              }
+
+                              .card-bg {
+                                   position: absolute;
+                                   width: 100%;
+                                   height: 100%;
+                                   opacity: 0.7;
+                                   z-index: -1;
+                                   transform: translateX(-2rem) translateY(-2rem);
+                                   overflow: hidden;
+                              }
+
+                              .card-bg-1 {
                                    display: flex;
-                                   justify-content: center;
-                                   align-items: center;
-                                   border-radius: 2rem;
-                                   height: 12rem;
+                                   justify-content: right;
+                                   align-items: end;
 
-                                   &:nth-child(1) {
-                                        background-color: v.$primary;
+                                   img {
+                                        width: clamp(100px, 50vw, 500px);
+                                        aspect-ratio: 3840/2160;
+                                        transform: rotate(210deg);
+                                        margin-right: -10%;
+                                        margin-bottom: -5%;
                                    }
+                              }
 
-                                   &:nth-child(2) {
-                                        background-color: v.$secondary;
-                                   }
+                              .card-bg-2 {
+                                   img {
+                                        width: clamp(20px, 20vw, 100px);
+                                        aspect-ratio: 1/1;
+                                        position: absolute;
 
-                                   &:nth-child(3) {
-                                        background-color: v.$tertiary;
-                                   }
+                                        &:nth-child(1) {
+                                             bottom: 10%;
+                                             right: 15%;
+                                             transform: rotate(100deg);
+                                        }
 
-                                   &:nth-child(4) {
-                                        background-color: v.$quaternary;
-                                   }
+                                        &:nth-child(2) {
+                                             bottom: 15%;
+                                             right: 5%;
+                                             transform: rotate(70deg);
+                                        }
 
-                                   p {
-                                        font-size: clamp(1rem, 3vw, 2rem);
-                                        color: v.$font-color-light;
+                                        &:nth-child(3) {
+                                             bottom: 5%;
+                                             right: 7%;
+                                             transform: rotate(140deg);
+                                        }
                                    }
                               }
                          }
                     }
 
-                    .further-links {
-                         padding: 4rem 2rem;
-                         background-color: v.$tertiary-light;
-                         display: flex;
-                         flex-direction: column;
-                         align-items: center;
-                         border-radius: 2rem;
-                         width: 100%;
+                    .links {
                          margin-bottom: 2rem;
+                         width: 100%;
+
+                         display: grid;
+                         grid-template-columns: repeat(2, 1fr);
                          gap: 2rem;
 
-                         h3 {
-                              font-size: clamp(1.5rem, 3vw, 2rem);
-                              color: v.$font-color-light;
-                              text-align: center;
-                              padding: 1rem;
+                         @media screen and (max-width: 900px) {
+                              grid-template-columns: 1fr;
                          }
 
-                         a {
-                              background-color: rgba(v.$primary, 0.85);
-                              color: v.$font-color-light;
-                              padding: 10px 16px;
-                              border-radius: 30px;
-                              font-size: 0.95rem;
-                              font-weight: 500;
-                              letter-spacing: 0.5px;
-                              cursor: pointer;
-                              transition: all 0.3s ease;
+                         .link {
+                              width: 100%;
+                              display: flex;
+                              flex-direction: column;
+                              align-items: center;
+                              gap: 1rem;
 
-                              &::after {
-                                   content: "→";
-                                   margin-left: 8px;
-                                   font-size: 1.1em;
+                              background-color: #fff;
+                              padding: 4rem 2rem;
+                              border-radius: 1rem;
+                              box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+
+                              h3 {
+                                   font-size: clamp(1.1rem, 3vw, 2rem);
+                                   color: v.$font-color-dark;
+                                   text-transform: uppercase;
+                              }
+
+                              a {
+                                   font-size: clamp(0.9rem, 2vw, 0.95rem);
+                                   background-color: v.$primary;
+                                   padding: 0.5rem 1.5rem;
+                                   border-radius: 1000px;
+                                   color: v.$font-color-light;
+                                   cursor: pointer;
+                                   box-shadow: 0 3px 10px rgba(252, 98, 52, 0.3);
+                                   transition: all 0.3s ease;
+
+                                   &:hover {
+                                        box-shadow: 0 3px 10px rgba(252, 98, 52, 0.8);
+                                   }
+
+                                   &::after {
+                                        content: "→";
+                                        margin-left: 8px;
+                                        font-size: 1.1em;
+                                   }
                               }
                          }
                     }
