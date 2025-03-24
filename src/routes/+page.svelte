@@ -28,6 +28,7 @@
      import flower from "$lib/assets/icons/flower.png";
      import cloud from "$lib/assets/icons/cloud.png";
      import { fly } from "svelte/transition";
+    import Footer from "$lib/components/Footer.svelte";
 
      let branches = [branch1, branch2, branch3, branch4, branch5, branch6, branch7, branch8, branch9, branch10, branch11, branch12, branch13, branch14, branch15];
 
@@ -436,7 +437,19 @@
                               </div>
                          {/each}
                     </div>
+                    <div class="links">
+                         <div class="link">
+                              <h3>Find out what we serve</h3>
+                              <a href="/menu">View menu</a>
+                         </div>
+                         <div class="link">
+                              <h3>Or read the latest news</h3>
+                              <a href="/news">Read news</a>
+                         </div>
+                    </div>
                </div>
+
+               <Footer />
           </section>
      {/if}
 </div>
@@ -901,16 +914,17 @@
                               font-weight: bold;
                               color: v.$font-color-light;
                               animation: h1-fadein 1.3s forwards;
+                              text-align: center;
                          }
 
                          @keyframes h1-fadein {
                               0% {
                                    opacity: 0;
-                                   transform: translateY(50px);
+                                   transform: translateY(100px);
                               }
                               20% {
                                    opacity: 0;
-                                   transform: translateY(50px);
+                                   transform: translateY(100px);
                               }
                               100% {
                                    opacity: 1;
@@ -958,7 +972,7 @@
                          align-items: center;
                          min-height: 80vh;
                          justify-content: center;
-                         margin-bottom: 100vh;
+                         margin-bottom: 40rem;
 
                          .aspect-card {
                               position: absolute;
@@ -985,6 +999,59 @@
 
                               p {
                                    width: 80%;
+                              }
+                         }
+                    }
+
+                    .links {
+                         margin-bottom: 2rem;
+                         width: 100%;
+
+                         display: grid;
+                         grid-template-columns: repeat(2, 1fr);
+                         gap: 2rem;
+
+                         @media screen and (max-width: 900px) {
+                              grid-template-columns: 1fr;
+                         }
+
+                         .link {
+                              width: 100%;
+                              display: flex;
+                              flex-direction: column;
+                              align-items: center;
+                              gap: 1rem;
+
+                              background-color: #fff;
+                              padding: 4rem 2rem;
+                              border-radius: 1rem;
+                              box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+
+                              h3 {
+                                   font-size: clamp(1.1rem, 3vw, 2rem);
+                                   color: v.$font-color-dark;
+                                   text-transform: uppercase;
+                              }
+
+                              a {
+                                   font-size: clamp(0.9rem, 2vw, 0.95rem);
+                                   background-color: v.$primary;
+                                   padding: 0.5rem 1.5rem;
+                                   border-radius: 1000px;
+                                   color: v.$font-color-light;
+                                   cursor: pointer;
+                                   box-shadow: 0 3px 10px rgba(252, 98, 52, 0.3);
+                                   transition: all 0.3s ease;
+
+                                   &:hover {
+                                        box-shadow: 0 3px 10px rgba(252, 98, 52, 0.8);
+                                   }
+
+                                   &::after {
+                                        content: "→";
+                                        margin-left: 8px;
+                                        font-size: 1.1em;
+                                   }
                               }
                          }
                     }
