@@ -73,7 +73,7 @@
      let active = false;
      let showHero = false;
      let showHorizontal = true;
-     let showWindow = false; // for testing "false", should be true
+     let showWindow = true; // for testing "false", should be true
      let windowY = 0;
 
      onMount(() => {
@@ -296,8 +296,8 @@
 <svelte:window on:scroll={handleScroll} bind:scrollY={windowY} on:wheel={handleMouseWheel} />
 
 <div class="content" style={cssVarStyles}>
-     {#if false}
-     <!-- {#if showHero} -->
+     <!-- {#if false} -->
+     {#if showHero}
           <section class="hero-section" on:mousemove={e => handleMouseMove(e)} role="presentation">
                <div class="branches-stack">
                     <div class="left">
