@@ -240,8 +240,8 @@
 
      let fourAspects = [
           { 
-               title: 'Real',
-               description: 'No shortcuts. No artificial substitutes. No pretending. Just honest ingredients, prepared with care, for food that tastes as good as it should. Because real food doesn’t need to be anything else.',
+               title: 'Transparency',
+               description: 'No shortcuts. No artificial substitutes. No pretending. Just honest ingredients, prepared with care, for food that tastes as good as it should. Because real food doesn’t need to be anything else. On our menu page, you have the ability to explore every dish, see exactly what’s inside, and learn where each ingredient comes from.',
                opacity: '1',
                transform: 'translateY(30rem) rotate(1.2deg);'
           },
@@ -433,7 +433,19 @@
                                    bind:this={aspectCards[i]}
                                    >
                                    <h3>{aspect.title}</h3>
-                                   <p>{aspect.description}</p>
+                                   <p>{@html aspect.description}</p>
+
+                                   {#if i == 1}
+                                        <div class="card-bg card-bg-1">
+                                             <img src={branch7} alt="branch">
+                                        </div>
+                                   {:else if i == 2}
+                                        <div class="card-bg card-bg-2">
+                                             <img src={leaf} alt="leaf">
+                                             <img src={leaf} alt="leaf">
+                                             <img src={leaf} alt="leaf">
+                                        </div>
+                                   {/if}
                               </div>
                          {/each}
                     </div>
@@ -999,6 +1011,56 @@
 
                               p {
                                    width: 80%;
+                              }
+
+                              .card-bg {
+                                   position: absolute;
+                                   width: 100%;
+                                   height: 100%;
+                                   opacity: 0.7;
+                                   z-index: -1;
+                                   transform: translateX(-2rem) translateY(-2rem);
+                                   overflow: hidden;
+                              }
+
+                              .card-bg-1 {
+                                   display: flex;
+                                   justify-content: right;
+                                   align-items: end;
+
+                                   img {
+                                        width: clamp(100px, 50vw, 500px);
+                                        aspect-ratio: 3840/2160;
+                                        transform: rotate(210deg);
+                                        margin-right: -10%;
+                                        margin-bottom: -5%;
+                                   }
+                              }
+
+                              .card-bg-2 {
+                                   img {
+                                        width: clamp(20px, 20vw, 100px);
+                                        aspect-ratio: 1/1;
+                                        position: absolute;
+
+                                        &:nth-child(1) {
+                                             bottom: 10%;
+                                             right: 15%;
+                                             transform: rotate(100deg);
+                                        }
+
+                                        &:nth-child(2) {
+                                             bottom: 15%;
+                                             right: 5%;
+                                             transform: rotate(70deg);
+                                        }
+
+                                        &:nth-child(3) {
+                                             bottom: 5%;
+                                             right: 7%;
+                                             transform: rotate(140deg);
+                                        }
+                                   }
                               }
                          }
                     }
