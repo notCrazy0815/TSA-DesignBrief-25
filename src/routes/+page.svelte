@@ -26,9 +26,7 @@
      import lavender from "$lib/assets/icons/lavender.png";
      import leaf from "$lib/assets/icons/leaf.png";
      import flower from "$lib/assets/icons/flower.png";
-     import cloud from "$lib/assets/icons/cloud.png";
-     import { fly } from "svelte/transition";
-    import Footer from "$lib/components/Footer.svelte";
+     import Footer from "$lib/components/Footer.svelte";
 
      let branches = [branch1, branch2, branch3, branch4, branch5, branch6, branch7, branch8, branch9, branch10, branch11, branch12, branch13, branch14, branch15];
 
@@ -664,6 +662,7 @@
                     align-items: center;
                     opacity: var(--horizontalOpacity);
                     transition: all 0.3s;
+                    z-index: 100;
 
                     h1 {
                          font-size: 5rem;
