@@ -293,6 +293,9 @@
 
 <svelte:window on:scroll={handleScroll} bind:scrollY={windowY} on:wheel={handleMouseWheel} />
 
+<div class="menu-link">
+     <a href="/menu">View our menu</a>
+</div>
 <div class="content" style={cssVarStyles}>
      <!-- {#if false} -->
      {#if showHero}
@@ -467,6 +470,35 @@
 <style lang="scss">
      @use "../lib/styles/variables" as v;
      @use "../lib/styles/global" as g;
+
+     .menu-link {
+          position: fixed;
+          bottom: 3rem;
+          right: 3rem;
+          z-index: 1000;
+          cursor: pointer !important;
+
+          a {
+               font-size: clamp(0.9rem, 2vw, 0.95rem);
+               background-color: v.$primary;
+               padding: 0.5rem 1.5rem;
+               border-radius: 1000px;
+               color: v.$font-color-light;
+               cursor: pointer;
+               box-shadow: 0 3px 10px rgba(252, 98, 52, 0.3);
+               transition: all 0.3s ease;
+
+               &:hover {
+                    box-shadow: 0 3px 10px rgba(252, 98, 52, 0.8);
+               }
+
+               &::after {
+                    content: "→";
+                    margin-left: 8px;
+                    font-size: 1.1em;
+               }
+          }
+     }
 
      .content {
           display: flex;
@@ -662,7 +694,7 @@
                     align-items: center;
                     opacity: var(--horizontalOpacity);
                     transition: all 0.3s;
-                    z-index: 100;
+                    z-index: 102;
 
                     h1 {
                          font-size: 5rem;
