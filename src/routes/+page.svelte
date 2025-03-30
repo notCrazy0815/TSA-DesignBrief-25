@@ -416,6 +416,13 @@
      {#if !showWindow}
           <section class="blue-section">
                <div class="blue-content">
+                    <button class="go-back-link"
+                         on:click={() => {
+                              window.location.reload();
+                         }}
+                    >
+                         <p>Go back</p>
+                    </button>
                     <div class="heading">
                          <h1>Let's dive deeper</h1>
                     </div>
@@ -432,10 +439,9 @@
                                    class="aspect-card"
                                    style="opacity: {aspect.opacity}; transform: {aspect.transform}"
                                    bind:this={aspectCards[i]}
-                                   >
+                              >
                                    <h3>{aspect.title}</h3>
                                    <p>{@html aspect.description}</p>
-
                                    {#if i == 1}
                                         <div class="card-bg card-bg-1">
                                              <img src={branch7} alt="branch">
@@ -956,6 +962,27 @@
                          }
                          100% {
                               opacity: 1;
+                         }
+                    }
+
+                    .go-back-link {
+                         position: absolute;
+                         top: 20px;
+                         left: 50%;
+                         transform: translateX(-50%);
+                         z-index: 1000;
+                         cursor: pointer;
+                         font-size: clamp(0.9rem, 2vw, 0.95rem);
+                         background-color: v.$font-color-light;
+                         padding: 0.5rem 1.5rem;
+                         border-radius: 1000px;
+                         color: v.$font-color-dark;
+                         box-shadow: 0 3px 10px rgba(222, 219, 217, 0.3);
+                         transition: all 0.3s ease;
+                         border: none;
+
+                         &:hover {
+                              box-shadow: 0 3px 10px rgba(255, 219, 217, 0.8);
                          }
                     }
 
