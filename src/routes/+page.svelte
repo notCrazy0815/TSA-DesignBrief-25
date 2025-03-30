@@ -294,7 +294,7 @@
 <svelte:window on:scroll={handleScroll} bind:scrollY={windowY} on:wheel={handleMouseWheel} />
 
 <div class="menu-link">
-     <a href="/menu">View our menu</a>
+     <a href="/menu">Skip to menu</a>
 </div>
 <div class="content" style={cssVarStyles}>
      <!-- {#if false} -->
@@ -473,10 +473,14 @@
 
      .menu-link {
           position: fixed;
-          bottom: 3rem;
-          right: 3rem;
+          bottom: 30px;
+          right: 25px;
           z-index: 1000;
           cursor: pointer !important;
+          animation: menuLinkFadeIn 0.5s forwards;
+          animation-delay: 2s;
+          transform: translateY(100px);
+          opacity: 0.2;
 
           a {
                font-size: clamp(0.9rem, 2vw, 0.95rem);
@@ -497,6 +501,17 @@
                     margin-left: 8px;
                     font-size: 1.1em;
                }
+          }
+     }
+
+     @keyframes menuLinkFadeIn {
+          0% {
+               opacity: 0.2;
+               transform: translateX(300px);
+          }
+          100% {
+               opacity: 1;
+               transform: translateX(0);
           }
      }
 
