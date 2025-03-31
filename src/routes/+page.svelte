@@ -1,5 +1,6 @@
 <script lang="ts">
      import { onMount } from "svelte";
+     import { writable } from "svelte/store";
      import branch1 from "$lib/assets/branches/branch_1.png";
      import branch1d from "$lib/assets/branches/branch_1d.png";
      import branch2 from "$lib/assets/branches/branch_2.png";
@@ -108,11 +109,16 @@
      let showHorizontal = true;
      let showWindow = true; // for testing "false", should be true
      let windowY = 0;
+     let touchStartY = 0;
+     let initialScrollY = 0;
+     let isTouching = false;
 
      let allowScroll = true;
      let visibleSection = 0;
      let lastScrollY = 0;
      let ticking = false;
+
+     let scrollY = writable(0);
 
      onMount(() => {
           window.scrollTo(0, 0);
@@ -144,7 +150,15 @@
           styles['y5'] = `${yFactor * 5}rem`;
      }
 
-     function handleUnifiedScroll(e: Event | WheelEvent | TouchEvent) {
+     function handleUnifiedScroll(e: Event) {
+          const target = e.target as Document;
+          try {
+               scrollY.set(target.documentElement.scrollTop);
+          } catch (e) {}
+          windowY = $scrollY;
+
+          // console.log(windowY);
+
           // Handle blue section scroll effects
           if (!showWindow) {
                handleScrollBlueSection();
@@ -178,7 +192,7 @@
                          styles['navOpacity'] = '0';
                     }
 
-                    if (navTitle.getBoundingClientRect().top <= 0) {
+                    if (navTitle.getBoundingClientRect().top <= 100) {
                          showHero = false;
                     }
 
@@ -200,7 +214,7 @@
           } else if (e instanceof TouchEvent) {
                if (e.touches.length > 0) {
                     const currentY = e.touches[0].clientY;
-                    deltaY = lastScrollY - currentY;
+                    deltaY = currentY - lastScrollY;
                     lastScrollY = currentY;
                }
           }
@@ -281,12 +295,6 @@
           }, 1100);
      }
 
-     function handleTouchStart(e: TouchEvent) {
-          if (e.touches.length > 0) {
-               lastScrollY = e.touches[0].clientY;
-          }
-     }
-
      function zoomInWindow() {
           styles['windowHeight'] = '500%';
           styles['windowBorderRadius'] = '0';
@@ -309,8 +317,6 @@
      }
 
      function handleScrollBlueSection() {
-          console.log('handleScrollBlueSection');
-
           const offsets = aspectCards.map(card => getCardOffset(card));
 
           offsets.map((offset, i) => {
@@ -321,15 +327,42 @@
                }
           });
      }
+
+     function handleTouchStart(e: TouchEvent) {
+          if (e.touches.length > 0) {
+               lastScrollY = e.touches[0].clientY;
+          }
+     }
+
+     function handleTouchMove(e: TouchEvent) {
+          if (e.touches.length > 0) {
+               const currentY = e.touches[0].clientY;
+               const deltaY = lastScrollY - currentY;
+               lastScrollY = currentY;
+               
+               // Update windowY based on touch movement
+               windowY += deltaY;
+               scrollY.set(windowY);
+               
+               handleUnifiedScroll(e);
+          }
+     }
+
+     function handleTouchEnd(e: TouchEvent) {
+          handleUnifiedScroll(e);
+     }
 </script>
 
 <svelte:window 
+     bind:scrollY={$scrollY}
      on:scroll={handleUnifiedScroll}
-     bind:scrollY={windowY}
      on:wheel={handleUnifiedScroll}
-     on:touchstart={handleTouchStart}
-     on:touchmove={handleUnifiedScroll}
 />
+
+<!-- on:wheel={handleUnifiedScroll}
+     on:touchstart={handleTouchStart}
+     on:touchmove={handleTouchMove}
+     on:touchend={handleTouchEnd} -->
 
 <div class="menu-link">
      <a href="/menu">Skip to menu</a>
@@ -395,7 +428,7 @@
                {/if}
                <div class="horizontal-content">
                     <div class="boxes">
-                         <div class="box">
+                         <!-- <div class="box">
                               <div class="first-content">
                                    {#each plantsFirstBox as plant, i}
                                         <div class="word-container"
@@ -419,8 +452,8 @@
                                         </div>
                                    {/each}
                               </div>
-                         </div>
-                         <div class="box">
+                         </div> -->
+                         <!-- <div class="box">
                               <div class="second-bg">
                                    <img src={lavender} alt="Lavender" />
                                    <img src={leaf} alt="Leaf" />
@@ -434,10 +467,10 @@
                                    sourced with care and served with purpose.<br>
                                    Always vegetarian.
                               </p>
-                         </div>
-                         <div class="box">
+                         </div> -->
+                         <!-- <div class="box">
                               <div class="window"></div>
-                         </div>
+                         </div> -->
                     </div>
                     {#if showHorizontal}
                          <div class="navigator">
