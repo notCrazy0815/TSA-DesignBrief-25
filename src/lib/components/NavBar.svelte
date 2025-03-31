@@ -51,7 +51,7 @@
             width: 100%;
 
             .heading-title {
-                font-size: 5rem;
+                font-size: clamp(2rem, 10vw, 6rem);
                 color: v.$tertiary-dark;
             }
         }

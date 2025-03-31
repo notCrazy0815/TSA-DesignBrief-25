@@ -53,6 +53,8 @@
           'itemsScale': '0'
      };
 
+     $: cssVarStyles = Object.entries(styles).map(([key, value]) => `--${key}:${value}`).join(';');
+
      let plantsFirstBox = [
           { plant: branch11d, word: 'THERE', plantOpacity: '0', plantTransform: 'translateY(50px)' },
           { plant: branch1d, word: 'IS', plantOpacity: '0', plantTransform: 'translateY(50px)' },
@@ -64,6 +66,39 @@
           { plant: branch7d, word: 'IT', plantOpacity: '0', plantTransform: 'translateY(50px)' }
      ];
 
+     let fourAspects = [
+          { 
+               title: 'Transparency',
+               description: "No shortcuts. No artificial substitutes. No pretending. Just honest ingredients, prepared with care, for food that tastes as good as it should. Because real food doesn't need to be anything else. On our menu page, you have the ability to explore every dish, see exactly what's inside, and learn where each ingredient comes from.",
+               opacity: '1',
+               transform: 'translateY(30rem) rotate(1.2deg);'
+          },
+          { 
+               title: 'Fresh ingredients',
+               description: "Freshness isn't a luxury; it's our standard. Every ingredient we use is fresh, never highly processed, because real food should nourish you. That's also why our menu changes with the seasons—when an ingredient isn't at its best, we won't serve it. Eating fresh just feels better, and at Verdantia, that's exactly what you get.",
+               opacity: '1',
+               transform: 'translateY(22.5rem) rotate(-2deg);'
+          },
+          { 
+               title: 'Vegetarian',
+               description: "We believe vegetarian and vegan food should be exciting, satisfying, and accessible to everyone. No compromises, no bland salads—just bold flavors and hearty dishes that happen to be meat-free. We're here to prove that going vegetarian doesn't mean giving anything up. Even meat lovers will find something to love.",
+               opacity: '1',
+               transform: 'translateY(15rem) rotate(2deg);'
+          },
+          { 
+               title: 'Local ingredients',
+               description: "Most of our ingredients come from U.S. farmers, supporting both sustainability and the local economy. Knowing where your food comes from isn't just reassuring—it's the way it should be. That's why we value transparency. On our menu page, you can explore every dish, see exactly what's inside, and learn where each ingredient comes from. We have nothing to hide—just real food, grown close to home.",
+               opacity: '1',
+               transform: 'translateY(7.5rem) rotate(-2deg);'
+          }
+     ];
+
+     let aspectCard1 = null;
+     let aspectCard2 = null;
+     let aspectCard3 = null;
+     let aspectCard4 = null;
+     let aspectCards: any[] = [aspectCard1, aspectCard2, aspectCard3, aspectCard4];
+
      let centerTitle: HTMLHeadingElement;
      let navTitle: HTMLHeadingElement;
 
@@ -73,6 +108,11 @@
      let showHorizontal = true;
      let showWindow = true; // for testing "false", should be true
      let windowY = 0;
+
+     let allowScroll = true;
+     let visibleSection = 0;
+     let lastScrollY = 0;
+     let ticking = false;
 
      onMount(() => {
           window.scrollTo(0, 0);
@@ -104,52 +144,71 @@
           styles['y5'] = `${yFactor * 5}rem`;
      }
 
-     function handleScroll(e: Event) {
+     function handleUnifiedScroll(e: Event | WheelEvent | TouchEvent) {
+          // Handle blue section scroll effects
           if (!showWindow) {
                handleScrollBlueSection();
                return;
           }
 
-          if (!showHero) return;
+          // Handle hero section scroll effects
+          if (!ticking) {
+               requestAnimationFrame(() => {
+                    if (!showHero) return;
 
-          const { innerHeight } = window;
-          
-          let fadeStart = 0.1 * innerHeight;
-          let fadeEnd = 0.4 * innerHeight;
+                    const { innerHeight } = window;
+                    
+                    let fadeStart = 0.1 * innerHeight;
+                    let fadeEnd = 0.4 * innerHeight;
 
-          styles['titleY'] = `${Math.max(0, windowY * 0.65)}px`;
-          
-          let fadeFactor = Math.max(0, Math.min(1, (windowY - fadeStart) / (fadeEnd - fadeStart)));
+                    styles['titleY'] = `${Math.max(0, windowY * 0.65)}px`;
+                    
+                    let fadeFactor = Math.max(0, Math.min(1, (windowY - fadeStart) / (fadeEnd - fadeStart)));
 
-          styles['opacity'] = `${1 - fadeFactor}`;
-          let scrollDownHintOpacity = 1 - fadeFactor;
-          if (scrollDownHintOpacity < 1) scrollDownHintOpacity = 0;
-          styles['scrollDownHintOpacity'] = `${scrollDownHintOpacity}`;
+                    styles['opacity'] = `${1 - fadeFactor}`;
+                    let scrollDownHintOpacity = 1 - fadeFactor;
+                    if (scrollDownHintOpacity < 1) scrollDownHintOpacity = 0;
+                    styles['scrollDownHintOpacity'] = `${scrollDownHintOpacity}`;
 
-          if (centerTitle.getBoundingClientRect().top >= navTitle.getBoundingClientRect().top) {
-               styles['navOpacity'] = '1';
-               styles['titleOpacity'] = '0';
-          } else {
-               styles['titleOpacity'] = '1';
-               styles['navOpacity'] = '0';
+                    if (centerTitle.getBoundingClientRect().top >= navTitle.getBoundingClientRect().top) {
+                         styles['navOpacity'] = '1';
+                         styles['titleOpacity'] = '0';
+                    } else {
+                         styles['titleOpacity'] = '1';
+                         styles['navOpacity'] = '0';
+                    }
+
+                    if (navTitle.getBoundingClientRect().top <= 0) {
+                         showHero = false;
+                    }
+
+                    ticking = false;
+               });
+               ticking = true;
           }
 
-          if (navTitle.getBoundingClientRect().top <= 0) {
-               showHero = false;
-          }
-     }
-
-     let allowScroll = true;
-     let visibleSection = 0;
-     function handleMouseWheel(e: WheelEvent) {
+          // Handle horizontal section scrolling
           if (showHero) return;
           if (!allowScroll) return;
-          if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+
+          let deltaY = 0;
+          
+          // Determine the scroll delta based on event type
+          if (e instanceof WheelEvent) {
+               if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+               deltaY = e.deltaY;
+          } else if (e instanceof TouchEvent) {
+               if (e.touches.length > 0) {
+                    const currentY = e.touches[0].clientY;
+                    deltaY = lastScrollY - currentY;
+                    lastScrollY = currentY;
+               }
+          }
 
           let innerWidth = window.innerWidth;
           let translateBefore: number = parseInt(styles['translateHorizontalScroll'].split('px')[0]);
 
-          if (e.deltaY > 0) {
+          if (deltaY > 0) {
                if (visibleSection === 3) {
                     zoomInWindow();
                     return;
@@ -172,7 +231,7 @@
                firstBoxScrolled = false;
           }
           
-          if (visibleSection === 1 && e.deltaY > 0) {               
+          if (visibleSection === 1 && deltaY > 0) {               
                setTimeout(() => {
                     for (let i = 0; i < plantsFirstBox.length; i++) {
                          setTimeout(() => {
@@ -185,14 +244,14 @@
                setTimeout(() => {
                     firstBoxScrolled = true;
                }, 800);
-          } else if (visibleSection === 2 && e.deltaY > 0) {
+          } else if (visibleSection === 2 && deltaY > 0) {
                for (let i = 0; i < plantsFirstBox.length; i++) {
                     setTimeout(() => {
                          plantsFirstBox[i].plantOpacity = '0';
                          plantsFirstBox[i].plantTransform = 'translateY(50px)';
                     }, i * (50 - i));
                }
-          } else if (visibleSection === 1 && e.deltaY < 0) {
+          } else if (visibleSection === 1 && deltaY < 0) {
                for (let i = plantsFirstBox.length; i >= 0; i--) {
                     setTimeout(() => {
                          plantsFirstBox[i].plantOpacity = '1';
@@ -222,6 +281,12 @@
           }, 1100);
      }
 
+     function handleTouchStart(e: TouchEvent) {
+          if (e.touches.length > 0) {
+               lastScrollY = e.touches[0].clientY;
+          }
+     }
+
      function zoomInWindow() {
           styles['windowHeight'] = '500%';
           styles['windowBorderRadius'] = '0';
@@ -236,39 +301,6 @@
           }, 1000);
      }
 
-     let fourAspects = [
-          { 
-               title: 'Transparency',
-               description: 'No shortcuts. No artificial substitutes. No pretending. Just honest ingredients, prepared with care, for food that tastes as good as it should. Because real food doesn’t need to be anything else. On our menu page, you have the ability to explore every dish, see exactly what’s inside, and learn where each ingredient comes from.',
-               opacity: '1',
-               transform: 'translateY(30rem) rotate(1.2deg);'
-          },
-          { 
-               title: 'Fresh ingredients',
-               description: 'Freshness isn’t a luxury; it’s our standard. Every ingredient we use is fresh, never highly processed, because real food should nourish you. That’s also why our menu changes with the seasons—when an ingredient isn’t at its best, we won’t serve it. Eating fresh just feels better, and at Verdantia, that’s exactly what you get.',
-               opacity: '1',
-               transform: 'translateY(22.5rem) rotate(-2deg);'
-          },
-          { 
-               title: 'Vegetarian',
-               description: 'We believe vegetarian and vegan food should be exciting, satisfying, and accessible to everyone. No compromises, no bland salads—just bold flavors and hearty dishes that happen to be meat-free. We’re here to prove that going vegetarian doesn’t mean giving anything up. Even meat lovers will find something to love.',
-               opacity: '1',
-               transform: 'translateY(15rem) rotate(2deg);'
-          },
-          { 
-               title: 'Local ingredients',
-               description: 'Most of our ingredients come from U.S. farmers, supporting both sustainability and the local economy. Knowing where your food comes from isn’t just reassuring—it’s the way it should be. That’s why we value transparency. On our menu page, you can explore every dish, see exactly what’s inside, and learn where each ingredient comes from. We have nothing to hide—just real food, grown close to home.',
-               opacity: '1',
-               transform: 'translateY(7.5rem) rotate(-2deg);'
-          }
-     ];
-
-     let aspectCard1 = null;
-     let aspectCard2 = null;
-     let aspectCard3 = null;
-     let aspectCard4 = null;
-     let aspectCards: any[] = [aspectCard1, aspectCard2, aspectCard3, aspectCard4];
-
      function getCardOffset(card: HTMLElement): number {
           const rect = card.getBoundingClientRect();
           const cardMid = rect.top + rect.height / 2;
@@ -277,6 +309,8 @@
      }
 
      function handleScrollBlueSection() {
+          console.log('handleScrollBlueSection');
+
           const offsets = aspectCards.map(card => getCardOffset(card));
 
           offsets.map((offset, i) => {
@@ -287,11 +321,15 @@
                }
           });
      }
-
-     $: cssVarStyles = Object.entries(styles).map(([key, value]) => `--${key}:${value}`).join(';');
 </script>
 
-<svelte:window on:scroll={handleScroll} bind:scrollY={windowY} on:wheel={handleMouseWheel} />
+<svelte:window 
+     on:scroll={handleUnifiedScroll}
+     bind:scrollY={windowY}
+     on:wheel={handleUnifiedScroll}
+     on:touchstart={handleTouchStart}
+     on:touchmove={handleUnifiedScroll}
+/>
 
 <div class="menu-link">
      <a href="/menu">Skip to menu</a>
@@ -545,7 +583,8 @@
                     position: absolute;
                     width: 100%;
                     height: 100%;
-                    z-index: 100;
+
+                    opacity: 0.5;
 
                     .branch {
                          position: absolute;
@@ -602,7 +641,7 @@
                }
 
                h1 {
-                    font-size: 5rem;
+                    font-size: clamp(2rem, 10vw, 6rem);
                     font-weight: bold;
                     cursor: default;
                     position: absolute;
@@ -718,7 +757,7 @@
                     z-index: 102;
 
                     h1 {
-                         font-size: 5rem;
+                         font-size: clamp(2rem, 10vw, 6rem);
                          font-weight: bold;
                          cursor: default;
                          color: v.$tertiary-dark;
