@@ -129,6 +129,7 @@
                 display: grid;
                 place-items: center;
                 height: 200px;
+                border-top: 1px solid rgba(0, 0, 0, 0.1);
 
                 .menu-links {
                     display: flex;
