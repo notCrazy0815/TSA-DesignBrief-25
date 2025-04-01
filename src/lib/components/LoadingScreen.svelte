@@ -1,21 +1,34 @@
 <script lang="ts">
     import flower from "$lib/assets/icons/flower.png";
-    import { shouldAnimate } from "$lib/stores/navStore";
+    import { shouldAnimate, isFirstLoad } from "$lib/stores/navStore";
+    import { page } from "$app/stores";
     export let isLoading: boolean = true;
 
-    setTimeout(() => {
+    if ($isFirstLoad && $page.url.pathname === "/") {
         isLoading = false;
-    }, 2000);
+        setTimeout(() => {
+            isFirstLoad.set(false);
+        }, 500);
+    } else {
+        setTimeout(() => {
+            isLoading = false;
+            if ($isFirstLoad) {
+                isFirstLoad.set(false);
+            }
+        }, 2000);
+    }
 </script>
 
-<div class="loading-screen" class:active={isLoading} class:unactive={!isLoading}>
-    {#if isLoading}
-        <div class="loading-screen-content" class:animate={$shouldAnimate}>
-            <h1>Verdantia</h1>
-            <img src={flower} alt="flower" />
-        </div>
-    {/if}
-</div>
+{#if !($isFirstLoad && $page.url.pathname === "/")}
+    <div class="loading-screen" class:active={isLoading} class:unactive={!isLoading} class:first-load={$isFirstLoad}>
+        {#if isLoading}
+            <div class="loading-screen-content" class:animate={$shouldAnimate}>
+                <h1>Verdantia</h1>
+                <img src={flower} alt="flower" />
+            </div>
+        {/if}
+    </div>
+{/if}
 
 <style lang="scss">
     @use "../styles/variables" as v;
@@ -27,16 +40,23 @@
         z-index: 10001;
         width: 100vw;
         transition: height 1s cubic-bezier(0.16, 1, 0.3, 1);
+        height: 0;
 
         top: 0;
         left: 0;
 
         &.active {
             height: 100vh;
+            opacity: 1;
         }
 
         &.unactive {
             height: 0;
+            opacity: 1;
+        }
+
+        &.first-load {
+            background-color: v.$primary;
         }
 
         .loading-screen-content {
