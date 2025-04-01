@@ -1,39 +1,39 @@
 <script lang="ts">
-    export let active: "home" | "menu" | "news" = "home";
+    let isMenuOpen = false;
+
+    function toggleMenu() {
+        isMenuOpen = !isMenuOpen;
+    }
 </script>
 
 <div class="navbar">
-    <div class="heading">
-        <h1 class="heading-title">
-             VERDANTIA
-        </h1>
-   </div>
-   <div class="links">
-        <div class="link">
-            <a href="/">Home</a>
-            {#if active === "home"}
-                <div class="active-icon active"></div>
-            {:else}
-                <div class="active-icon"></div>
-            {/if}
+    <div class="content">
+        <div class="content-box" class:expanded={isMenuOpen}></div>
+        {#if !isMenuOpen}
+            <button class="nav-btn" on:click={toggleMenu} on:keydown={(e) => e.key === 'Enter' && toggleMenu()}>
+                <p class="nav-text">MENU</p>
+            </button>
+        {:else}
+            <button class="nav-btn close-btn" on:click={toggleMenu} on:keydown={(e) => e.key === 'Enter' && toggleMenu()}>
+                <p class="nav-text">Close</p>
+            </button>
+        {/if}
+        <div class="heading">
+            <a href="/">VERDANTIA</a>
         </div>
-        <div class="link">
-            <a href="/menu">Menu</a>
-            {#if active === "menu"}
-                <div class="active-icon active"></div>
-            {:else}
-                <div class="active-icon"></div>
-            {/if}
+        <div class="cart-btn" style:opacity={isMenuOpen ? 0 : 1}>
+            <p class="nav-text">BAG</p>
         </div>
-        <div class="link">
-            <a href="/news">News</a>
-            {#if active === "news"}
-                <div class="active-icon active"></div>
-            {:else}
-                <div class="active-icon"></div>
-            {/if}
-        </div>
-   </div>
+        {#if isMenuOpen}
+            <div class="menu-content">
+                <div class="menu-links">
+                    <a href="/" style="animation-delay: 0.1s;">Approach</a>
+                    <a href="/menu" style="animation-delay: 0.3s;">Our seasonal menu</a>
+                    <a href="/news" style="animation-delay: 0.5s;">News</a>
+                </div>
+            </div>
+        {/if}
+    </div>
 </div>
 
 <style lang="scss">
@@ -43,49 +43,111 @@
     .navbar {
         width: 100%;
         display: flex;
-        flex-direction: column;
-        
-        .heading {
-            display: flex;
-            justify-content: center;
-            width: 100%;
+        justify-content: center;
+        padding: 2rem 0;
 
-            .heading-title {
-                font-size: clamp(2rem, 10vw, 6rem);
-                color: v.$tertiary-dark;
+        .content {
+            width: clamp(100px, 90%, 500px);
+            padding: 0.8rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 1000;
+
+            .nav-btn {
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 0;   
             }
-        }
 
-        .links {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            width: 100%;
+            .nav-text {
+                font-size: clamp(0.8rem, 1.6vh, 1rem);
+                font-family: 'Inter 24pt Regular';
+                color: v.$font-color-light;
+                cursor: pointer;
+                user-select: none;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
 
-            .link {
-                text-transform: uppercase;
-                display: flex;
-                gap: 1px;
-                align-items: center;
-
-                .active-icon {
-                    height: 10px;
-                    width: 10px;
-                    border-radius: 50%;
-                    background-color: transparent;
-                    animation: active-icon-start 0.5s;
+                &::selection {
+                    background-color: v.$background-color-dark;
+                    color: v.$font-color-light;
                 }
+            }
 
-                .active {
-                    background-color: v.$primary;
+            .heading {
+                a {
+                    font-size: clamp(1.1rem, 3vh, 2.2rem);
+                    font-family: 'DynaPuff Regular';
+                    color: v.$font-color-light;
+                    cursor: pointer;
                 }
+            }
 
-                @keyframes active-icon-start {
-                    0% {
-                        transform: scale(0);
+            .content-box {
+                width: 100%;
+                height: 100%;
+                background-color: v.$background-color-dark;
+                position: absolute;
+                top: 0;
+                left: 0;
+                border-radius: 20px;
+                z-index: -1;
+                transition: transform .3s cubic-bezier(0.16, 1, 0.3, 1),
+                            height 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+                transform-origin: center;
+
+                &.expanded {
+                    height: 300px;
+                    border-radius: 20px;
+                }
+            }
+
+            &:hover {
+                .content-box {
+                    transform: scale(1.05);
+                }
+            }
+
+            .menu-content {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                padding: 2rem;
+                z-index: 1;
+
+                .menu-links {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1.5rem;
+                    justify-content: center;
+                    align-items: center;
+                    
+                    a {
+                        color: v.$font-color-light;
+                        text-decoration: none;
+                        font-size: clamp(1.2rem, 2.2vh, 1.6rem);
+                        font-family: 'Inter 24pt Regular';
+                        opacity: 0;
+                        transition: opacity .3s ease;
+                        animation: fadeIn 0.5s ease forwards;
+
+                        &:hover {
+                            opacity: 0.8 !important;
+                        }
                     }
-                    100% {
-                        transform: scale(1);
+
+                    @keyframes fadeIn {
+                        from {
+                            opacity: 0;
+                        }
+                        to {
+                            opacity: 1;
+                        }
                     }
                 }
             }
