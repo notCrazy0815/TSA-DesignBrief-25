@@ -1,29 +1,46 @@
 <script lang="ts">
-     import Footer from "$lib/components/Footer.svelte";
+     // import Footer from "$lib/components/Footer.svelte";
      import NavBar from "$lib/components/NavBar.svelte";
+     import VerticalPlant from "$lib/components/VerticalPlant.svelte";
+
+     type PlantNumber = 1 | 2 | 5 | 6 | 7 | 8 | 11;
 </script>
 
 <NavBar />
 
 <div class="content">
      <section class="hero-section">
-          <h1>Wir machen lecker essen</h1>
+          <div class="plant-container">
+               {#each [1, 5, 8, 2, 7, 11, 1, 6] as plantNumber, i}
+                    <VerticalPlant plantNumber={plantNumber as PlantNumber} animationDelay={i * 0.1} />
+               {/each}
+          </div>
      </section>
 </div>
 
-<Footer />
+<!-- <Footer /> -->
 
 <style lang="scss">
      .hero-section {
-          height: 65vh;
+          min-height: 60vh;
           display: flex;
           justify-content: center;
           align-items: center;
+          animation: moveIn 1.2s ease-in-out forwards;
 
-          h1 {
-               font-size: 4rem;
-               font-family: 'DynaPuff Regular';
-               text-align: center;
+          .plant-container {
+               display: flex;
+               justify-content: center;
+               align-items: center;
+          }
+     }
+
+     @keyframes moveIn {
+          from {
+               translate: 100% 0;
+          }
+          to {
+               translate: 0 0;
           }
      }
 </style>

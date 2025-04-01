@@ -3,6 +3,7 @@
     import { shouldAnimate, isFirstLoad } from "$lib/stores/navStore";
     import { page } from "$app/stores";
     export let isLoading: boolean = true;
+    export let plantNumber: number = 1;
 
     if ($isFirstLoad && $page.url.pathname === "/") {
         isLoading = false;
@@ -83,6 +84,11 @@
                 animation: fadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards,
                     rotate 0.7s cubic-bezier(.3,.62,.18,1) forwards;
                 animation-delay: 0.4s;
+            }
+
+            .plant-image {
+                width: clamp(150px, 30vw, 300px);
+                animation-delay: 0.6s;
             }
 
             &:not(.animate) {
