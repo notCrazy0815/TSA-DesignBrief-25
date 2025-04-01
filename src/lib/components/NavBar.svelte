@@ -65,7 +65,7 @@
             .nav-text {
                 font-size: clamp(0.8rem, 1.6vh, 1rem);
                 font-family: 'Inter 24pt Regular';
-                color: v.$font-color-light;
+                color: v.$font-color-dark;
                 cursor: pointer;
                 user-select: none;
                 -webkit-user-select: none;
@@ -82,7 +82,7 @@
                 a {
                     font-size: clamp(1.1rem, 3vh, 2.2rem);
                     font-family: 'DynaPuff Regular';
-                    color: v.$font-color-light;
+                    color: v.$tertiary-dark;
                     cursor: pointer;
                 }
             }
@@ -90,15 +90,17 @@
             .content-box {
                 width: 100%;
                 height: 100%;
-                background-color: v.$background-color-dark;
+                background-color: #fff;
                 position: absolute;
                 top: 0;
                 left: 0;
                 border-radius: 20px;
                 z-index: -1;
                 transition: transform .3s cubic-bezier(0.16, 1, 0.3, 1),
-                            height 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+                            height 1.2s cubic-bezier(0.16, 1, 0.3, 1),
+                            box-shadow .3s cubic-bezier(0.16, 1, 0.3, 1);
                 transform-origin: center;
+                box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
 
                 &.expanded {
                     height: 300px;
@@ -109,6 +111,7 @@
             &:hover {
                 .content-box {
                     transform: scale(1.05);
+                    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
                 }
             }
 
@@ -128,7 +131,7 @@
                     align-items: center;
                     
                     a {
-                        color: v.$font-color-light;
+                        color: v.$font-color-dark;
                         text-decoration: none;
                         font-size: clamp(1.2rem, 2.2vh, 1.6rem);
                         font-family: 'Inter 24pt Regular';
