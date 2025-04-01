@@ -1,4 +1,8 @@
 <script lang="ts">
+    import orange from "$lib/assets/icons/orange.png"
+;
+    type ActivePage = "approach" | "menu" | "news";
+    export let active: ActivePage = "approach";
     let isMenuOpen = false;
 
     function toggleMenu() {
@@ -15,7 +19,7 @@
             </button>
         {:else}
             <button class="nav-btn close-btn" on:click={toggleMenu} on:keydown={(e) => e.key === 'Enter' && toggleMenu()}>
-                <p class="nav-text">Close</p>
+                <p class="nav-text">CLOSE</p>
             </button>
         {/if}
         <div class="heading">
@@ -27,9 +31,9 @@
         {#if isMenuOpen}
             <div class="menu-content">
                 <div class="menu-links">
-                    <a href="/" style="animation-delay: 0.1s;">Approach</a>
-                    <a href="/menu" style="animation-delay: 0.3s;">Our seasonal menu</a>
-                    <a href="/news" style="animation-delay: 0.5s;">News</a>
+                    <a href="/" class:active={active === "approach"} style="animation-delay: 0.1s; --orange-bg: url('{orange}')">APPROACH</a>
+                    <a href="/menu" class:active={active === "menu"} style="animation-delay: 0.3s; --orange-bg: url('{orange}')">OUR SEASONAL MENU</a>
+                    <a href="/news" class:active={active === "news"} style="animation-delay: 0.5s; --orange-bg: url('{orange}')">NEWS</a>
                 </div>
             </div>
         {/if}
@@ -122,25 +126,46 @@
                 width: 100%;
                 padding: 2rem;
                 z-index: 1;
+                display: grid;
+                place-items: center;
+                height: 200px;
 
                 .menu-links {
                     display: flex;
                     flex-direction: column;
-                    gap: 1.5rem;
+                    gap: 1rem;
                     justify-content: center;
                     align-items: center;
+                    width: 100%;
                     
                     a {
                         color: v.$font-color-dark;
                         text-decoration: none;
-                        font-size: clamp(1.2rem, 2.2vh, 1.6rem);
+                        font-size: clamp(1rem, 2vh, 1.4rem);
                         font-family: 'Inter 24pt Regular';
                         opacity: 0;
                         transition: opacity .3s ease;
                         animation: fadeIn 0.5s ease forwards;
+                        position: relative;
 
                         &:hover {
                             opacity: 0.8 !important;
+                        }
+
+                        &.active {
+                            &::before {
+                                content: '';
+                                position: absolute;
+                                top: 50%;
+                                left: 100%;
+                                transform: translateY(-50%) translateX(5px);
+                                width: 0.5em;
+                                height: 0.5em;
+                                background-image: var(--orange-bg);
+                                background-size: contain;
+                                background-repeat: no-repeat;
+                                background-position: center;
+                            }
                         }
                     }
 
