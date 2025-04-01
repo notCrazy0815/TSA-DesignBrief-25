@@ -1,14 +1,63 @@
 <script lang="ts">
-    import orange from "$lib/assets/icons/orange.png"
-;
+    import orange from "$lib/assets/icons/orange.png";
+    import LoadingScreen from "./LoadingScreen.svelte";
+    import { onMount } from "svelte";
+    import { goto } from "$app/navigation";
+    import { shouldAnimate } from "$lib/stores/navStore";
+    
     type ActivePage = "approach" | "menu" | "news";
     export let active: ActivePage = "approach";
     let isMenuOpen = false;
+    let isLoading = true;
+
+    onMount(() => {
+        setTimeout(() => {
+            isLoading = false;
+        }, 1000);
+    });
+
+    let links = [
+        {
+            text: "APPROACH",
+            href: "/",
+            active: active === "approach"
+        },
+        {
+            text: "OUR SEASONAL MENU",
+            href: "/menu",
+            active: active === "menu"
+        },
+        {
+            text: "NEWS",
+            href: "/news",
+            active: active === "news"
+        }
+    ];
 
     function toggleMenu() {
         isMenuOpen = !isMenuOpen;
     }
+
+    function navigateAndAnimate(href: string) {
+        if (window.location.pathname === href) {
+            return;
+        }
+
+        isMenuOpen = false;
+        
+        setTimeout(() => {
+            shouldAnimate.set(true);
+            isLoading = true;
+        }, 400);
+
+        setTimeout(() => {
+            shouldAnimate.set(false);
+            goto(href);
+        }, 1350);
+    }
 </script>
+
+<LoadingScreen {isLoading} />
 
 <div class="navbar">
     <div class="content">
@@ -23,7 +72,7 @@
             </button>
         {/if}
         <div class="heading">
-            <a href="/">VERDANTIA</a>
+            <a href="/" on:click|preventDefault={() => navigateAndAnimate("/")}>VERDANTIA</a>
         </div>
         <div class="cart-btn" style:opacity={isMenuOpen ? 0 : 1}>
             <p class="nav-text">BAG</p>
@@ -31,9 +80,9 @@
         {#if isMenuOpen}
             <div class="menu-content">
                 <div class="menu-links">
-                    <a href="/" class:active={active === "approach"} style="animation-delay: 0.1s; --orange-bg: url('{orange}')">APPROACH</a>
-                    <a href="/menu" class:active={active === "menu"} style="animation-delay: 0.3s; --orange-bg: url('{orange}')">OUR SEASONAL MENU</a>
-                    <a href="/news" class:active={active === "news"} style="animation-delay: 0.5s; --orange-bg: url('{orange}')">NEWS</a>
+                    {#each links as link, i}
+                        <a href={link.href} on:click|preventDefault={() => navigateAndAnimate(link.href)} class:active={link.active} style="animation-delay: {i * 0.2}s; --orange-bg: url('{orange}')">{link.text}</a>
+                    {/each}
                 </div>
             </div>
         {/if}
@@ -49,15 +98,30 @@
         display: flex;
         justify-content: center;
         padding: 2rem 0;
+        position: relative;
+        z-index: 100;
 
         .content {
-            width: clamp(100px, 90%, 500px);
+            width: clamp(100px, 90%, 550px);
             padding: 0.8rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: relative;
             z-index: 1000;
+            transform: translateY(-200px);
+            opacity: 0;
+            animation: slideDown 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+            @keyframes slideDown {
+                from {
+                    transform: translateY(-200px);
+                }
+                to {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+            }
 
             .nav-btn {
                 background: none;
@@ -129,6 +193,7 @@
                 display: grid;
                 place-items: center;
                 height: 200px;
+                border-top: 1px solid rgba(0, 0, 0, 0.1);
 
                 .menu-links {
                     display: flex;
@@ -149,7 +214,7 @@
                         position: relative;
 
                         &:hover {
-                            opacity: 0.8 !important;
+                            opacity: 0;
                         }
 
                         &.active {
