@@ -56,7 +56,7 @@
         }
 
         &.first-load {
-            background-color: v.$primary;
+            opacity: 0;
         }
 
         .loading-screen-content {
