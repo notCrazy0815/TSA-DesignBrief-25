@@ -74,7 +74,7 @@
             transform: translateY(0);
         }
         to {
-            transform: translateY(-200px);
+            transform: translateY(-190px);
         }
     }
     @keyframes fadeIn {

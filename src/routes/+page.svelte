@@ -3,8 +3,18 @@
      import NavBar from "$lib/components/NavBar.svelte";
      // import VerticalPlant from "$lib/components/VerticalPlant.svelte";
      import HeroTitle from "$lib/components/HeroTitle.svelte";
+     import HeroPlants from "$lib/components/HeroPlants.svelte";
+     import { onMount } from "svelte";
 
      // type PlantNumber = 1 | 2 | 5 | 6 | 7 | 8 | 11;
+
+     onMount(() => {
+          // should only be done on first load
+          document.body.style.overflow = "hidden";
+          setTimeout(() => {
+               document.body.style.overflow = "auto";
+          }, 3000);
+     });
 </script>
 
 <NavBar />
@@ -28,6 +38,9 @@
           </div> -->
           <HeroTitle />
      </section>
+     <div class="hero-plants-container">
+          <HeroPlants />
+     </div>
 </div>
 
 <!-- <Footer /> -->
@@ -64,6 +77,19 @@
                     transform: translateX(-10%);
                }
           }
+     }
+
+     .hero-plants-container {
+          display: flex;
+          justify-content: center;
+          align-items: end;
+
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          top: 0;
+          left: 0;
+          z-index: -1;
      }
 
      @keyframes moveIn {
