@@ -3,14 +3,12 @@
     import LoadingScreen from "./LoadingScreen.svelte";
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
-    import { shouldAnimate } from "$lib/stores/navStore";
-    import { firstLoad } from "$lib/stores/navStore";
+    import { shouldAnimate, firstLoad, isLoading } from "$lib/stores/navStore";
     import { page } from "$app/stores";
     
     type ActivePage = "approach" | "menu" | "news";
     export let active: ActivePage = "approach";
     let isMenuOpen = false;
-    let isLoading = false;
     let isFirstLoad = true;
 
     onMount(() => {
@@ -18,10 +16,10 @@
         firstLoad.set(false);
 
         if (!isFirstLoad) {
-            isLoading = true;
+            isLoading.set(true);
 
             setTimeout(() => {
-                isLoading = false;
+                isLoading.set(false);
             }, 1000);
         }
     });
@@ -57,7 +55,7 @@
         
         setTimeout(() => {
             shouldAnimate.set(true);
-            isLoading = true;
+            isLoading.set(true);
         }, 400);
 
         setTimeout(() => {
@@ -67,7 +65,7 @@
     }
 </script>
 
-<LoadingScreen {isLoading} />
+<LoadingScreen isLoading={$isLoading} />
 
 <div class="navbar">
     <div class="content" class:shorter-delay={$page.url.pathname !== "/"}>
