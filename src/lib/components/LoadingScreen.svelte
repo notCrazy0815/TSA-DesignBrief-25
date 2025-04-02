@@ -1,34 +1,17 @@
 <script lang="ts">
     import flower from "$lib/assets/icons/flower.png";
-    import { shouldAnimate, isFirstLoad } from "$lib/stores/navStore";
-    import { page } from "$app/stores";
+    import { shouldAnimate } from "$lib/stores/navStore";
     export let isLoading: boolean = true;
-
-    if ($isFirstLoad && $page.url.pathname === "/") {
-        isLoading = false;
-        setTimeout(() => {
-            isFirstLoad.set(false);
-        }, 500);
-    } else {
-        setTimeout(() => {
-            isLoading = false;
-            if ($isFirstLoad) {
-                isFirstLoad.set(false);
-            }
-        }, 2000);
-    }
 </script>
 
-{#if !($isFirstLoad && $page.url.pathname === "/")}
-    <div class="loading-screen" class:active={isLoading} class:unactive={!isLoading} class:first-load={$isFirstLoad}>
-        {#if isLoading}
-            <div class="loading-screen-content" class:animate={$shouldAnimate}>
-                <h1>Verdantia</h1>
-                <img src={flower} alt="flower" />
-            </div>
-        {/if}
-    </div>
-{/if}
+<div class="loading-screen" class:active={isLoading}>
+    {#if isLoading}
+        <div class="loading-screen-content" class:animate={$shouldAnimate}>
+            <h1>Verdantia</h1>
+            <img src={flower} alt="flower" />
+        </div>
+    {/if}
+</div>
 
 <style lang="scss">
     @use "../styles/variables" as v;
