@@ -110,8 +110,9 @@
             position: relative;
             z-index: 1000;
             transform: translateY(-200px);
-            opacity: 0;
+            opacity: 0; 
             animation: slideDown 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation-delay: 2s;
 
             @keyframes slideDown {
                 from {

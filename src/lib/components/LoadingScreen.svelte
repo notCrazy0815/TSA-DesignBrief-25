@@ -3,7 +3,6 @@
     import { shouldAnimate, isFirstLoad } from "$lib/stores/navStore";
     import { page } from "$app/stores";
     export let isLoading: boolean = true;
-    export let plantNumber: number = 1;
 
     if ($isFirstLoad && $page.url.pathname === "/") {
         isLoading = false;
