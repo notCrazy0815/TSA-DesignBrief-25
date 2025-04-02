@@ -3,13 +3,15 @@
      import HeroTitle from "$lib/components/HeroTitle.svelte";
      import HeroPlants from "$lib/components/HeroPlants.svelte";
      import { onMount } from "svelte";
+     import { page } from "$app/stores";
 
      onMount(() => {
-          // should only be done on first load
-          document.body.style.overflow = "hidden";
-          setTimeout(() => {
-               document.body.style.overflow = "auto";
-          }, 3000);
+          if ($page.url.pathname === "/") {
+               document.body.style.overflow = "hidden";
+               setTimeout(() => {
+                    document.body.style.overflow = "auto";
+               }, 3000);
+          }
      });
 </script>
 
