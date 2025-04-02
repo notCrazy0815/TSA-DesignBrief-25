@@ -125,7 +125,7 @@
             animation-delay: 2s;
 
             &.shorter-delay {
-                animation-delay: 0.6s !important;
+                animation-delay: 0.4s !important;
             }
 
             @keyframes slideDown {
