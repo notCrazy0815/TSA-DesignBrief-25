@@ -1,4 +1,29 @@
-<div class="hero-cta">
+<script lang="ts">
+    import { goto } from "$app/navigation";
+    import { shouldAnimate, isLoading } from "$lib/stores/navStore";
+
+    function navigateAndAnimate(href: string) {
+        if (window.location.pathname === href) {
+            return;
+        }
+
+        setTimeout(() => {
+            shouldAnimate.set(true);
+            isLoading.set(true);
+        }, 400);
+
+        setTimeout(() => {
+            shouldAnimate.set(false);
+            goto(href);
+        }, 1350);
+    }
+</script>
+
+<div class="hero-cta" on:click={() => navigateAndAnimate("/menu")} role="button" tabindex="0" on:keydown={(e) => {
+    if (e.key === "Enter" || e.key === " ") {
+        navigateAndAnimate("/menu");
+    }
+}}>
     <div class="hero-cta-bg"></div>
     <button class="cta-button">Direct to our menu</button>
 </div>
