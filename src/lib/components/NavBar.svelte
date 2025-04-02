@@ -4,16 +4,26 @@
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
     import { shouldAnimate } from "$lib/stores/navStore";
+    import { firstLoad } from "$lib/stores/navStore";
+    import { page } from "$app/stores";
     
     type ActivePage = "approach" | "menu" | "news";
     export let active: ActivePage = "approach";
     let isMenuOpen = false;
-    let isLoading = true;
+    let isLoading = false;
+    let isFirstLoad = true;
 
     onMount(() => {
-        setTimeout(() => {
-            isLoading = false;
-        }, 1000);
+        isFirstLoad = $firstLoad;
+        firstLoad.set(false);
+
+        if (!isFirstLoad) {
+            isLoading = true;
+
+            setTimeout(() => {
+                isLoading = false;
+            }, 1000);
+        }
     });
 
     let links = [
@@ -60,7 +70,7 @@
 <LoadingScreen {isLoading} />
 
 <div class="navbar">
-    <div class="content">
+    <div class="content" class:shorter-delay={$page.url.pathname !== "/"}>
         <div class="content-box" class:expanded={isMenuOpen}></div>
         {#if !isMenuOpen}
             <button class="nav-btn" on:click={toggleMenu} on:keydown={(e) => e.key === 'Enter' && toggleMenu()}>
@@ -110,8 +120,13 @@
             position: relative;
             z-index: 1000;
             transform: translateY(-200px);
-            opacity: 0;
+            opacity: 0; 
             animation: slideDown 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation-delay: 2s;
+
+            &.shorter-delay {
+                animation-delay: 0.6s !important;
+            }
 
             @keyframes slideDown {
                 from {

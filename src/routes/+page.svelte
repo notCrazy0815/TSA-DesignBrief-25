@@ -1,38 +1,53 @@
 <script lang="ts">
-     // import Footer from "$lib/components/Footer.svelte";
      import NavBar from "$lib/components/NavBar.svelte";
-     import VerticalPlant from "$lib/components/VerticalPlant.svelte";
+     import HeroTitle from "$lib/components/HeroTitle.svelte";
+     import HeroPlants from "$lib/components/HeroPlants.svelte";
+     import { onMount } from "svelte";
 
-     type PlantNumber = 1 | 2 | 5 | 6 | 7 | 8 | 11;
+     onMount(() => {
+          // should only be done on first load
+          document.body.style.overflow = "hidden";
+          setTimeout(() => {
+               document.body.style.overflow = "auto";
+          }, 3000);
+     });
 </script>
 
 <NavBar />
 
 <div class="content">
      <section class="hero-section">
-          <div class="plant-container">
-               {#each [1, 5, 8, 2, 7, 11, 1, 6] as plantNumber, i}
-                    <VerticalPlant plantNumber={plantNumber as PlantNumber} animationDelay={i * 0.1} />
-               {/each}
-          </div>
+          <HeroTitle />
      </section>
+     <div class="hero-plants-container">
+          <HeroPlants />
+     </div>
 </div>
 
-<!-- <Footer /> -->
-
 <style lang="scss">
+     @use "../lib/styles/variables" as v;
+     @use "../lib/styles/global" as g;
+
      .hero-section {
-          min-height: 60vh;
+          min-height: 75vh;
           display: flex;
           justify-content: center;
           align-items: center;
-          animation: moveIn 1.2s ease-in-out forwards;
+          flex-direction: column;
+          gap: 1rem;
+     }
 
-          .plant-container {
-               display: flex;
-               justify-content: center;
-               align-items: center;
-          }
+     .hero-plants-container {
+          display: flex;
+          justify-content: center;
+          align-items: end;
+
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          top: 0;
+          left: 0;
+          z-index: -1;
      }
 
      @keyframes moveIn {
