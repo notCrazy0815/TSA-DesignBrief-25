@@ -1,21 +1,6 @@
-<script lang="ts">
-    import { onMount } from 'svelte';
-
-    let buttonElement: HTMLButtonElement;
-    let containerElement: HTMLDivElement;
-
-    onMount(() => {
-        if (buttonElement && containerElement) {
-            const buttonRect = buttonElement.getBoundingClientRect();
-            containerElement.style.width = `${buttonRect.width}px`;
-            containerElement.style.height = `${buttonRect.height}px`;
-        }
-    });
-</script>
-
-<div class="hero-cta" bind:this={containerElement}>
+<div class="hero-cta">
     <div class="hero-cta-bg"></div>
-    <button class="cta-button" bind:this={buttonElement}>Direct to our menu</button>
+    <button class="cta-button">Direct to our menu</button>
 </div>
 
 <style lang="scss">
