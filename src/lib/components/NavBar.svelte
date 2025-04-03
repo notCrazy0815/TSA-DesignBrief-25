@@ -115,7 +115,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: relative;
+            position: fixed;
             z-index: 1000;
             transform: translateY(-200px);
             opacity: 0; 
