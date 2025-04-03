@@ -10,12 +10,12 @@
         setTimeout(() => {
             shouldAnimate.set(true);
             isLoading.set(true);
-        }, 400);
+        }, 0);
 
         setTimeout(() => {
             shouldAnimate.set(false);
             goto(href);
-        }, 1350);
+        }, 950);
     }
 </script>
 

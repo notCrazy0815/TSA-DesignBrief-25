@@ -56,12 +56,12 @@
         setTimeout(() => {
             shouldAnimate.set(true);
             isLoading.set(true);
-        }, 400);
+        }, 200);
 
         setTimeout(() => {
             shouldAnimate.set(false);
             goto(href);
-        }, 1350);
+        }, 1150);
     }
 </script>
 
@@ -178,7 +178,7 @@
                 border-radius: 20px;
                 z-index: -1;
                 transition: transform .3s cubic-bezier(0.16, 1, 0.3, 1),
-                            height 1.2s cubic-bezier(0.16, 1, 0.3, 1),
+                            height 1s cubic-bezier(0.16, 1, 0.3, 1),
                             box-shadow .3s cubic-bezier(0.16, 1, 0.3, 1);
                 transform-origin: center;
                 box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
