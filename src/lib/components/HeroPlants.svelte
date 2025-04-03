@@ -25,18 +25,18 @@
         justify-content: center;
         align-items: end;
         opacity: 0.9;
-        width: clamp(350px, 90%, 1100px);
+        width: clamp(350px, 90%, 950px);
         height: 100%;
 
         .plant-small {
             width: 35%;
-            transform: translateY(clamp(250px, 50vh, 620px));
+            transform: translateY(clamp(250px, 50vh, 400px));
             animation: moveUpSmall 1.2s ease-in-out forwards 2s;
         }
 
         .plant-big {
             width: 50%;
-            transform: translateY(clamp(400px, 70vh, 900px));
+            transform: translateY(clamp(400px, 70vh, 700px));
             animation: moveUpBig 1.2s ease-in-out forwards 2s;
         }
 
