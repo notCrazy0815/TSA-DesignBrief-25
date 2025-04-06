@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 1080 1080" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-23834.9,-563.227)">
+        <g id="Leaf" transform="matrix(1,0,0,1,23834.9,563.227)">
+            <rect x="0" y="0" width="1080" height="1080" style="fill:none;"/>
+            <clipPath id="_clip1">
+                <rect x="0" y="0" width="1080" height="1080"/>
+            </clipPath>
+            <g clip-path="url(#_clip1)">
+                <g transform="matrix(1.53574e-16,-2.24195,2.24498,1.53738e-16,-1034.72,1716.92)">
+                    <g transform="matrix(1.03087,-2.10662e-17,-7.7871e-17,1.03087,181.367,-19.6899)">
+                        <path d="M333.613,466.202C386.012,505.09 428.553,596.256 428.553,699.535C428.553,802.814 386.012,893.979 333.613,932.868C281.214,893.979 238.672,802.814 238.672,699.535C238.672,596.256 281.214,505.09 333.613,466.202Z" style="fill:rgb(5,113,95);"/>
+                    </g>
+                    <g transform="matrix(1.03087,-2.10662e-17,-7.7871e-17,1.03087,181.367,-19.6899)">
+                        <path d="M333.613,466.202L333.613,932.868C281.214,893.979 238.672,802.814 238.672,699.535C238.672,596.256 281.214,505.09 333.613,466.202Z" style="fill:rgb(1,65,51);"/>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
