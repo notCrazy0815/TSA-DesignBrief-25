@@ -121,7 +121,7 @@
         z-index: 100;
 
         .content {
-            width: clamp(100px, 90%, 550px);
+            width: clamp(100px, 90vw, 550px);
             padding: 0.8rem 2rem;
             display: flex;
             justify-content: space-between;

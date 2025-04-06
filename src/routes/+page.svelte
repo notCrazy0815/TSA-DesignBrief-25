@@ -6,6 +6,7 @@
      import { page } from "$app/stores";
      import HeroCta from "$lib/components/HeroCta.svelte";
      import Footer from "$lib/components/Footer.svelte";
+     
      onMount(() => {
           window.scrollTo(0, 0);
           if ($page.url.pathname === "/") {
