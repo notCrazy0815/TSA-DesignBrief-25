@@ -1,46 +1,95 @@
 <script lang="ts">
     import flower from "$lib/assets/icons/flower.png";
-    import { shouldAnimate } from "$lib/stores/navStore";
-    export let isLoading: boolean = true;
+    import { shouldAnimate, isLoading } from "$lib/stores/navStore";
+    import { gsap } from "gsap";
+
+    let titleElement: HTMLElement;
+    let imageElement: HTMLElement;
+    let loadingScreen: HTMLElement;
+
+    $: if ($isLoading && $shouldAnimate && titleElement && imageElement && loadingScreen) {
+        gsap.fromTo(loadingScreen,
+            { height: 0 },
+            {
+                height: "100vh",
+                duration: 0.3,
+                ease: "power1.in"
+            }
+        );
+
+        gsap.fromTo(titleElement, 
+            { opacity: 0 },
+            { 
+                opacity: 1,
+                duration: 0.3,
+                ease: "power2.out",
+                delay: 0.3
+            }
+        );
+
+        gsap.fromTo(imageElement,
+            { 
+                opacity: 0,
+                rotation: 0
+            },
+            {
+                opacity: 1,
+                rotation: 360,
+                duration: 0.7,
+                ease: "power2.out",
+                delay: 0.3
+            }
+        );
+    }
+
+    $: if (!$isLoading && loadingScreen) {        
+        // tl.fromTo(titleElement, { opacity: 1 }, {
+        //     opacity: 0,
+        //     duration: 0.1,
+        //     ease: "back.in"
+        // });
+
+        // tl.fromTo(imageElement, { opacity: 1 }, {
+        //     opacity: 0,
+        //     rotation: 0,
+        //     duration: 0.1,
+        //     ease: "back.in"
+        // }, "-=0.1");
+
+        gsap.to(loadingScreen, {
+            height: 0,
+            duration: 0.3,
+            ease: "power1.out"
+        });
+    }
+
+    $: if ($isLoading && !$shouldAnimate && loadingScreen) {
+        loadingScreen.style.height = "100vh";
+    }
 </script>
 
-<div class="loading-screen" class:active={isLoading}>
-    {#if isLoading}
+<div class="loading-screen" bind:this={loadingScreen}>
+    {#if $isLoading}
         <div class="loading-screen-content" class:animate={$shouldAnimate}>
-            <h1>Verdantia</h1>
-            <img src={flower} alt="flower" />
+            <h1 bind:this={titleElement}>Verdantia</h1>
+            <img src={flower} alt="flower" bind:this={imageElement} />
         </div>
     {/if}
 </div>
 
 <style lang="scss">
     @use "../styles/variables" as v;
-    @use "../styles/global" as g; 
+    @use "../styles/global" as g;
 
     .loading-screen {
         background-color: v.$secondary;
         position: fixed;
         z-index: 10001;
         width: 100vw;
-        transition: height 1s cubic-bezier(0.16, 1, 0.3, 1);
         height: 0;
-
         top: 0;
         left: 0;
-
-        &.active {
-            height: 100vh;
-            opacity: 1;
-        }
-
-        &.unactive {
-            height: 0;
-            opacity: 1;
-        }
-
-        &.first-load {
-            opacity: 0;
-        }
+        overflow: hidden;
 
         .loading-screen-content {
             display: flex;
@@ -56,45 +105,21 @@
                 font-family: 'DynaPuff Regular';
                 color: v.$font-color-light;
                 opacity: 0;
-                animation: fadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-                animation-delay: 0.2s;
             }
 
             img {
                 width: clamp(100px, 20vw, 200px);
                 opacity: 0;
-                animation: fadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards,
-                    rotate 0.7s cubic-bezier(.3,.62,.18,1) forwards;
-                animation-delay: 0.4s;
             }
 
             .plant-image {
                 width: clamp(150px, 30vw, 300px);
-                animation-delay: 0.6s;
             }
 
             &:not(.animate) {
-                h1, img {
+                h1,
+                img {
                     opacity: 1;
-                    animation: none;
-                }
-            }
-
-            @keyframes fadeIn {
-                from {
-                    opacity: 0;
-                }
-                to {
-                    opacity: 1;
-                }
-            }
-
-            @keyframes rotate {
-                from {
-                    transform: rotate(0deg);
-                }
-                to {
-                    transform: rotate(360deg);
                 }
             }
         }
