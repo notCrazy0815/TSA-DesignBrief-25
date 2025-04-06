@@ -18,7 +18,6 @@
             delay: 2.3
         });
 
-        // Animate big plant
         tl.to(bigPlant, {
             y: 0,
             scale: 1,
@@ -32,8 +31,7 @@
             scale: 1,
             opacity: 0.6,
             duration: 1.2,
-            ease: "power2.out",
-            stagger: 0.1
+            ease: "power2.out"
         }, "-=1");
     });
 </script>
@@ -59,31 +57,32 @@
         justify-content: center;
         align-items: end;
         opacity: 0.9;
-        width: clamp(350px, 90%, 950px);
         height: 100%;
-        overflow: hidden;
+        min-height: 300px;
+        position: relative;
+        overflow: visible;
 
         .plant-small {
-            width: 35%;
-            opacity: 0;
+            height: clamp(150px, 50vh, 1000px);
         }
 
         .plant-big {
-            width: 50%;
-            opacity: 0;
+            height: clamp(200px, 75vh, 1200px);
         }
 
         .plant {
-            overflow: hidden;
+            aspect-ratio: 2160 / 3840;
+            position: relative;
 
             img {
                 width: 100%;
                 height: 100%;
                 transform: translateY(5px);
+                object-fit: contain;
             }
 
             &:nth-child(1) {
-                margin-right: -20%;
+                margin-right: -15%;
                 z-index: 1;
             }
 
@@ -92,7 +91,7 @@
             }
 
             &:nth-child(3) {
-                margin-left: -20%;
+                margin-left: -15%;
                 z-index: 1;
             }
         }

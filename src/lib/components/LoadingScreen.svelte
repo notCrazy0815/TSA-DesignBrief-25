@@ -42,20 +42,7 @@
         );
     }
 
-    $: if (!$isLoading && loadingScreen) {        
-        // tl.fromTo(titleElement, { opacity: 1 }, {
-        //     opacity: 0,
-        //     duration: 0.1,
-        //     ease: "back.in"
-        // });
-
-        // tl.fromTo(imageElement, { opacity: 1 }, {
-        //     opacity: 0,
-        //     rotation: 0,
-        //     duration: 0.1,
-        //     ease: "back.in"
-        // }, "-=0.1");
-
+    $: if (!$isLoading && loadingScreen) {
         gsap.to(loadingScreen, {
             height: 0,
             duration: 0.3,

@@ -56,12 +56,11 @@
           z-index: 1;
 
           .hero-plants-wrapper {
-               width: clamp(350px, 90%, 800px);
                height: fit-content;
                position: fixed;
                bottom: 0;
                left: 50%;
-               transform: translateX(-45%);
+               transform: translateX(-50%);
           }
      }
 
