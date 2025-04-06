@@ -10,9 +10,9 @@
         gsap.set(heroCtaElement, { y: "300%" });
         gsap.to(heroCtaElement, {
             y: 0,
-            duration: 1.5,
+            duration: 1.2,
             ease: "power2.out",
-            delay: 2.5
+            delay: 1.3
         });
     });
 
