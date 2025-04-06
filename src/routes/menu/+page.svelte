@@ -3,8 +3,6 @@
   import NavBar from "$lib/components/NavBar.svelte";
   import Footer from "$lib/components/Footer.svelte";
   import { gsap } from "gsap";
-  import { ScrollToPlugin } from "gsap/ScrollToPlugin";
-  gsap.registerPlugin(ScrollToPlugin);
 
   const cards = [
     { id: 1, title: "Appetizers", text: "Kick off your culinary journey with our delightful plant-based appetizers, featuring fresh, innovative bites that tease your taste buds with vibrant flavors and sustainable ingredients." },
@@ -92,7 +90,11 @@
     return activeCardId === null ? '' : activeCardId === cardId ? 'active' : 'fly-out';
   }
   
-  onMount(() => {
+  onMount(async () => {
+    // Dynamically import ScrollToPlugin only on the client
+    const { ScrollToPlugin } = await import("gsap/ScrollToPlugin");
+    gsap.registerPlugin(ScrollToPlugin);
+    
     cardsContainer = document.querySelector('.menu-category-cards') as HTMLElement;
     resetContainerHeight();
     window.addEventListener('resize', resetContainerHeight);
