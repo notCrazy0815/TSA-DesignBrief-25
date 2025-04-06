@@ -34,9 +34,9 @@
      </div>
 </div>
 
-<!-- <div class="footer-wrapper">
+<div class="footer-wrapper">
      <Footer />
-</div> -->
+</div>
 
 <style lang="scss">
      @use "../lib/styles/variables" as v;
@@ -58,6 +58,7 @@
           top: 0;
           left: 0;
           z-index: 1;
+          overflow: hidden;
 
           .hero-plants-wrapper {
                height: fit-content;
