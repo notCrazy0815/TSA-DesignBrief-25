@@ -76,7 +76,7 @@
     }
 </script>
 
-<LoadingScreen isLoading={$isLoading} />
+<LoadingScreen />
 
 <div class="navbar">
     <div class="content" bind:this={contentElement}>
