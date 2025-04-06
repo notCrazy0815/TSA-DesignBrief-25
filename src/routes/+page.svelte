@@ -5,7 +5,7 @@
      import { onMount } from "svelte";
      import { page } from "$app/stores";
      import HeroCta from "$lib/components/HeroCta.svelte";
-
+     import Footer from "$lib/components/Footer.svelte";
      onMount(() => {
           window.scrollTo(0, 0);
           if ($page.url.pathname === "/") {
@@ -15,7 +15,6 @@
                }, 3000);
           }
      });
-
 </script>
 
 <NavBar />
@@ -34,6 +33,10 @@
      </div>
 </div>
 
+<div class="footer-wrapper">
+     <Footer />
+</div>
+
 <style lang="scss">
      @use "../lib/styles/variables" as v;
      @use "../lib/styles/global" as g;
@@ -48,7 +51,7 @@
      }
 
      .hero-plants-container {
-          position: fixed;
+          position: absolute;
           width: 100%;
           height: 100%;
           top: 0;
@@ -57,7 +60,7 @@
 
           .hero-plants-wrapper {
                height: fit-content;
-               position: fixed;
+               position: absolute;
                bottom: 0;
                left: 50%;
                transform: translateX(-50%);
@@ -65,7 +68,7 @@
      }
 
      .hero-cta-container {
-          position: fixed;
+          position: absolute;
           width: 100%;
           height: 100%;
           top: 0;
@@ -84,5 +87,9 @@
           to {
                translate: 0 0;
           }
+     }
+
+     .footer-wrapper {
+          margin-top: 30vh;
      }
 </style>
