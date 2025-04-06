@@ -1,9 +1,11 @@
-<script>
-  import { onMount } from "svelte";
+<script lang="ts">
+  import { onMount, tick } from "svelte";
   import NavBar from "$lib/components/NavBar.svelte";
   import Footer from "$lib/components/Footer.svelte";
+  import { gsap } from "gsap";
+  import { ScrollToPlugin } from "gsap/ScrollToPlugin";
+  gsap.registerPlugin(ScrollToPlugin);
 
-  // Menu cards as a simple array
   const cards = [
     { id: 1, title: "Appetizers", text: "Kick off your culinary journey with our delightful plant-based appetizers, featuring fresh, innovative bites that tease your taste buds with vibrant flavors and sustainable ingredients." },
     { id: 2, title: "Main", text: "Enjoy exquisite vegan and vegetarian main courses crafted with passion and precision. Our mains blend traditional flavors with modern twists, using farm-fresh produce to create memorable plant-based dishes." },
@@ -11,84 +13,89 @@
     { id: 4, title: "Desserts", text: "End your dining experience on a sweet note with our decadent vegan desserts. Classic indulgence meets modern creativity with plant-based ingredients that prove sustainable eating never compromises on taste." }
   ];
   
-  // Basic rotation for cards
-  const cardRotations = [-5, 4, 10, -6];
+  const cardRotations: number[] = [-5, 4, 10, -6];
   
-  // Active state
-  let activeCardId = null;
-  let cardsContainer;
+  let activeCardId: number | null = null;
+  let cardsContainer: HTMLElement | null = null;
   
-  // Open card
-  function openCard(cardId) {
-    activeCardId = activeCardId === cardId ? null : cardId;
-    
-    // Adjust container height when a card is opened
-    if (activeCardId !== null) {
+  const FIXED_MENU_OFFSET = 120;
+  const EXTRA_OFFSET = 60;
+
+  function scrollToActiveCard(): void {
+    const activeCard = document.querySelector('.card.active') as HTMLElement | null;
+    if (activeCard) {
+      const rect = activeCard.getBoundingClientRect();
+      const targetScroll = window.scrollY + rect.top - (FIXED_MENU_OFFSET + EXTRA_OFFSET);
+      gsap.to(window, { duration: 0.5, scrollTo: { y: targetScroll }, ease: "power2.out" });
+    }
+  }
+
+  async function openCard(cardId: number): Promise<void> {
+    if (activeCardId === cardId) {
+      activeCardId = null;
       setTimeout(() => {
-        const activeCardElement = document.querySelector('.card.active');
-        if (activeCardElement && cardsContainer) {
-          const cardHeight = activeCardElement.offsetHeight;
-          cardsContainer.style.height = `${cardHeight + 40}px`;
-          
-          // Scroll to active element
-          const rect = cardsContainer.getBoundingClientRect();
-          const topPos = window.scrollY + rect.top;
-          window.scrollTo({ 
-            top: topPos,
-            behavior: 'smooth' 
-          });
-        }
+        (document.activeElement as HTMLElement | null)?.blur();
       }, 50);
     } else {
-      // Reset container height when no card is opened
+      activeCardId = cardId;
+    }
+    
+    await tick();
+
+    if (activeCardId !== null) {
+      const activeCardElement = document.querySelector('.card.active') as HTMLElement | null;
+      if (activeCardElement && cardsContainer) {
+        gsap.timeline({
+          onComplete: scrollToActiveCard
+        }).to(cardsContainer, {
+          duration: 0.3,
+          height: activeCardElement.offsetHeight + 100,
+          ease: "power2.out"
+        });
+      } else {
+        scrollToActiveCard();
+      }
+    } else {
       resetContainerHeight();
     }
   }
   
-  // Mobile card height adjustment function
-  function calculateMobileCardHeight() {
+  function calculateMobileCardHeight(): number {
     if (window.innerWidth <= 767) {
-      const cardWidth = window.innerWidth * 0.9; // 90vw
-      const cardHeight = cardWidth * (2/3); // 3:2 aspect ratio
+      const cardWidth = window.innerWidth * 0.9;
+      const cardHeight = cardWidth * (2/3);
       return cardHeight;
     }
-    return null;
+    return 0;
   }
 
-  // Reset container height
-  function resetContainerHeight() {
+  function resetContainerHeight(): void {
     if (cardsContainer) {
       if (window.innerWidth < 768) {
-        const mobileCardHeight = calculateMobileCardHeight();
-        const spacing = 20;
-        const mobileHeight = cards.length * (mobileCardHeight + spacing);
-        cardsContainer.style.height = `${mobileHeight}px`;
+        const cardWidth = window.innerWidth * 0.9;
+        const cardHeight = cardWidth * (2/3);
+        const numCards = cards.length;
+        const topOfLastCard = 10 + (numCards - 1) * (cardHeight + 20);
+        const containerHeight = topOfLastCard + cardHeight;
+        cardsContainer.style.height = `${containerHeight}px`;
       } else {
         cardsContainer.style.height = '80vw';
       }
     }
   }
   
-  // Return rotation for a card
-  function getRotation(index) {
+  function getRotation(index: number): number {
     return cardRotations[index % cardRotations.length];
   }
-  
-  // Return CSS classes for a card
-  function getCardClasses(cardId) {
-    return activeCardId === null ? '' : 
-           activeCardId === cardId ? 'active' : 
-           'fly-out';
+
+  function getCardClasses(cardId: number): string {
+    return activeCardId === null ? '' : activeCardId === cardId ? 'active' : 'fly-out';
   }
   
-  // Initialize card view
   onMount(() => {
-    cardsContainer = document.querySelector('.menu-category-cards');
+    cardsContainer = document.querySelector('.menu-category-cards') as HTMLElement;
     resetContainerHeight();
-    
-    // Event listener for screen size changes
     window.addEventListener('resize', resetContainerHeight);
-    
     return () => {
       window.removeEventListener('resize', resetContainerHeight);
     };
@@ -144,6 +151,7 @@
 
 <style lang="scss">
   @use "../../lib/styles/variables" as v;
+  @use "../../lib/styles/global" as g;
   
   main {
     width: 100%;
@@ -224,7 +232,7 @@
     cursor: pointer;
     padding: 38px;
     box-sizing: border-box;
-    border: none;
+    border: 1px solid rgba(160, 147, 125, 0.2);
     box-shadow: 0 5px 20px rgba(106, 89, 72, 0.08);
     display: grid; 
     grid-template-columns: 40% 60%;
@@ -233,25 +241,21 @@
     align-content: end;
     transform-origin: center center;
     transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1), border 0.3s ease;
-    border: 1px solid rgba(160, 147, 125, 0.2);
     border-radius: 12px;
     width: 60vw;
-    height: calc(60vw * 2/3);
+    aspect-ratio: 3/2;
     position: absolute;
     text-align: left;
     overflow: hidden;
     
     &:not(.active) {
-      border: 1px solid rgba(160, 147, 125, 0.2) !important;
-      box-shadow: 0 5px 20px rgba(106, 89, 72, 0.08) !important;
+      border: 1px solid rgba(160, 147, 125, 0.2);
+      box-shadow: 0 5px 20px rgba(106, 89, 72, 0.08);
     }
     
     &.active {
-      border: 2px solid rgba(160, 147, 125, 0.4);
-      box-shadow: 0 15px 30px rgba(106, 89, 72, 0.15);
     }
     
-    /* Card decoration elements */
     &::before {
       content: "";
       position: absolute;
@@ -264,7 +268,6 @@
       transition: height 0.3s ease;
     }
     
-    /* Card hover effects */
     &:hover, &:focus {
       box-shadow: 0 15px 30px rgba(106, 89, 72, 0.15);
       transform: translate3d(-50%, -55%, 0) rotateZ(0.5deg) !important;
@@ -280,7 +283,6 @@
       }
     }
     
-    /* Decorative pattern */
     .card-pattern {
       position: absolute;
       top: 0;
@@ -301,7 +303,7 @@
       position: relative;
       
       &::after {
-        display: none; /* Trennlinie zwischen Titel und Text ausblenden */
+        display: none;
       }
       
       h3 {
@@ -313,7 +315,6 @@
         margin: 0;
         white-space: normal;
         overflow: visible;
-        
       }
     }
     
@@ -323,7 +324,6 @@
       position: relative;
       overflow: hidden;
       
-      /* Blur overlay remains unchanged */
       &::before {
         content: "";
         position: absolute;
@@ -338,7 +338,6 @@
         border-radius: 4px;
       }
       
-      /* Base text styling forced in both states */
       p {
         font-weight: 300;
         font-size: clamp(1rem, 1.2vw, 1.25rem);
@@ -351,7 +350,6 @@
         z-index: 1;
         display: block;
         opacity: 0.8;
-        /* Force text wrapping */
         white-space: normal;
         word-wrap: break-word;
         overflow-wrap: break-word;
@@ -359,7 +357,6 @@
       }
     }
     
-    /* When active, only remove the blur overlay */
     &.active .text::before {
       opacity: 0;
       backdrop-filter: blur(0px);
@@ -371,19 +368,8 @@
       pointer-events: none;
       transform: translateX(100vw) !important;
     }
-
-    &.active {
-      z-index: 10;
-      left: 50% !important;
-      top: 50% !important;
-      transform: translate3d(-50%, -50%, 0) rotateZ(0deg) !important;
-      width: 60vw;             // kept same as non-active
-      height: calc(60vw * 2/3);  // set height equal to non-active card
-      // ...removed min-height and max-width to keep size constant...
-    }
   }
   
-  /* Desktop positioning */
   .menu-category-cards .card:nth-child(1) {
     left: 33%;
     top: 25vw;
@@ -455,7 +441,6 @@
     }
   }
   
-  /* Responsive Styles */
   @media screen and (max-width: 1200px) {
     .card .title h3 {
       font-size: clamp(2rem, 4vw, 3.5rem);
@@ -473,7 +458,6 @@
     }
   }
 
-  /* Mobile view */
   @media screen and (max-width: 767px) {
     .menu-category-cards {
       min-height: 300px;
@@ -499,7 +483,6 @@
       display: flex;
       overflow: hidden;
       
-      /* Mobile card decoration */
       &::before {
         height: 4px;
         transition: height 0.3s ease;
@@ -521,7 +504,6 @@
         pointer-events: none;
       }
       
-      /* Improved hover/touch effects */
       &:hover, &:focus, &:active {
         transform: translate3d(-50%, -8px, 0) !important;
         box-shadow: 0 12px 25px rgba(106, 89, 72, 0.18);
@@ -572,13 +554,10 @@
         font-family: "Inter 24pt Regular", sans-serif;
         margin: 0;
         color: #4a3c31;
-        
-        /* These properties need to be the same in both states */
         overflow: visible;
       }
     }
     
-    /* Mobile positioning with proper spacing based on aspect ratio */
     .menu-category-cards .card:nth-child(1) {
       top: 10px;
       z-index: 4;
@@ -606,7 +585,7 @@
       top: 0 !important;
       transform: translate3d(-50%, 0, 0) rotateZ(0deg) !important;
       position: relative !important;
-      padding-bottom: 30px; /* Reduced from 60px since we removed the button */
+      padding-bottom: 30px;
       
       &::before {
         height: 6px;
@@ -623,12 +602,9 @@
           backdrop-filter: blur(0px);
           -webkit-backdrop-filter: blur(0px);
         }
-        
-        /* Remove all p styling from here - it should inherit from above */
       }
     }
     
-    /* Add ripple effect on touch for better feedback */
     .card::after {
       content: '';
       position: absolute;
@@ -661,12 +637,16 @@
         transform: scale(40, 40);
       }
     }
+
+    .menu-category-cards .card {
+      transform: translate3d(-50%, 0, 0) !important;
+      box-shadow: none !important;
+    }
   }
 
-  /* Smaller mobile view */
   @media screen and (max-width: 600px) {
     .section-header h2 {
-        font-size: 2rem;
+      font-size: 2rem;
     }
     
     .subtitle {
@@ -678,7 +658,6 @@
       min-height: 200px !important;
       border-radius: 14px;
       
-      /* Add highlighting effect for active state */
       &.active {
         border: 2px solid rgba(160, 147, 125, 0.4);
         box-shadow: 0 15px 30px rgba(106, 89, 72, 0.15);
@@ -693,8 +672,6 @@
         font-size: 0.9rem;
         padding: 4px 6px;
       }
-      
-      /* Remove any active state text styles */
     }
     
     .card-pattern {
@@ -715,18 +692,37 @@
     }
     
     .card.active .text p {
-      font-size: 0.9rem; /* Keep font size consistent */
+      font-size: 0.9rem;
     }
   }
   
-  /* ...existing code in @media screen and (max-width: 767px) ... */
-  .card.active {
-    width: 90vw !important;
-    height: calc(90vw * 2/3) !important;
-    top: 0 !important;
-    transform: translate3d(-50%, 0, 0) rotateZ(0deg) !important;
-    position: relative !important;
-    /* ...existing properties such as padding-bottom if needed... */
+  @media screen and (max-width: 767px) {
+    .card.active {
+      z-index: 10;
+      left: 50% !important;
+      top: 0 !important;
+      transform: translate3d(-50%, 0, 0) rotateZ(0deg) !important;
+      width: 90vw;
+      height: auto !important;
+      aspect-ratio: 3/2 !important;
+    }
   }
-  /* ...existing code... */
+
+  @media screen and (min-width: 768px) {
+    .card.active {
+      z-index: 10;
+      left: 50% !important;
+      top: 50% !important;
+      transform: translate3d(-50%, -50%, 0) rotateZ(0deg) !important;
+      width: 60vw !important;
+      aspect-ratio: 3/2;
+      height: calc(60vw * 2/3) !important;
+      overflow: hidden;
+    }
+    .card.fly-out {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(100vw) !important;
+    }
+  }
 </style>
