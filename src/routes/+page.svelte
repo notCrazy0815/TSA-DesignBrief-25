@@ -6,7 +6,7 @@
      import { page } from "$app/stores";
      import HeroCta from "$lib/components/HeroCta.svelte";
      import Footer from "$lib/components/Footer.svelte";
-     
+
      onMount(() => {
           window.scrollTo(0, 0);
           if ($page.url.pathname === "/") {
@@ -58,6 +58,7 @@
           top: 0;
           left: 0;
           z-index: 1;
+          overflow: hidden;
 
           .hero-plants-wrapper {
                height: fit-content;
