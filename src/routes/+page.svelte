@@ -6,7 +6,7 @@
      import { page } from "$app/stores";
      import HeroCta from "$lib/components/HeroCta.svelte";
      import Footer from "$lib/components/Footer.svelte";
-     
+
      onMount(() => {
           window.scrollTo(0, 0);
           if ($page.url.pathname === "/") {
@@ -34,9 +34,9 @@
      </div>
 </div>
 
-<div class="footer-wrapper">
+<!-- <div class="footer-wrapper">
      <Footer />
-</div>
+</div> -->
 
 <style lang="scss">
      @use "../lib/styles/variables" as v;

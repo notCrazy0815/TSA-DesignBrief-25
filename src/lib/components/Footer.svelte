@@ -22,8 +22,9 @@
 
             h1 {
                 width: 100%;
-                font-size: clamp(20px, 10vw, 500px);
+                font-size: clamp(30px, 15vw, 600px);
                 line-height: 1;
+                text-align: center;
             }
         }
     }
