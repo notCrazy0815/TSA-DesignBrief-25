@@ -25,11 +25,11 @@
             }, 1000);
         }
 
-        const delay = $page.url.pathname !== "/" ? 0.4 : 2.6;
+        const delay = $page.url.pathname !== "/" ? 0.4 : 1.6;
         gsap.from(contentElement, {
             y: -200,
             opacity: 0,
-            duration: 0.8,
+            duration: 0.75,
             ease: "power2.out",
             delay: delay
         });

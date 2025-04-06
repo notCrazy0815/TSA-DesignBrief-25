@@ -22,16 +22,16 @@
 
         tl.from(heroTitleElement, {
             y: 500,
-            duration: 1,
+            duration: 0.7,
             ease: "power2.out",
             opacity: 0
         });
 
         tl.from('.letter', {
             opacity: 0,
-            duration: 0.6,
+            duration: 0.5,
             stagger: {
-                each: 0.05,
+                each: 0.02,
                 from: "random"
             },
             ease: "power2.out"
@@ -39,7 +39,7 @@
 
         tl.to(heroTitleElement, {
             y: -150,
-            duration: 1,
+            duration: 0.9,
             ease: "power2.inOut"
         }, "+=0.1");
     });

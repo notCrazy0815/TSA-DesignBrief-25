@@ -15,14 +15,14 @@
         });
 
         const tl = gsap.timeline({
-            delay: 2.3
+            delay: 1.2
         });
 
         tl.to(bigPlant, {
             y: 0,
             scale: 1,
             opacity: 1,
-            duration: 1.4,
+            duration: 1.2,
             ease: "power2.out"
         });
 
@@ -30,7 +30,7 @@
             y: 0,
             scale: 1,
             opacity: 0.6,
-            duration: 1.2,
+            duration: 1,
             ease: "power2.out"
         }, "-=1");
     });
