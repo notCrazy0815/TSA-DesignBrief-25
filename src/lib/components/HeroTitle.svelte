@@ -1,5 +1,10 @@
 <script lang="ts">
+    import { onMount } from 'svelte';
+    import gsap from 'gsap';
+
     export let title: string = "It's simple:\nGood food for everyone.";
+
+    let heroTitleElement: HTMLHeadingElement;
 
     function getRandomDelay() {
         return Math.random() * 1;
@@ -11,16 +16,43 @@
         isNewline: char === "\n",
         delay: getRandomDelay()
     }));
+
+    onMount(() => {
+        const tl = gsap.timeline();
+
+        tl.from(heroTitleElement, {
+            y: 500,
+            duration: 0.7,
+            ease: "power2.out",
+            opacity: 0
+        });
+
+        tl.from('.letter', {
+            opacity: 0,
+            duration: 0.5,
+            stagger: {
+                each: 0.02,
+                from: "random"
+            },
+            ease: "power2.out"
+        }, "<");
+
+        tl.to(heroTitleElement, {
+            y: -150,
+            duration: 0.9,
+            ease: "power2.inOut"
+        }, "+=0.1");
+    });
 </script>
 
-<h1>
+<h1 bind:this={heroTitleElement}>
     {#each letters as letter, i}
         {#if letter.isNewline}
-            <br style="animation-delay: {letter.delay}s" />
+            <br />
         {:else if letter.isSpace}
-            <span class="space" style="animation-delay: {letter.delay}s">&nbsp;</span>
+            <span class="space">&nbsp;</span>
         {:else}
-            <span class="letter" style="animation-delay: {letter.delay}s">{letter.char}</span>
+            <span class="letter">{letter.char}</span>
         {/if}
     {/each}
 </h1>
@@ -38,15 +70,11 @@
         justify-content: center;
         text-align: center;
         width: 100%;
-        animation: moveUp 1s cubic-bezier(0.25, 0.1, 0.25, 1.0) forwards,
-                   moveFurtherUp 2s cubic-bezier(0.25, 1, 0.3, 1) forwards 2.2s;
         padding: 0 10px;
     }
 
     .letter {
         display: inline-block;
-        opacity: 0;
-        animation: fadeIn 1s cubic-bezier(0.23, 1, 0.320, 1) forwards;
     }
 
     .space {
@@ -58,28 +86,5 @@
         width: 100%;
         content: "";
         display: block;
-    }
-
-    @keyframes moveUp {
-        from {
-            transform: translateY(500px);
-        }
-        to {
-            transform: translateY(0);
-        }
-    }
-
-    @keyframes moveFurtherUp {
-        from {
-            transform: translateY(0);
-        }
-        to {
-            transform: translateY(-190px);
-        }
-    }
-    @keyframes fadeIn {
-        to {
-            opacity: 1;
-        }
     }
 </style>

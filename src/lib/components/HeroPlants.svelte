@@ -2,6 +2,38 @@
     import branch1d from "$lib/assets/branches/branch_1d.png";
     import branch7d from "$lib/assets/branches/branch_7d.png";
     import branch8d from "$lib/assets/branches/branch_8d.png";
+    import { onMount } from 'svelte';
+    import gsap from 'gsap';
+
+    onMount(() => {
+        const smallPlants = document.querySelectorAll('.plant-small');
+        const bigPlant = document.querySelector('.plant-big');
+
+        gsap.set([smallPlants, bigPlant], {
+            y: window.innerHeight,
+            scale: 0.8
+        });
+
+        const tl = gsap.timeline({
+            delay: 1.2
+        });
+
+        tl.to(bigPlant, {
+            y: 0,
+            scale: 1,
+            opacity: 1,
+            duration: 1.2,
+            ease: "power2.out"
+        });
+
+        tl.to(smallPlants, {
+            y: 0,
+            scale: 1,
+            opacity: 0.6,
+            duration: 1,
+            ease: "power2.out"
+        }, "-=1");
+    });
 </script>
 
 <div class="hero-plants">
@@ -25,32 +57,32 @@
         justify-content: center;
         align-items: end;
         opacity: 0.9;
-        width: clamp(350px, 90%, 950px);
         height: 100%;
+        min-height: 300px;
+        position: relative;
+        overflow: visible;
 
         .plant-small {
-            width: 35%;
-            transform: translateY(clamp(250px, 50vh, 400px));
-            animation: moveUpSmall 1.2s ease-in-out forwards 2s;
+            height: clamp(150px, 50vh, 1000px);
         }
 
         .plant-big {
-            width: 50%;
-            transform: translateY(clamp(400px, 70vh, 700px));
-            animation: moveUpBig 1.2s ease-in-out forwards 2s;
+            height: clamp(200px, 75vh, 1200px);
         }
 
         .plant {
-            overflow: hidden;
+            aspect-ratio: 2160 / 3840;
+            position: relative;
 
             img {
                 width: 100%;
                 height: 100%;
                 transform: translateY(5px);
+                object-fit: contain;
             }
 
             &:nth-child(1) {
-                margin-right: -20%;
+                margin-right: -15%;
                 z-index: 1;
             }
 
@@ -59,30 +91,8 @@
             }
 
             &:nth-child(3) {
-                margin-left: -20%;
+                margin-left: -15%;
                 z-index: 1;
-            }
-        }
-
-        @keyframes moveUpSmall {
-            from {
-                transform: translateY(clamp(250px, 50vh, 620px));
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 0.6;
-            }
-        }
-
-        @keyframes moveUpBig {
-            from {
-                transform: translateY(clamp(400px, 70vh, 900px));
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
             }
         }
     }

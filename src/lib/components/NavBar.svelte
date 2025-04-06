@@ -5,11 +5,13 @@
     import { goto } from "$app/navigation";
     import { shouldAnimate, firstLoad, isLoading } from "$lib/stores/navStore";
     import { page } from "$app/stores";
+    import { gsap } from "gsap";
     
     type ActivePage = "approach" | "menu" | "news";
     export let active: ActivePage = "approach";
     let isMenuOpen = false;
     let isFirstLoad = true;
+    let contentElement: HTMLDivElement;
 
     onMount(() => {
         isFirstLoad = $firstLoad;
@@ -22,6 +24,15 @@
                 isLoading.set(false);
             }, 1000);
         }
+
+        const delay = $page.url.pathname !== "/" ? 0.4 : 1.6;
+        gsap.from(contentElement, {
+            y: -200,
+            opacity: 0,
+            duration: 0.75,
+            ease: "power2.out",
+            delay: delay
+        });
     });
 
     let links = [
@@ -65,10 +76,10 @@
     }
 </script>
 
-<LoadingScreen isLoading={$isLoading} />
+<LoadingScreen />
 
 <div class="navbar">
-    <div class="content" class:shorter-delay={$page.url.pathname !== "/"}>
+    <div class="content" bind:this={contentElement}>
         <div class="content-box" class:expanded={isMenuOpen}></div>
         {#if !isMenuOpen}
             <button class="nav-btn" on:click={toggleMenu} on:keydown={(e) => e.key === 'Enter' && toggleMenu()}>
@@ -117,24 +128,8 @@
             align-items: center;
             position: fixed;
             z-index: 1000;
-            transform: translateY(-200px);
-            opacity: 0; 
-            animation: slideDown 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            animation-delay: 2s;
-
-            &.shorter-delay {
-                animation-delay: 0.4s !important;
-            }
-
-            @keyframes slideDown {
-                from {
-                    transform: translateY(-200px);
-                }
-                to {
-                    transform: translateY(0);
-                    opacity: 1;
-                }
-            }
+            transform: translateY(0);
+            opacity: 1;
 
             .nav-btn {
                 background: none;

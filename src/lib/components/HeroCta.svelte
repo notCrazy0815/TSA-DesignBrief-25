@@ -1,6 +1,20 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
     import { shouldAnimate, isLoading } from "$lib/stores/navStore";
+    import { gsap } from "gsap";
+    import { onMount } from "svelte";
+
+    let heroCtaElement: HTMLDivElement;
+
+    onMount(() => {
+        gsap.set(heroCtaElement, { y: "300%" });
+        gsap.to(heroCtaElement, {
+            y: 0,
+            duration: 1.2,
+            ease: "power2.out",
+            delay: 1.3
+        });
+    });
 
     function navigateAndAnimate(href: string) {
         if (window.location.pathname === href) {
@@ -19,7 +33,7 @@
     }
 </script>
 
-<div class="hero-cta" on:click={() => navigateAndAnimate("/menu")} role="button" tabindex="0" on:keydown={(e) => {
+<div class="hero-cta" bind:this={heroCtaElement} on:click={() => navigateAndAnimate("/menu")} role="button" tabindex="0" on:keydown={(e) => {
     if (e.key === "Enter" || e.key === " ") {
         navigateAndAnimate("/menu");
     }
@@ -37,18 +51,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        transform: translateY(300%);
-        animation: moveIn 1.5s cubic-bezier(0.075, 0.82, 0.165, 1) forwards;
-        animation-delay: 2.5s;
 
-        @keyframes moveIn {
-            from {
-                transform: translateY(300%);
-            }
-            to {
-                transform: translateY(0);
-            }
-        }
         .hero-cta-bg {
             position: absolute;
             top: 0;
