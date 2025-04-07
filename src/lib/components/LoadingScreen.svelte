@@ -18,11 +18,12 @@
         );
 
         gsap.fromTo(titleElement, 
-            { opacity: 0 },
+            { opacity: 0, y: 20 },
             { 
                 opacity: 1,
                 duration: 0.3,
                 ease: "power2.out",
+                y: 0,
                 delay: 0.3
             }
         );
