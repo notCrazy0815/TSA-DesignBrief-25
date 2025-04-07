@@ -55,6 +55,44 @@
 
     function toggleMenu() {
         isMenuOpen = !isMenuOpen;
+        
+        if (isMenuOpen) {
+            gsap.to(".content-box", {
+                height: 300,
+                duration: 0.5,
+                ease: "power2.inOut"
+            });
+            
+            // Wait for the next tick to ensure elements are rendered
+            setTimeout(() => {
+                const menuLinks = document.querySelectorAll(".menu-content .menu-links a");
+                if (menuLinks.length > 0) {
+                    gsap.to(menuLinks, {
+                        opacity: 1,
+                        y: 0,
+                        duration: 0.3,
+                        stagger: 0.1,
+                        ease: "power2.out"
+                    });
+                }
+            }, 300);
+        } else {
+            const menuLinks = document.querySelectorAll(".menu-content .menu-links a");
+            if (menuLinks.length > 0) {
+                gsap.to(menuLinks, {
+                    opacity: 0,
+                    y: 20,
+                    duration: 0.2,
+                    stagger: 0.1,
+                    ease: "power2.in"
+                });
+            }
+            gsap.to(".content-box", {
+                height: "100%",
+                duration: 0.5,
+                ease: "power2.inOut"
+            });
+        }
     }
 
     function navigateAndAnimate(href: string) {
@@ -173,13 +211,11 @@
                 border-radius: 20px;
                 z-index: -1;
                 transition: transform .3s cubic-bezier(0.16, 1, 0.3, 1),
-                            height 1s cubic-bezier(0.16, 1, 0.3, 1),
                             box-shadow .3s cubic-bezier(0.16, 1, 0.3, 1);
                 transform-origin: center;
                 box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
 
                 &.expanded {
-                    height: 300px;
                     border-radius: 20px;
                 }
             }
@@ -217,8 +253,7 @@
                         font-size: clamp(1rem, 2vh, 1.4rem);
                         font-family: 'Inter 24pt Regular';
                         opacity: 0;
-                        transition: opacity .3s ease;
-                        animation: fadeIn 0.5s ease forwards;
+                        transform: translateY(20px);
                         position: relative;
 
                         &:hover {
