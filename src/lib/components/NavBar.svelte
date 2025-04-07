@@ -63,7 +63,6 @@
                 ease: "power2.inOut"
             });
             
-            // Wait for the next tick to ensure elements are rendered
             setTimeout(() => {
                 const menuLinks = document.querySelectorAll(".menu-content .menu-links a");
                 if (menuLinks.length > 0) {

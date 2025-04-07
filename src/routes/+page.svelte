@@ -13,7 +13,7 @@
                document.body.style.overflow = "hidden";
                setTimeout(() => {
                     document.body.style.overflow = "auto";
-               }, 3000);
+               }, 2600);
           }
      });
 </script>
