@@ -9,6 +9,8 @@
     
     type ActivePage = "approach" | "menu" | "news";
     export let active: ActivePage = "approach";
+    export let bg: string = "base";
+
     let isMenuOpen = false;
     let isFirstLoad = true;
     let contentElement: HTMLDivElement;
@@ -117,7 +119,7 @@
 
 <div class="navbar">
     <div class="content" bind:this={contentElement}>
-        <div class="content-box" class:expanded={isMenuOpen}></div>
+        <div class="content-box" class:expanded={isMenuOpen} class:dark={bg === "dark"} class:base={bg === "base"}></div>
         {#if !isMenuOpen}
             <button class="nav-btn" on:click={toggleMenu} on:keydown={(e) => e.key === 'Enter' && toggleMenu()}>
                 <p class="nav-text">MENU</p>
@@ -203,19 +205,28 @@
             .content-box {
                 width: 100%;
                 height: 100%;
-                background-color: #fff;
                 position: absolute;
                 top: 0;
                 left: 0;
+                background-color: #fff;
                 border-radius: 20px;
                 z-index: -1;
                 transition: transform .3s cubic-bezier(0.16, 1, 0.3, 1),
                             box-shadow .3s cubic-bezier(0.16, 1, 0.3, 1);
                 transform-origin: center;
                 box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+                transition: background-color .3s cubic-bezier(0.16, 1, 0.3, 1);
 
                 &.expanded {
                     border-radius: 20px;
+                }
+
+                &.dark {
+                    background-color: v.$font-color-light;
+                }
+
+                &.base {
+                    background-color: #fff;
                 }
             }
 
