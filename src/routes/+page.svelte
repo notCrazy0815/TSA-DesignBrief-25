@@ -29,9 +29,9 @@
 
           gsap.fromTo(".second-section-bg", {
                width: "100%",
-               height: "10%",
+               height: "20%",
                opacity: 0.8,
-               borderRadius: "0 0 10vw 10vw",
+               borderRadius: "0",
                ease: "power2.out"
           }, {
                width: "100%",
@@ -42,8 +42,8 @@
                ease: "power1.in",
                scrollTrigger: {
                     trigger: ".second-section",
-                    start: "-100% top top",
-                    end: "-5% top top",
+                    start: "-95% top top",
+                    end: "-10% top top",
                     scrub: true,
                     onLeave: () => {
                          bg = "dark";
@@ -97,7 +97,7 @@
 
           ScrollTrigger.create({
                trigger: ".second-section",
-               start: "-20% top top",
+               start: "-10% top top",
                end: "10% top top",
                scrub: true,
                onUpdate: (self) => {
