@@ -234,10 +234,14 @@
                h3 {
                     font-size: clamp(2rem, 5vw, 4rem);
                     display: flex;
+                    flex-direction: column;
                     flex-wrap: nowrap;
-                    align-items: baseline;
+                    align-items: center;
+                    justify-content: center;
                     gap: 0.25em;
                     width: 100%;
+                    text-align: center;
+                    gap: clamp(4.5rem, 12vw, 7rem);
 
                     .buzzword-wrapper {
                          position: relative;
@@ -247,7 +251,10 @@
                          vertical-align: baseline;
 
                          .buzzword-stack {
-                              display: block;
+                              display: flex;
+                              flex-direction: column;
+                              justify-content: center;
+                              align-items: center;
                               position: relative;
                               height: 100%;
                          }
@@ -255,9 +262,9 @@
                          .buzzword {
                               position: absolute;
                               top: 0;
-                              left: 0;
                               white-space: nowrap;
                               line-height: 60px;
+                              text-align: center;
                               margin: 0;
                               padding: 0;
                               transition: transform 0.4s ease, opacity 0.4s ease;
