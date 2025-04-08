@@ -11,6 +11,11 @@
 
      let bg = "base";
 
+     const buzzwords = ["easy", "fresh", "sustainable", "local", "fun", "colorful", "honest", "delicious"];
+     let currentIndex = 0;
+     let wordHeight = 0;
+     let baseY = 0;
+
      onMount(() => {
           gsap.registerPlugin(ScrollTrigger);
 
@@ -23,10 +28,10 @@
           }
 
           gsap.fromTo(".second-section-bg", {
-               width: "40%",
+               width: "100%",
                height: "10%",
                opacity: 0.8,
-               borderRadius: "0 0 2000px 2000px",
+               borderRadius: "0 0 10vw 10vw",
                ease: "power2.out"
           }, {
                width: "100%",
@@ -52,21 +57,6 @@
                },
           });
 
-          gsap.fromTo(".second-section-content p span", {
-               opacity: 0,
-               y: 30,
-          }, {
-               opacity: 1,
-               y: 0,
-               duration: 0.6,
-               ease: "power1.in",
-               stagger: 0.15,
-               scrollTrigger: {
-                    trigger: ".second-section-content",
-                    toggleActions: "play none none reverse"
-               },
-          });
-
           gsap.fromTo(".second-section-content h3", {
                opacity: 0,
                y: 30,
@@ -79,6 +69,44 @@
                     trigger: ".second-section-content",
                     toggleActions: "play none none reverse"
                },
+          });
+
+          const buzzwordEls = gsap.utils.toArray<HTMLElement>(".buzzword");
+
+               if (buzzwordEls.length > 0) {
+                    wordHeight = buzzwordEls[0].offsetHeight;
+
+                    const wrapper = document.querySelector(".buzzword-wrapper") as HTMLElement;
+                    wrapper.style.height = `${wordHeight}px`;
+
+                    const firstRect = buzzwordEls[0].getBoundingClientRect();
+                    const stackRect = buzzwordEls[0].parentElement!.getBoundingClientRect();
+                    baseY = firstRect.top - stackRect.top;
+               }
+          
+          const setPositions = () => {
+               buzzwordEls.forEach((el, i) => {
+                    const offset = i - currentIndex;
+                    const y = baseY + offset * wordHeight;
+                    el.style.transform = `translateY(${y}px)`;
+                    el.style.opacity = Math.abs(offset) > 2 ? "0" : `${1 - Math.abs(offset) * 0.4}`;
+               });
+          };
+
+          setPositions();
+
+          ScrollTrigger.create({
+               trigger: ".second-section",
+               start: "-20% top top",
+               end: "10% top top",
+               scrub: true,
+               onUpdate: (self) => {
+                    const newIndex = Math.floor(self.progress * (buzzwordEls.length - 1) + 0.5);
+                    if (newIndex !== currentIndex) {
+                         currentIndex = newIndex;
+                         setPositions();
+                    }
+               }
           });
      });
 </script>
@@ -101,26 +129,16 @@
      <section class="second-section">
           <div class="second-section-bg"></div>
           <div class="second-section-content">
-               <h3>
-                    Good food should be easy.
+               <h3 class="buzzwords-title">
+                    Good food should be 
+                    <span class="buzzword-wrapper">
+                         <span class="buzzword-stack">
+                             {#each buzzwords as word, index}
+                                 <span class="buzzword" data-index={index}>{word}</span>
+                             {/each}
+                         </span>
+                    </span>
                </h3>
-               <div class="second-section-content-text">
-                    <p>
-                         <span>We believe that everyone deserves meals that are not only delicious,</span>
-                    </p>
-                    <p>
-                         <span>but also made with care. That's why we keep it simple—fresh, local ingredients,</span>
-                    </p>
-                    <p>
-                         <span>prepared with love, and served with purpose.</span>
-                    </p>
-                    <p>
-                         <span>Whether you're grabbing a quick bite or sitting down for something special,</span>
-                    </p>
-                    <p>
-                         <span>our goal is the same: to make good food accessible to all.</span>
-                    </p>
-               </div>
           </div>
      </section>
 </div>
@@ -215,20 +233,35 @@
 
                h3 {
                     font-size: clamp(2rem, 5vw, 4rem);
-               }
-
-               .second-section-content-text {
-                    font-size: clamp(1rem, 2.2vw, 1.6rem);
                     display: flex;
-                    flex-direction: column;
-                    gap: 1.2rem;
+                    flex-wrap: nowrap;
+                    align-items: baseline;
+                    gap: 0.25em;
+                    width: 100%;
 
-                    p {
-                         line-height: 1.3;
-                         overflow: hidden;
+                    .buzzword-wrapper {
+                         position: relative;
+                         display: inline-block;
+                         height: 100%;
+                         width: 100%;
+                         vertical-align: baseline;
 
-                         span {
-                              display: inline-block;
+                         .buzzword-stack {
+                              display: block;
+                              position: relative;
+                              height: 100%;
+                         }
+
+                         .buzzword {
+                              position: absolute;
+                              top: 0;
+                              left: 0;
+                              white-space: nowrap;
+                              line-height: 60px;
+                              margin: 0;
+                              padding: 0;
+                              transition: transform 0.4s ease, opacity 0.4s ease;
+                              will-change: transform, opacity;
                          }
                     }
                }
