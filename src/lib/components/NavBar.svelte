@@ -212,10 +212,10 @@
                 border-radius: 20px;
                 z-index: -1;
                 transition: transform .3s cubic-bezier(0.16, 1, 0.3, 1),
-                            box-shadow .3s cubic-bezier(0.16, 1, 0.3, 1);
+                            box-shadow .3s cubic-bezier(0.16, 1, 0.3, 1),
+                            background-color .3s cubic-bezier(0.16, 1, 0.3, 1);
                 transform-origin: center;
                 box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
-                transition: background-color .3s cubic-bezier(0.16, 1, 0.3, 1);
 
                 &.expanded {
                     border-radius: 20px;
