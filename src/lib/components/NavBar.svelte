@@ -126,7 +126,6 @@
                 goingDown = false;
                 directionChange = true;
 
-                // navbar should show
                 gsap.to(contentElement, {
                     y: 0,
                     opacity: 1,
@@ -139,7 +138,6 @@
                 goingDown = true;
                 directionChange = true;
 
-                // navbar should hide
                 gsap.to(contentElement, {
                     y: -200,
                     opacity: 0,

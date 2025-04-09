@@ -8,13 +8,9 @@
      import Footer from "$lib/components/Footer.svelte";
      import { gsap } from "gsap";
      import { ScrollTrigger } from "gsap/ScrollTrigger";
+     import WeAreSection from "$lib/components/WeAreSection.svelte";
 
      let bg = "base";
-
-     const buzzwords = ["easy", "fresh", "sustainable", "local", "fun", "colorful", "honest", "delicious"];
-     let currentIndex = 0;
-     let wordHeight = 0;
-     let baseY = 0;
 
      onMount(() => {
           gsap.registerPlugin(ScrollTrigger);
@@ -27,87 +23,35 @@
                }, 2600);
           }
 
-          gsap.fromTo(".second-section-bg", {
-               width: "100%",
-               height: "20%",
-               opacity: 0.8,
-               borderRadius: "0",
-               ease: "power2.out"
-          }, {
-               width: "100%",
-               height: "100%",
-               opacity: 1,
-               borderRadius: "0 0 0 0",
-               duration: 1,
-               ease: "power1.in",
-               scrollTrigger: {
-                    trigger: ".second-section",
-                    start: "-95% top top",
-                    end: "-10% top top",
-                    scrub: true,
-                    onLeave: () => {
-                         bg = "dark";
-                    },
-                    onEnterBack: () => {
-                         bg = "base";
-                    },
-                    onEnter: () => {
-                         bg = "base";
-                    }
-               },
-          });
-
-          gsap.fromTo(".second-section-content h3", {
-               opacity: 0,
-               y: 30,
-          }, {
-               opacity: 1,
-               y: 0,
-               duration: 0.6,
-               ease: "power1.in",
-               scrollTrigger: {
-                    trigger: ".second-section-content",
-                    toggleActions: "play none none reverse"
-               },
-          });
-
-          const buzzwordEls = gsap.utils.toArray<HTMLElement>(".buzzword");
-
-               if (buzzwordEls.length > 0) {
-                    wordHeight = buzzwordEls[0].offsetHeight;
-
-                    const wrapper = document.querySelector(".buzzword-wrapper") as HTMLElement;
-                    wrapper.style.height = `${wordHeight}px`;
-
-                    const firstRect = buzzwordEls[0].getBoundingClientRect();
-                    const stackRect = buzzwordEls[0].parentElement!.getBoundingClientRect();
-                    baseY = firstRect.top - stackRect.top;
-               }
-          
-          const setPositions = () => {
-               buzzwordEls.forEach((el, i) => {
-                    const offset = i - currentIndex;
-                    const y = baseY + offset * wordHeight;
-                    el.style.transform = `translateY(${y}px)`;
-                    el.style.opacity = Math.abs(offset) > 2 ? "0" : `${1 - Math.abs(offset) * 0.4}`;
-               });
-          };
-
-          setPositions();
-
-          ScrollTrigger.create({
-               trigger: ".second-section",
-               start: "-10% top top",
-               end: "10% top top",
-               scrub: true,
-               onUpdate: (self) => {
-                    const newIndex = Math.floor(self.progress * (buzzwordEls.length - 1) + 0.5);
-                    if (newIndex !== currentIndex) {
-                         currentIndex = newIndex;
-                         setPositions();
-                    }
-               }
-          });
+          // gsap.fromTo(".second-section-bg", {
+          //      width: "100%",
+          //      height: "20%",
+          //      opacity: 0.8,
+          //      borderRadius: "0",
+          //      ease: "power2.out"
+          // }, {
+          //      width: "100%",
+          //      height: "100%",
+          //      opacity: 1,
+          //      borderRadius: "0 0 0 0",
+          //      duration: 1,
+          //      ease: "power1.in",
+          //      scrollTrigger: {
+          //           trigger: ".second-section",
+          //           start: "-95% top top",
+          //           end: "-10% top top",
+          //           scrub: true,
+          //           onLeave: () => {
+          //                bg = "dark";
+          //           },
+          //           onEnterBack: () => {
+          //                bg = "base";
+          //           },
+          //           onEnter: () => {
+          //                bg = "base";
+          //           }
+          //      },
+          // });
      });
 </script>
 
@@ -126,21 +70,9 @@
           <HeroCta />
      </div>
 
-     <section class="second-section">
-          <div class="second-section-bg"></div>
-          <div class="second-section-content">
-               <h3 class="buzzwords-title">
-                    Good food should be 
-                    <span class="buzzword-wrapper">
-                         <span class="buzzword-stack">
-                             {#each buzzwords as word, index}
-                                 <span class="buzzword" data-index={index}>{word}</span>
-                             {/each}
-                         </span>
-                    </span>
-               </h3>
-          </div>
-     </section>
+     <div class="we-are-section-wrapper">
+          <WeAreSection />
+     </div>
 </div>
 
 <div class="footer-wrapper">
@@ -158,6 +90,7 @@
           align-items: center;
           flex-direction: column;
           gap: 1rem;
+          margin-bottom: 145vh;
      }
 
      .hero-plants-container {
@@ -200,79 +133,11 @@
           }
      }
 
-     .second-section {
-          min-height: 100vh;
-          position: relative;
-          margin-top: 20vh;
-          background-color: transparent;
-
-          display: flex;
-          justify-content: center;
-          align-items: center;
-
-          padding: 0 2rem;
-
-          .second-section-bg {
-               position: absolute;
-               top: 0;
-               left: 50%;
-               transform: translateX(-50%);
-               background-color: v.$font-color-dark;
-          }
-
-          .second-section-content {
-               position: relative;
-               z-index: 2;
-               color: v.$font-color-light;
-
-               width: clamp(300px, 90%, 1000px);
-
-               display: flex;
-               flex-direction: column;
-               gap: 1rem;
-
-               h3 {
-                    font-size: clamp(2rem, 5vw, 4rem);
-                    display: flex;
-                    flex-direction: column;
-                    flex-wrap: nowrap;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 0.25em;
-                    width: 100%;
-                    text-align: center;
-                    gap: clamp(4.5rem, 12vw, 7rem);
-
-                    .buzzword-wrapper {
-                         position: relative;
-                         display: inline-block;
-                         height: 100%;
-                         width: 100%;
-                         vertical-align: baseline;
-
-                         .buzzword-stack {
-                              display: flex;
-                              flex-direction: column;
-                              justify-content: center;
-                              align-items: center;
-                              position: relative;
-                              height: 100%;
-                         }
-
-                         .buzzword {
-                              position: absolute;
-                              top: 0;
-                              white-space: nowrap;
-                              line-height: 60px;
-                              text-align: center;
-                              margin: 0;
-                              padding: 0;
-                              transition: transform 0.4s ease, opacity 0.4s ease;
-                              will-change: transform, opacity;
-                         }
-                    }
-               }
-          }
+     .we-are-section-wrapper {
+          position: absolute;
+          width: 100%;
+          top: 100vh;
+          z-index: 4;
      }
 
 </style>

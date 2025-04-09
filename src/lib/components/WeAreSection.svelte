@@ -1,0 +1,113 @@
+<script lang="ts">
+    import { onMount } from "svelte";
+    import gsap from "gsap";
+    import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+    onMount(() => {
+        gsap.registerPlugin(ScrollTrigger);
+
+        const paragraphs = document.querySelectorAll(".we-are-text p");
+
+        paragraphs.forEach((p) => {
+            gsap.fromTo(p,
+                {
+                    opacity: 0.2,
+                },
+                {
+                    opacity: 1,
+                    duration: 0.3,
+                    ease: "power2.out",
+                    scrollTrigger: {
+                        trigger: p,
+                        start: "top 80%",
+                        end: "top 20%",
+                        toggleActions: "play none none none"
+                    }
+                }
+            );
+        });
+
+        gsap.to(".we-are-section", {
+            y: "-20%",
+            ease: "none",
+            scrollTrigger: {
+                trigger: ".we-are-section",
+                start: "top bottom",
+                end: "bottom top",
+                scrub: 1
+            }
+        });
+    });
+</script>
+
+<section class="we-are-section">
+    <div class="we-are-section-content">
+        <div class="we-are-text">
+            <p>
+                We are a
+            </p>
+            <p class="special-text">
+                plant-powered
+            </p>
+            <p>
+               culinary 
+            </p>
+            <p>
+                destination
+            </p>
+            <p>
+                fueled by
+            </p>
+            <p>
+                creativity
+            </p>
+            <p>
+                & sustainability
+            </p>
+        </div>
+    </div>
+</section>
+
+<style lang="scss">
+    @use "../styles/variables" as v;
+    @use "../styles/global" as g;
+
+    .we-are-section {
+        width: 100%;
+        height: fit-content;
+        padding: 15rem 1rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: v.$tertiary-dark;
+
+        .we-are-section-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            .we-are-text {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+
+                p {
+                    font-size: clamp(1.4rem, 10vw, 5rem);
+                    font-weight: 600;
+                    color: v.$font-color-light;
+                    text-transform: uppercase;
+                    text-align: center;
+                    line-height: 1.1;
+                    opacity: 0.2; // Initial opacity
+
+                    &.special-text {
+                        font-family: "DynaPuff Regular";
+                        text-transform: none;
+                    }
+                }
+            }
+        }
+    }
+</style>
