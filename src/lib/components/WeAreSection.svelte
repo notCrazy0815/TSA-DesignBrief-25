@@ -27,6 +27,17 @@
             );
         });
 
+        gsap.to(".we-are-section-content", {
+            y: "-20%",
+            ease: "none",
+            scrollTrigger: {
+                trigger: ".we-are-section",
+                start: "top bottom",
+                end: "bottom top",
+                scrub: 1
+            }
+        })
+
         gsap.to(".we-are-section", {
             y: "-20%",
             ease: "none",
@@ -42,6 +53,11 @@
 
 <section class="we-are-section">
     <div class="we-are-section-content">
+        <div class="we-are-logo">
+            <p>
+                ( Verdantia )
+            </p>
+        </div>
         <div class="we-are-text">
             <p>
                 We are a
@@ -87,6 +103,15 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            flex-direction: column;
+
+            .we-are-logo {
+                p {
+                    font-size: clamp(0.9rem, 2vw, 1rem);
+                    color: v.$font-color-light;
+                    font-family: "DynaPuff Regular";
+                }
+            }
 
             .we-are-text {
                 display: flex;
@@ -100,11 +125,13 @@
                     text-transform: uppercase;
                     text-align: center;
                     line-height: 1.1;
-                    opacity: 0.2; // Initial opacity
+                    opacity: 0.2;
 
                     &.special-text {
                         font-family: "DynaPuff Regular";
                         text-transform: none;
+                        color: v.$primary;
+                        text-shadow: 0 0 100px v.$primary;
                     }
                 }
             }
