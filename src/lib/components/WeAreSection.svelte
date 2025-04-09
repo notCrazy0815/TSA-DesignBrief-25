@@ -38,17 +38,6 @@
                 scrub: 1
             }
         })
-
-        gsap.to(".we-are-section", {
-            y: "-20%",
-            ease: "none",
-            scrollTrigger: {
-                trigger: ".we-are-section",
-                start: "top bottom",
-                end: "bottom top",
-                scrub: 1
-            }
-        });
     });
 </script>
 
