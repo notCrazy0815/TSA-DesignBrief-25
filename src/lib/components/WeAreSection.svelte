@@ -2,6 +2,7 @@
     import { onMount } from "svelte";
     import gsap from "gsap";
     import { ScrollTrigger } from "gsap/ScrollTrigger";
+    import branch1s from "../assets/branches/branch1s.png";
 
     onMount(() => {
         gsap.registerPlugin(ScrollTrigger);
@@ -52,6 +53,9 @@
 </script>
 
 <section class="we-are-section">
+    <div class="we-are-section-bg">
+        <img src={branch1s} alt="branch1s" />
+    </div>
     <div class="we-are-section-content">
         <div class="we-are-logo">
             <p>
@@ -96,6 +100,29 @@
         justify-content: center;
         align-items: center;
         background-color: v.$tertiary-dark;
+        position: relative;
+
+        .we-are-section-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            padding: 1rem;
+            padding-bottom: 0;
+
+            img {
+                width: 175%;
+                aspect-ratio: 1/1;
+                opacity: 0.6;
+            }
+        }
 
         .we-are-section-content {
             width: 100%;
