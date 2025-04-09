@@ -113,7 +113,48 @@
             goto(href);
         }, 1150);
     }
+
+    let lastScrollY = 0;
+    let goingDown = false;
+    let directionChange = false;
+
+    function handleScroll() {
+        const currentScrollY = window.scrollY;
+
+        if (goingDown) {
+            if (currentScrollY < lastScrollY) {
+                goingDown = false;
+                directionChange = true;
+
+                // navbar should show
+                gsap.to(contentElement, {
+                    y: 0,
+                    opacity: 1,
+                    duration: 0.75,
+                    ease: "power2.out"
+                });
+            }
+        } else {
+            if (currentScrollY > lastScrollY) {
+                goingDown = true;
+                directionChange = true;
+
+                // navbar should hide
+                gsap.to(contentElement, {
+                    y: -200,
+                    opacity: 0,
+                    duration: 0.75,
+                    ease: "power2.out"
+                });
+            }
+        }
+
+        lastScrollY = currentScrollY;
+        directionChange = false;
+    }
 </script>
+
+<svelte:window on:scroll={handleScroll} />
 
 <LoadingScreen />
 
