@@ -10,6 +10,8 @@
     
     type ActivePage = "approach" | "menu" | "news";
     export let active: ActivePage = "approach";
+    export let bg: string = "base";
+
     let isMenuOpen = false;
     let isBasketOpen = false;
     let isFirstLoad = true;
@@ -108,6 +110,8 @@
         isBasketOpen = false;
     }
 </script>
+
+<svelte:window on:scroll={handleScroll} />
 
 <LoadingScreen />
 
@@ -246,21 +250,29 @@
             .content-box {
                 width: 100%;
                 height: 100%;
-                background-color: #fff;
                 position: absolute;
                 top: 0;
                 left: 0;
+                background-color: #fff;
                 border-radius: 20px;
                 z-index: -1;
                 transition: transform .3s cubic-bezier(0.16, 1, 0.3, 1),
-                            height 1s cubic-bezier(0.16, 1, 0.3, 1),
-                            box-shadow .3s cubic-bezier(0.16, 1, 0.3, 1);
+                            box-shadow .3s cubic-bezier(0.16, 1, 0.3, 1),
+                            background-color .3s cubic-bezier(0.16, 1, 0.3, 1);
                 transform-origin: center;
                 box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
 
                 &.expanded {
                     height: 430px; /* Increased height to accommodate basket */
                     border-radius: 20px;
+                }
+
+                &.dark {
+                    background-color: v.$font-color-light;
+                }
+
+                &.base {
+                    background-color: #fff;
                 }
             }
 
@@ -297,8 +309,7 @@
                         font-size: clamp(1rem, 2vh, 1.4rem);
                         font-family: 'Inter 24pt Regular';
                         opacity: 0;
-                        transition: opacity .3s ease;
-                        animation: fadeIn 0.5s ease forwards;
+                        transform: translateY(20px);
                         position: relative;
 
                         &:hover {

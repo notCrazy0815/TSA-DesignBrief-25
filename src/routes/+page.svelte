@@ -6,19 +6,56 @@
      import { page } from "$app/stores";
      import HeroCta from "$lib/components/HeroCta.svelte";
      import Footer from "$lib/components/Footer.svelte";
+     import { gsap } from "gsap";
+     import { ScrollTrigger } from "gsap/ScrollTrigger";
+     import WeAreSection from "$lib/components/WeAreSection.svelte";
+
+     let bg = "base";
 
      onMount(() => {
+          gsap.registerPlugin(ScrollTrigger);
+
           window.scrollTo(0, 0);
           if ($page.url.pathname === "/") {
                document.body.style.overflow = "hidden";
                setTimeout(() => {
                     document.body.style.overflow = "auto";
-               }, 3000);
+               }, 2600);
           }
+
+          // gsap.fromTo(".second-section-bg", {
+          //      width: "100%",
+          //      height: "20%",
+          //      opacity: 0.8,
+          //      borderRadius: "0",
+          //      ease: "power2.out"
+          // }, {
+          //      width: "100%",
+          //      height: "100%",
+          //      opacity: 1,
+          //      borderRadius: "0 0 0 0",
+          //      duration: 1,
+          //      ease: "power1.in",
+          //      scrollTrigger: {
+          //           trigger: ".second-section",
+          //           start: "-95% top top",
+          //           end: "-10% top top",
+          //           scrub: true,
+          //           onLeave: () => {
+          //                bg = "dark";
+          //           },
+          //           onEnterBack: () => {
+          //                bg = "base";
+          //           },
+          //           onEnter: () => {
+          //                bg = "base";
+          //           }
+          //      },
+          // });
      });
 </script>
 
-<NavBar />
+<NavBar {bg} />
 
 <div class="content">
      <section class="hero-section">
@@ -31,6 +68,10 @@
      </div>
      <div class="hero-cta-container">
           <HeroCta />
+     </div>
+
+     <div class="we-are-section-wrapper">
+          <WeAreSection />
      </div>
 </div>
 
@@ -49,12 +90,13 @@
           align-items: center;
           flex-direction: column;
           gap: 1rem;
+          margin-bottom: 145vh;
      }
 
      .hero-plants-container {
           position: absolute;
           width: 100%;
-          height: 100%;
+          height: 100vh;
           top: 0;
           left: 0;
           z-index: 1;
@@ -91,7 +133,11 @@
           }
      }
 
-     .footer-wrapper {
-          margin-top: 30vh;
+     .we-are-section-wrapper {
+          position: absolute;
+          width: 100%;
+          top: 100vh;
+          z-index: 4;
      }
+
 </style>

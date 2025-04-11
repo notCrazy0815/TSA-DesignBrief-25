@@ -2,6 +2,8 @@
     import gsap from "gsap";
     import { ScrollTrigger } from "gsap/all";
     import { onMount } from "svelte";
+    import { shouldAnimate, isLoading } from "$lib/stores/navStore";
+    import { goto } from "$app/navigation";
 
     onMount(() => {
         gsap.registerPlugin(ScrollTrigger);
@@ -16,11 +18,26 @@
             stagger: 0.08,
             scrollTrigger: {
                 trigger: ".bottom",
-                start: "top 90%",
                 toggleActions: "play none none none"
             }
         });
     });
+
+    function navigateAndAnimate(href: string) {
+        if (window.location.pathname === href) {
+            return;
+        }
+
+        setTimeout(() => {
+            shouldAnimate.set(true);
+            isLoading.set(true);
+        }, 0);
+
+        setTimeout(() => {
+            shouldAnimate.set(false);
+            goto(href);
+        }, 950);
+    }
 </script>
 
 <div class="footer">
@@ -28,7 +45,7 @@
         <div class="top">
             <div class="references-and-links">
                 <div class="references link-list">
-                    <p>References</p>
+                    <p>References</p> 
                     <div class="list">
                         <p>Worklog</p>
                         <p>Copyright Checklist</p>
@@ -38,9 +55,9 @@
                 <div class="links link-list">
                     <p>Links</p>
                     <div class="list">
-                        <a href="/">Approach</a>
-                        <a href="/menu">Menu</a>
-                        <a href="/news">News</a>
+                        <div on:click={() => navigateAndAnimate("/")} on:keydown={(e) => e.key === 'Enter' && navigateAndAnimate("/")} tabindex="0" role="button">Approach</div>
+                        <div on:click={() => navigateAndAnimate("/menu")} on:keydown={(e) => e.key === 'Enter' && navigateAndAnimate("/menu")} tabindex="0" role="button">Menu</div>
+                        <div on:click={() => navigateAndAnimate("/news")} on:keydown={(e) => e.key === 'Enter' && navigateAndAnimate("/news")} tabindex="0" role="button">News</div>
                     </div>
                 </div>
             </div>
@@ -109,8 +126,9 @@
                             flex-direction: column;
                             gap: 0.2rem;
 
-                            p, a {
+                            p, div {
                                 font-size: clamp(0.7rem, 3vw, 0.85rem);
+                                font-family: "Inter 24pt Regular";
                                 cursor: pointer;
 
                                 &:hover {
