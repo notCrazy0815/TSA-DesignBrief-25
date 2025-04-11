@@ -1,821 +1,845 @@
-<script>
-  import { fly, fade } from "svelte/transition";
-  import IngredientSourceModal from "./IngredientSourceModal.svelte";
+<script lang="ts">
+  import { createEventDispatcher, onMount } from 'svelte';
+  import { gsap } from 'gsap';
+  import { fade, fly, scale, slide } from 'svelte/transition';
+  import { cubicIn, cubicOut } from 'svelte/easing';
+  import type { MenuItem } from '$lib/data/menu/types';
+  import { findBestPairings, generatePairingRecommendation, type PairingItem } from '$lib/utils/pairingSystem';
+  import menuItems from '$lib/data/menu';
+
+  export let item: MenuItem;
+  export let isOpen: boolean = false;
+
+  const dispatch = createEventDispatcher();
+  let modalElement: HTMLElement;
+  let dynamicRecommendation: string = '';
+  let topPairings: PairingItem[] = [];
+  let pairingsGenerated = false;
+  let isClosing = false;
   
-  export let item = null;
-  export let onClose = () => {};
-  export let onPairingClick = null;
-  
-  let selectedIngredient = null;
-  
-  function handlePairingClick(pairingName) {
-    console.log(`Pairing clicked: ${pairingName}`);
+  let expandedSections = {
+    flavorProfile: false,
+    nutrition: true,
+    ingredients: true,
+    allergens: true,
+    sourcing: true
+  };
+
+  function toggleSection(section: keyof typeof expandedSections) {
+    expandedSections[section] = !expandedSections[section];
+  }
+
+  function toPairingItem(menuItem: MenuItem, category: 'appetizer' | 'main' | 'drink' | 'dessert'): PairingItem {
+    return {
+      id: menuItem.id,
+      name: menuItem.name,
+      category: category,
+      flavorProfile: menuItem.flavorProfile || {
+        sweet: 0, salty: 0, sour: 0, bitter: 0, 
+        umami: 0, spicy: 0, refreshing: 0, rich: 0
+      },
+      isVegan: menuItem.isVegan,
+      isVegetarian: menuItem.isVegetarian,
+      seasonal: menuItem.seasonal,
+      contains: menuItem.contains
+    };
+  }
+
+  function generateDynamicPairings() {
+    if (pairingsGenerated || !item.dynamicPairings || !item.flavorProfile) return;
     
-    if (typeof onPairingClick === 'function') {
-      onPairingClick(pairingName);
+    const allItems: MenuItem[] = [
+      ...menuItems[1],
+      ...menuItems[2],
+      ...menuItems[3],
+      ...menuItems[4]
+    ];
+
+    const pairingItems: PairingItem[] = [
+      ...menuItems[1].map(item => toPairingItem(item, 'appetizer')),
+      ...menuItems[2].map(item => toPairingItem(item, 'main')),
+      ...menuItems[3].map(item => toPairingItem(item, 'drink')),
+      ...menuItems[4].map(item => toPairingItem(item, 'dessert'))
+    ];
+    
+    const dietaryFilter = item.isVegan ? 'vegan' : 
+                         item.isVegetarian ? 'vegetarian' : undefined;
+    
+    const currentCategory = 
+      item.id >= 100 && item.id < 200 ? 'appetizer' :
+      item.id >= 200 && item.id < 300 ? 'main' :
+      item.id >= 300 && item.id < 400 ? 'drink' : 'dessert';
+    
+    const currentPairingItem = toPairingItem(item, currentCategory);
+    
+    topPairings = findBestPairings(currentPairingItem, pairingItems, 3, dietaryFilter);
+    
+    dynamicRecommendation = generatePairingRecommendation(currentPairingItem, topPairings);
+    pairingsGenerated = true;
+  }
+
+  function closeModal() {
+    isClosing = true;
+    setTimeout(() => {
+      dispatch('close');
+      isClosing = false;
+    }, 300);
+  }
+
+  function handleKeydown(event: KeyboardEvent) {
+    if (event.key === 'Escape') {
+      closeModal();
     }
   }
-  
-  function getUniquePairings() {
-    if (!item?.detailed?.pairings || !Array.isArray(item.detailed.pairings)) 
-      return [];
-      
-    return [...new Set(item.detailed.pairings)];
+
+  function stopPropagation(event: Event) {
+    event.stopPropagation();
   }
-  
-  function handleIngredientClick(ingredientSource) {
-    if (ingredientSource) {
-      selectedIngredient = ingredientSource;
+
+  function getFlavorColor(flavor: string): string {
+    switch (flavor.toLowerCase()) {
+      case 'sweet': return '#fc6234';
+      case 'salty': return '#5d5ca8';
+      case 'sour': return '#025c48';
+      case 'bitter': return '#8e7cc3';
+      case 'umami': return '#6fa8dc';
+      case 'spicy': return '#e06666';
+      case 'refreshing': return '#93c47d';
+      case 'rich': return '#5AB1BB';
+      default: return '#ccc';
     }
   }
-  
-  function closeIngredientModal() {
-    selectedIngredient = null;
+
+  $: if (item && item.id) {
+    pairingsGenerated = false;
   }
-  
-  function hasSourceInfo(ingredientName) {
-    if (!item?.detailed?.ingredientSources) return false;
-    
-    return item.detailed.ingredientSources.some(src => 
-      src.name.toLowerCase() === ingredientName.toLowerCase());
-  }
-  
-  function getSourceInfo(ingredientName) {
-    if (!item?.detailed?.ingredientSources) return null;
-    
-    return item.detailed.ingredientSources.find(src => 
-      src.name.toLowerCase() === ingredientName.toLowerCase());
+
+  onMount(() => {
+    if (isOpen && modalElement) {
+      gsap.from(modalElement, {
+        y: 30,
+        opacity: 0,
+        scale: 0.95,
+        duration: 0.4,
+        ease: "back.out(1.2)"
+      });
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeydown);
+    };
+  });
+
+  $: if (isOpen) {
+    document.addEventListener('keydown', handleKeydown);
+    document.body.style.overflow = 'hidden';
+    generateDynamicPairings();
+  } else {
+    document.removeEventListener('keydown', handleKeydown);
+    document.body.style.overflow = 'auto';
   }
 </script>
 
-{#if item}
-  <div class="menu-item-modal" in:fade={{ duration: 300 }} out:fade={{ duration: 200 }}>
-    <div class="modal-backdrop" on:click={onClose}></div>
-    <div class="modal-content" in:fly={{ y: 20, duration: 400 }}>
-      <button class="modal-close" on:click={onClose} aria-label="Close details">
-        <span>×</span>
-      </button>
-      
-      <div class="modal-layout">
-        {#if item.detailed?.image}
-          <div class="modal-image" style="background-image: url('{item.detailed.image}')">
-            <div class="image-overlay"></div>
-          </div>
+{#if isOpen}
+  <div 
+    class="modal-overlay" 
+    on:click={closeModal}
+    on:keydown={(e) => e.key === 'Enter' && closeModal()}
+    role="button"
+    tabindex="0"
+    aria-label="Close modal"
+    transition:fade={{ duration: 250 }}
+  >
+    <button 
+      class="close-button" 
+      on:click={closeModal} 
+      aria-label="Close"
+      in:scale={{delay: 200, duration: 200, start: 0.8}}
+      out:scale={{duration: 150}}
+    >
+      ×
+    </button>
+    
+    <div 
+      class="modal-content" 
+      class:closing={isClosing}
+      bind:this={modalElement}
+      on:click={stopPropagation}
+      on:keydown={(e) => e.key === 'Enter' && stopPropagation(e)}
+      role="dialog"
+      aria-labelledby="modal-title"
+      in:fly={{ y: 30, duration: 350, easing: cubicOut }}
+      out:fly={{ y: 20, duration: 250, easing: cubicIn }}
+    >
+      <div class="modal-header">
+        <h2 class="item-name">{item.name}</h2>
+        <div class="item-price">{item.price}</div>
+      </div>
+
+      <div class="item-badges">
+        {#if item.isVegan}
+          <span class="badge vegan">Vegan</span>
+        {:else if item.isVegetarian}
+          <span class="badge vegetarian">Vegetarian</span>
         {/if}
-        
-        <div class="modal-header">
-          <h3>{item.name}</h3>
-          <div class="modal-tags">
-            {#if item.tags?.includes('vegan')}
-              <span class="diet-symbol vegan" title="Vegan">V</span>
-            {:else if item.tags?.includes('vegetarian')}
-              <span class="diet-symbol vegetarian" title="Vegetarian">VG</span>
-            {/if}
-            {#if item.tags?.includes('gluten-free')}
-              <span class="diet-symbol gluten-free" title="Gluten-Free">GF</span>
-            {/if}
-            {#if item.isNew}
-              <span class="new-tag">NEW</span>
-            {/if}
-          </div>
-          <div class="price-tag">${item.price}</div>
-        </div>
-        
-        {#if item.detailed}
-          <div class="modal-description">
-            <p>{item.detailed.description}</p>
-          </div>
+        {#if item.seasonal}
+          <span class="badge seasonal">Seasonal</span>
+        {/if}
+        {#if item.dietarySuitability?.glutenFree}
+          <span class="badge gluten-free">Gluten-Free</span>
+        {/if}
+        {#if item.dietarySuitability?.dairyFree}
+          <span class="badge dairy-free">Dairy-Free</span>
+        {/if}
+      </div>
+
+      <div class="modal-body">
+        <div class="description-section">
+          <p class="item-description">{item.description}</p>
           
-          <div class="modal-info-grid">
-            {#if item.detailed.ingredients?.length > 0}
-              <div class="modal-info-section">
-                <h4>
-                  Ingredients
-                  {#if item.detailed.ingredientSources?.length > 0}
-                    <span class="farm-to-table-badge">Farm to Table</span>
-                  {/if}
-                </h4>
-                <ul class="ingredients-list">
-                  {#each item.detailed.ingredients as ingredient}
-                    {#if hasSourceInfo(ingredient)}
-                      <li 
-                        class="ingredient-item traceable" 
-                        on:click={() => handleIngredientClick(getSourceInfo(ingredient))}
-                        title="Click to see source information"
-                      >
-                        <span class="ingredient-name">{ingredient}</span>
-                        <span class="source-icon">
-                          <span class="icon-text">TN</span>
-                        </span>
-                      </li>
-                    {:else}
-                      <li>{ingredient}</li>
-                    {/if}
+          {#if item.preparation}
+            <div class="detail-section">
+              <h3>Preparation</h3>
+              <p>{item.preparation}</p>
+            </div>
+          {/if}
+
+          {#if dynamicRecommendation || item.pairingRecommendation}
+            <div class="detail-section pairing-section">
+              <h3>Perfect Pairing</h3>
+              <p>{dynamicRecommendation || item.pairingRecommendation}</p>
+              
+              {#if topPairings.length > 0}
+                <div class="pairing-suggestions">
+                  {#each topPairings.slice(0, 2) as pairing}
+                    <div class="pairing-item">
+                      <span class="pairing-name">{pairing.name}</span>
+                      <span class="pairing-strength" style="width: {(pairing.pairingStrength || 0) * 10}%"></span>
+                    </div>
                   {/each}
-                </ul>
-              </div>
-            {/if}
+                </div>
+              {/if}
+            </div>
+          {/if}
+          
+          {#if item.flavorProfile}
+            <div class="collapsible-section">
+              <button 
+                class="section-toggle" 
+                on:click={() => toggleSection('flavorProfile')}
+                on:keydown={(e) => e.key === 'Enter' && toggleSection('flavorProfile')}
+                aria-expanded={expandedSections.flavorProfile}
+              >
+                <h3>Flavor Profile</h3>
+                <span class="toggle-icon">{expandedSections.flavorProfile ? '−' : '+'}</span>
+              </button>
+              
+              {#if expandedSections.flavorProfile}
+                <div class="section-content flavor-profile-section" transition:slide={{duration: 300}}>
+                  <div class="flavor-bars">
+                    {#each Object.entries(item.flavorProfile) as [flavor, intensity], index}
+                      <div class="flavor-bar">
+                        <span class="flavor-name">{flavor.charAt(0).toUpperCase() + flavor.slice(1)}</span>
+                        <div class="intensity-bar">
+                          <div 
+                            class="intensity-fill" 
+                            style="width: {intensity * 10}%; background-color: {getFlavorColor(flavor)};"
+                          ></div>
+                        </div>
+                      </div>
+                    {/each}
+                  </div>
+                  
+                  <div class="flavor-profile-explainer">
+                    <p>Our flavor profiles help you understand the taste characteristics of each dish on a scale of 0-10.</p>
+                  </div>
+                </div>
+              {/if}
+            </div>
+          {/if}
+        </div>
+
+        <div class="details-section">
+          {#if item.ingredients && item.ingredients.length > 0}
+            <div class="collapsible-section">
+              <button 
+                class="section-toggle" 
+                on:click={() => toggleSection('ingredients')}
+                on:keydown={(e) => e.key === 'Enter' && toggleSection('ingredients')}
+                aria-expanded={expandedSections.ingredients}
+              >
+                <h3>Ingredients</h3>
+                <span class="toggle-icon">{expandedSections.ingredients ? '−' : '+'}</span>
+              </button>
+              
+              {#if expandedSections.ingredients}
+                <div class="section-content ingredients-section" transition:slide={{duration: 300}}>
+                  <ul class="ingredients-list">
+                    {#each item.ingredients as ingredient}
+                      <li>{ingredient}</li>
+                    {/each}
+                  </ul>
+                </div>
+              {/if}
+            </div>
+          {/if}
+
+          {#if item.contains && item.contains.length > 0}
+            <div class="collapsible-section">
+              <button 
+                class="section-toggle" 
+                on:click={() => toggleSection('allergens')}
+                on:keydown={(e) => e.key === 'Enter' && toggleSection('allergens')}
+                aria-expanded={expandedSections.allergens}
+              >
+                <h3>Contains</h3>
+                <span class="toggle-icon">{expandedSections.allergens ? '−' : '+'}</span>
+              </button>
+              
+              {#if expandedSections.allergens}
+                <div class="section-content allergens-section" transition:slide={{duration: 300}}>
+                  <div class="allergens">
+                    {#each item.contains as allergen}
+                      <span class="allergen-pill">{allergen}</span>
+                    {/each}
+                  </div>
+                </div>
+              {/if}
+            </div>
+          {/if}
+
+          <div class="collapsible-section">
+            <button 
+              class="section-toggle" 
+              on:click={() => toggleSection('nutrition')}
+              on:keydown={(e) => e.key === 'Enter' && toggleSection('nutrition')}
+              aria-expanded={expandedSections.nutrition}
+            >
+              <h3>Nutrition Information</h3>
+              <span class="toggle-icon">{expandedSections.nutrition ? '−' : '+'}</span>
+            </button>
             
-            {#if item.detailed.nutrition}
-              <div class="modal-info-section">
-                <h4>Nutrition</h4>
-                <div class="nutrition-info">
-                  {#if item.detailed.nutrition.calories}
+            {#if expandedSections.nutrition}
+              <div class="section-content nutrition-section" transition:slide={{duration: 300}}>
+                <div class="nutrition-grid">
+                  <div class="nutrition-item">
+                    <span class="nutrition-value">{item.nutrition.calories}</span>
+                    <span class="nutrition-label">Calories</span>
+                  </div>
+                  <div class="nutrition-item">
+                    <span class="nutrition-value">{item.nutrition.protein}g</span>
+                    <span class="nutrition-label">Protein</span>
+                  </div>
+                  <div class="nutrition-item">
+                    <span class="nutrition-value">{item.nutrition.fat}g</span>
+                    <span class="nutrition-label">Fat</span>
+                  </div>
+                  <div class="nutrition-item">
+                    <span class="nutrition-value">{item.nutrition.carbs}g</span>
+                    <span class="nutrition-label">Carbs</span>
+                  </div>
+                  {#if item.nutrition.sugar !== undefined}
                     <div class="nutrition-item">
-                      <span class="nutrition-label">Calories</span>
-                      <span class="nutrition-value">{item.detailed.nutrition.calories}</span>
-                    </div>
-                  {/if}
-                  {#if item.detailed.nutrition.protein}
-                    <div class="nutrition-item">
-                      <span class="nutrition-label">Protein</span>
-                      <span class="nutrition-value">{item.detailed.nutrition.protein}</span>
-                    </div>
-                  {/if}
-                  {#if item.detailed.nutrition.carbs}
-                    <div class="nutrition-item">
-                      <span class="nutrition-label">Carbs</span>
-                      <span class="nutrition-value">{item.detailed.nutrition.carbs}</span>
-                    </div>
-                  {/if}
-                  {#if item.detailed.nutrition.fat}
-                    <div class="nutrition-item">
-                      <span class="nutrition-label">Fat</span>
-                      <span class="nutrition-value">{item.detailed.nutrition.fat}</span>
-                    </div>
-                  {/if}
-                  {#if item.detailed.nutrition.sugar}
-                    <div class="nutrition-item">
+                      <span class="nutrition-value">{item.nutrition.sugar}g</span>
                       <span class="nutrition-label">Sugar</span>
-                      <span class="nutrition-value">{item.detailed.nutrition.sugar}</span>
+                    </div>
+                  {/if}
+                  {#if item.nutrition.fiber !== undefined}
+                    <div class="nutrition-item">
+                      <span class="nutrition-value">{item.nutrition.fiber}g</span>
+                      <span class="nutrition-label">Fiber</span>
+                    </div>
+                  {/if}
+                  {#if item.nutrition.sodium !== undefined}
+                    <div class="nutrition-item">
+                      <span class="nutrition-value">{item.nutrition.sodium}mg</span>
+                      <span class="nutrition-label">Sodium</span>
                     </div>
                   {/if}
                 </div>
               </div>
             {/if}
           </div>
-          
-          {#if item.detailed.allergens?.length > 0}
-            <div class="modal-allergens">
-              <h4>Allergens</h4>
-              <div class="allergen-chips">
-                {#each item.detailed.allergens as allergen}
-                  <span class="allergen-chip">{allergen}</span>
-                {/each}
-              </div>
+
+          {#if item.sourceInfo?.sources && item.sourceInfo.sources.length > 0}
+            <div class="collapsible-section">
+              <button 
+                class="section-toggle" 
+                on:click={() => toggleSection('sourcing')}
+                on:keydown={(e) => e.key === 'Enter' && toggleSection('sourcing')}
+                aria-expanded={expandedSections.sourcing}
+              >
+                <h3>Sourcing Information</h3>
+                <span class="toggle-icon">{expandedSections.sourcing ? '−' : '+'}</span>
+              </button>
+              
+              {#if expandedSections.sourcing}
+                <div class="section-content sourcing-section" transition:slide={{duration: 300}}>
+                  {#if item.sourceInfo.local || item.sourceInfo.organic}
+                    <div class="source-tags">
+                      {#if item.sourceInfo.local}
+                        <span class="source-tag local">Locally Sourced</span>
+                      {/if}
+                      {#if item.sourceInfo.organic}
+                        <span class="source-tag organic">Organic</span>
+                      {/if}
+                    </div>
+                  {/if}
+                  <ul class="source-list">
+                    {#each item.sourceInfo.sources as source}
+                      <li>
+                        <span class="source-name">{source.name}</span>
+                        <span class="source-location">{source.location}</span>
+                      </li>
+                    {/each}
+                  </ul>
+                </div>
+              {/if}
             </div>
           {/if}
-          
-          {#if item.detailed.pairings?.length > 0}
-            <div class="modal-pairings">
-              <h4>Recommended Pairings</h4>
-              <div class="pairings-list">
-                {#each getUniquePairings() as pairing}
-                  <button 
-                    class="pairing-item" 
-                    on:click|stopPropagation={() => handlePairingClick(pairing)}
-                    type="button"
-                  >
-                    <span class="pairing-name">{pairing}</span>
-                    <span class="pairing-view">View</span>
-                  </button>
-                {/each}
-              </div>
-            </div>
-          {:else if item.detailed.recommended}
-            <div class="modal-pairings">
-              <h4>Chef Recommends</h4>
-              <div class="pairings-list">
-                <p class="pairing-note">{item.detailed.recommended}</p>
-              </div>
-            </div>
-          {/if}
-          
-          {#if item.detailed.ingredientSources?.length > 0}
-            <div class="farm-to-table-section">
-              <h4>Our Farm-to-Table Commitment</h4>
-              <p class="farm-to-table-description">
-                We pride ourselves on sourcing ingredients locally from sustainable farms around Nashville. 
-                Click on highlighted ingredients to learn about their origins and our partners.
-              </p>
-              <div class="local-sources-badge">
-                <span class="badge-percentage">{Math.round((item.detailed.ingredientSources.length / item.detailed.ingredients.length) * 100)}%</span> 
-                locally sourced ingredients
-              </div>
-            </div>
-          {/if}
-        {:else}
-          <div class="modal-description">
-            <p>We're working on adding more information about this item. Please ask your server for details.</p>
-          </div>
-        {/if}
+        </div>
       </div>
     </div>
   </div>
 {/if}
 
-{#if selectedIngredient}
-  <IngredientSourceModal 
-    ingredient={selectedIngredient} 
-    onClose={closeIngredientModal} 
-  />
-{/if}
-
 <style lang="scss">
-  @use "../styles/variables" as v;
-  
-  .menu-item-modal {
+  @use "../../lib/styles/variables" as v;
+
+  .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
     z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    
-    .modal-backdrop {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(v.$font-color-dark, 0.75);
-      backdrop-filter: blur(5px);
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    
-    .modal-content {
-      position: relative;
-      width: 90%;
-      max-width: 800px;
-      max-height: 85vh;
-      background-color: white;
-      border-radius: 10px;
-      box-shadow: 
-        0 10px 35px rgba(0, 0, 0, 0.12),
-        0 2px 15px rgba(0, 0, 0, 0.08);
-      overflow: hidden;
-      z-index: 1001;
-      
-      &::before {
-        content: "";
-        position: absolute;
-        top: 1px;
-        left: 1px;
-        right: 1px;
-        bottom: 1px;
-        border-radius: 9px;
-        border: 1px solid rgba(v.$tertiary, 0.08);
-        pointer-events: none;
-      }
-    }
-    
-    .modal-close {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: white;
-      border: none;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 10;
-      transition: all 0.2s ease;
-      
-      span {
-        font-size: 1.7rem;
-        line-height: 0;
-        margin-top: -2px;
-        color: #666;
-        transition: all 0.2s ease;
-        font-family: "Inter 24pt Regular", sans-serif;
-      }
-      
-      &:hover {
-        background-color: v.$tertiary;
-        transform: scale(1.05) rotate(90deg);
-        
-        span {
-          color: white;
-        }
-      }
-    }
+    padding: 20px;
+    backdrop-filter: blur(3px);
   }
-  
-  .modal-layout {
-    display: flex;
-    flex-direction: column;
+
+  .modal-content {
+    background-color: white;
     width: 100%;
-    max-height: 85vh;
+    max-width: 800px;
+    max-height: 90vh;
+    border-radius: 8px;
+    padding: 30px;
+    position: relative;
     overflow-y: auto;
-    
-    &::-webkit-scrollbar {
-      width: 6px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    transform-origin: center;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+
+    &.closing {
+      transform: scale(0.98);
+      opacity: 0.8;
     }
-    
-    &::-webkit-scrollbar-track {
-      background: rgba(v.$tertiary-light, 0.03);
-      border-radius: 0 10px 10px 0;
-    }
-    
-    &::-webkit-scrollbar-thumb {
-      background: rgba(v.$tertiary, 0.15);
-      border-radius: 3px;
-    }
-    
-    &::-webkit-scrollbar-thumb:hover {
-      background: rgba(v.$tertiary, 0.25);
-    }
-  }
-  
-  .modal-image {
-    width: 100%;
-    height: 240px;
-    background-size: cover;
-    background-position: center;
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
-    position: relative;
-    
-    .image-overlay {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 100px;
-      background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.6));
-      z-index: 1;
-    }
-  }
-  
-  .modal-header {
-    padding: 26px 28px 16px;
-    border-bottom: 1px solid rgba(v.$tertiary-light, 0.1);
-    position: relative;
-    
-    h3 {
-      font-family: "DynaPuff Regular", cursive;
-      font-size: 1.8rem;
-      color: v.$tertiary-dark;
-      margin: 0 0 8px;
-      padding-right: 80px;
-      line-height: 1.3;
-    }
-    
-    .price-tag {
-      position: absolute;
-      top: 26px;
-      right: 28px;
-      background: v.$primary;
-      color: white;
-      font-size: 1.1rem;
-      font-weight: 600;
-      padding: 8px 15px;
-      border-radius: 6px;
-      font-family: "Inter 24pt Regular", sans-serif;
-      box-shadow: 0 2px 8px rgba(v.$primary, 0.25);
-      letter-spacing: 0.5px;
-    }
-  }
-  
-  .modal-tags {
-    display: flex;
-    gap: 8px;
-    margin: 5px 0 10px;
-  }
-  
-  .diet-symbol {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: 3px;
-    font-size: 0.65rem;
-    font-weight: 600;
-    width: 22px;
-    height: 22px;
-    border-radius: 4px;
-    font-family: "Inter 24pt Regular", sans-serif;
-    background-color: rgba(v.$tertiary-light, 0.08);
-    color: v.$tertiary;
-    
-    &.vegan { 
-      background-color: rgba(76, 175, 80, 0.08);
-      color: #4CAF50; 
-    }
-    &.vegetarian { 
-      background-color: rgba(255, 152, 0, 0.08);
-      color: #FF9800; 
-    }
-    &.gluten-free { 
-      background-color: rgba(141, 110, 99, 0.08);
-      color: #8D6E63; 
-    }
-    &.seasonal { 
-      background-color: rgba(255, 87, 34, 0.08);
-      color: #FF5722;
-    }
-    &.spicy { 
-      background-color: rgba(244, 67, 54, 0.08);
-      color: #F44336;
-      font-size: 0.8rem;
+
+    @media (max-width: 768px) {
+      padding: 20px;
+      max-height: 80vh;
     }
   }
 
-  .new-tag {
-    background-color: v.$primary;
-    color: white;
-    font-size: 0.65rem;
-    padding: 2px 6px;
-    border-radius: 2px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    margin-left: 6px;
+  .close-button {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: v.$tertiary;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 20;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    font-weight: 300;
+
+    &:hover {
+      background-color: v.$tertiary;
+      color: white;
+      transform: rotate(90deg) scale(1.1);
+    }
+
+    &:active {
+      transform: rotate(90deg) scale(0.95);
+    }
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 15px;
+    border-bottom: 1px solid rgba(160, 147, 125, 0.2);
+    padding-bottom: 15px;
+    padding-right: 20px;
+  }
+
+  .item-name {
     font-family: "Inter 24pt Regular", sans-serif;
-  }
-  
-  .modal-description {
-    padding: 22px 28px;
-    background-color: rgba(v.$tertiary-light, 0.02);
-    border-bottom: 1px solid rgba(v.$tertiary-light, 0.05);
-    
-    p {
-      font-size: 1rem;
-      line-height: 1.6;
-      color: #444;
-      margin: 0;
-      font-weight: 300;
-      font-family: "Inter 24pt Regular", sans-serif;
-    }
-  }
-  
-  .modal-info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 30px;
-    padding: 22px 28px;
-    background-color: white;
-  }
-  
-  .modal-info-section {
-    h4 {
-      font-family: "DynaPuff Regular", cursive;
-      font-size: 1.2rem;
-      color: v.$tertiary;
-      margin: 0 0 14px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid rgba(v.$tertiary-light, 0.15);
-      position: relative;
-    }
-  }
-  
-  .ingredients-list {
-    list-style: none;
-    padding: 0;
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: v.$tertiary;
     margin: 0;
+  }
+
+  .item-price {
+    font-family: "Inter 24pt Regular", sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: v.$tertiary;
+  }
+
+  .item-badges {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    
-    li {
-      background-color: rgba(v.$tertiary-light, 0.03);
-      border: 1px solid rgba(v.$tertiary-light, 0.1);
+    margin-bottom: 20px;
+
+    .badge {
+      padding: 5px 12px;
       border-radius: 4px;
-      padding: 6px 12px;
-      font-size: 0.9rem;
-      color: #555;
-      transition: all 0.15s ease;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: white;
+    }
+
+    .vegan {
+      background-color: v.$tertiary;
+    }
+
+    .vegetarian {
+      background-color: v.$secondary;
+    }
+
+    .seasonal {
+      background-color: v.$primary;
+    }
+
+    .gluten-free {
+      background-color: #8e7cc3;
+    }
+
+    .dairy-free {
+      background-color: #6fa8dc;
+    }
+  }
+
+  .modal-body {
+    display: flex;
+    gap: 30px;
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+    }
+  }
+
+  .description-section {
+    flex: 1;
+  }
+
+  .details-section {
+    flex: 1;
+    background-color: #f9f7f4;
+    padding: 20px;
+    border-radius: 8px;
+  }
+
+  .item-description {
+    font-family: "Inter 24pt Regular", sans-serif;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #333;
+    margin-bottom: 20px;
+  }
+
+  .detail-section {
+    margin-bottom: 20px;
+
+    h3 {
       font-family: "Inter 24pt Regular", sans-serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: v.$tertiary;
+      margin-bottom: 8px;
+    }
+
+    p {
+      font-family: "Inter 24pt Regular", sans-serif;
+      font-size: 1rem;
+      line-height: 1.5;
+      color: #444;
+    }
+  }
+  
+  .collapsible-section {
+    margin-bottom: 15px;
+    background-color: white;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    
+    .section-toggle {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      padding: 12px 15px;
+      background-color: white;
+      border: 1px solid rgba(160, 147, 125, 0.15);
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: left;
+      transition: background-color 0.2s;
       
       &:hover {
-        background-color: rgba(v.$tertiary-light, 0.06);
-        transform: translateY(-1px);
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+        background-color: rgba(160, 147, 125, 0.05);
+      }
+      
+      h3 {
+        font-family: "Inter 24pt Regular", sans-serif;
+        font-size: 1rem;
+        font-weight: 600;
+        color: v.$tertiary;
+        margin: 0;
+      }
+      
+      .toggle-icon {
+        font-size: 1.2rem;
+        color: v.$tertiary;
+        font-weight: 300;
       }
     }
     
-    .ingredient-item.traceable {
+    .section-content {
+      padding: 15px;
+      border: 1px solid rgba(160, 147, 125, 0.15);
+      border-top: none;
+      border-bottom-left-radius: 6px;
+      border-bottom-right-radius: 6px;
+    }
+  }
+
+  .ingredients-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      font-family: "Inter 24pt Regular", sans-serif;
+      font-size: 0.95rem;
+      color: #444;
+      padding: 5px 0;
       position: relative;
-      cursor: pointer;
-      border: 1px solid rgba(67, 160, 71, 0.2);
-      background-color: rgba(67, 160, 71, 0.05);
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      
-      &:hover {
-        background-color: rgba(67, 160, 71, 0.1);
-        transform: translateY(-2px);
-        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
-      }
-      
-      .source-icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 22px;
-        height: 22px;
-        background-color: #43A047;
-        border-radius: 50%;
-        margin-left: 8px;
-        
-        .icon-text {
-          color: white;
-          font-size: 0.6rem;
-          font-weight: bold;
-          font-family: "Inter 24pt Regular", sans-serif;
-        }
+      padding-left: 20px;
+
+      &:before {
+        content: "•";
+        position: absolute;
+        left: 0;
+        color: v.$tertiary;
       }
     }
   }
-  
-  .nutrition-info {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 12px;
+
+  .allergens {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    .allergen-pill {
+      background-color: rgba(160, 147, 125, 0.1);
+      color: #695a4e;
+      padding: 4px 10px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
   }
-  
+
+  .nutrition-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+
+    @media (max-width: 480px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
   .nutrition-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 14px 10px;
-    background-color: rgba(v.$tertiary-light, 0.02);
-    border-radius: 6px;
-    text-align: center;
-    border: 1px solid rgba(v.$tertiary-light, 0.08);
-    transition: transform 0.15s ease;
-    
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 3px 8px rgba(v.$tertiary-light, 0.1);
-    }
-    
-    .nutrition-label {
-      font-size: 0.75rem;
-      color: #777;
-      margin-bottom: 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      font-family: "Inter 24pt Regular", sans-serif;
-    }
-    
-    .nutrition-value {
-      font-size: 1.2rem;
-      font-weight: 600;
-      color: v.$tertiary-dark;
-      font-family: "Inter 24pt Regular", sans-serif;
-    }
+    background-color: white;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   }
-  
-  .modal-allergens {
-    padding: 0 28px 24px;
-    
-    h4 {
-      font-family: "DynaPuff Regular", cursive;
-      font-size: 1.2rem;
-      color: v.$tertiary;
-      margin: 0 0 14px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid rgba(v.$tertiary-light, 0.15);
-      position: relative;
-    }
-  }
-  
-  .allergen-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  
-  .allergen-chip {
-    background-color: #FFF3E0;
-    border: 1px solid rgba(230, 81, 0, 0.1);
-    border-radius: 4px;
-    padding: 4px 10px;
-    font-size: 0.85rem;
-    color: #E65100;
-    font-weight: 500;
+
+  .nutrition-value {
     font-family: "Inter 24pt Regular", sans-serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: v.$tertiary;
   }
-  
-  .modal-pairings {
-    padding: 20px 28px 28px;
-    background-color: rgba(v.$secondary, 0.03);
-    border-top: 1px solid rgba(v.$secondary, 0.1);
-    
-    h4 {
-      font-family: "DynaPuff Regular", cursive;
-      font-size: 1.2rem;
+
+  .nutrition-label {
+    font-family: "Inter 24pt Regular", sans-serif;
+    font-size: 0.85rem;
+    color: #695a4e;
+    margin-top: 3px;
+  }
+
+  .source-tags {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+
+    .source-tag {
+      font-size: 0.85rem;
+      padding: 4px 10px;
+      border-radius: 30px;
+      font-weight: 500;
+    }
+
+    .local {
+      background-color: rgba(2, 92, 72, 0.1);
+      color: v.$tertiary;
+    }
+
+    .organic {
+      background-color: rgba(93, 92, 168, 0.1);
       color: v.$secondary;
-      margin: 0 0 14px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid rgba(v.$secondary, 0.15);
-      position: relative;
     }
   }
+
+  .source-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: "Inter 24pt Regular", sans-serif;
+      font-size: 0.95rem;
+      color: #444;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(160, 147, 125, 0.1);
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+
+    .source-name {
+      font-weight: 500;
+    }
+
+    .source-location {
+      font-size: 0.85rem;
+      color: #695a4e;
+      font-style: italic;
+    }
+  }
+
+  .pairing-section {
+    background-color: rgba(2, 92, 72, 0.05);
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 3px solid v.$tertiary;
+    margin-top: 25px;
+    margin-bottom: 20px;
+  }
   
-  .pairings-list {
+  .pairing-suggestions {
+    margin-top: 15px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    margin-top: 14px;
+    gap: 8px;
   }
   
   .pairing-item {
     display: flex;
-    align-items: center;
-    padding: 10px 16px;
-    background-color: rgba(v.$secondary, 0.02);
-    border-radius: 3px;
-    border-left: 3px solid v.$secondary;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-    transition: all 0.15s ease;
-    cursor: pointer;
-    position: relative;
-    justify-content: space-between;
-    width: 100%;
-    text-align: left;
-    border: none;
-    border-left: 3px solid v.$secondary; 
-    font-family: inherit;
-    outline: none;
-    
-    &:hover {
-      background-color: rgba(v.$secondary, 0.05);
-      transform: translateY(-1px);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-      
-      .pairing-view {
-        opacity: 1;
-      }
-    }
-    
-    &:active {
-      background-color: rgba(v.$secondary, 0.08);
-    }
+    flex-direction: column;
+    gap: 4px;
     
     .pairing-name {
-      font-size: 0.95rem;
+      font-size: 0.9rem;
+      font-weight: 500;
       color: #444;
-      font-weight: 400;
-      font-family: "Inter 24pt Regular", sans-serif;
-      flex-grow: 1;
     }
     
-    .pairing-view {
-      font-size: 0.75rem;
-      font-weight: 500;
-      color: v.$secondary;
-      background-color: rgba(v.$secondary, 0.08);
-      padding: 2px 8px;
+    .pairing-strength {
+      height: 6px;
+      background-color: v.$tertiary;
       border-radius: 3px;
-      opacity: 0.7;
-      transition: all 0.2s ease;
-      
-      &::after {
-        content: "→";
-        margin-left: 4px;
-        font-size: 0.9em;
-      }
+      max-width: 100%;
+      transition: width 0.5s ease;
     }
   }
   
-  .pairing-note {
-    font-style: italic;
-    color: #555;
-    padding: 16px;
+  .flavor-profile-section {
     background-color: white;
-    border-left: 2px solid v.$secondary;
-    border-radius: 4px;
-    line-height: 1.6;
-    margin: 0;
-    box-shadow: 0 2px 8px rgba(v.$secondary, 0.05);
-    font-family: "Inter 24pt Regular", sans-serif;
   }
   
-  .farm-to-table-badge {
-    display: inline-block;
-    font-size: 0.7rem;
-    background-color: #43A047;
-    color: white;
-    padding: 2px 6px;
-    border-radius: 4px;
-    margin-left: 8px;
-    font-weight: bold;
-    letter-spacing: 0.5px;
-    vertical-align: middle;
-    font-family: "Inter 24pt Regular", sans-serif;
+  .flavor-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
   }
   
-  .farm-to-table-section {
-    padding: 20px 28px 28px;
-    background-color: rgba(67, 160, 71, 0.05);
-    border-top: 1px solid rgba(67, 160, 71, 0.1);
+  .flavor-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     
-    h4 {
-      font-family: "DynaPuff Regular", cursive;
-      font-size: 1.2rem;
-      color: #2E7D32;
-      margin: 0 0 12px;
-    }
-    
-    .farm-to-table-description {
-      line-height: 1.6;
-      color: #444;
-      margin-bottom: 15px;
-      font-family: "Inter 24pt Regular", sans-serif;
-    }
-    
-    .local-sources-badge {
-      display: inline-block;
+    .flavor-name {
+      width: 100px;
       font-size: 0.85rem;
-      background-color: white;
-      color: #2E7D32;
-      padding: 8px 14px;
-      border-radius: 6px;
+      color: #444;
       font-weight: 500;
-      border: 1px solid rgba(67, 160, 71, 0.2);
-      font-family: "Inter 24pt Regular", sans-serif;
+    }
+    
+    .intensity-bar {
+      flex: 1;
+      height: 8px;
+      background-color: rgba(160, 147, 125, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
       
-      .badge-percentage {
-        font-weight: bold;
-        font-size: 1.1rem;
+      .intensity-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.5s ease;
       }
     }
   }
-
-  @media screen and (max-width: 600px) {
-    .modal-content {
-      width: 95%;
-      max-height: 90vh;
-      border-radius: 8px;
-    }
+  
+  .flavor-profile-explainer {
+    background-color: rgba(160, 147, 125, 0.05);
+    padding: 10px;
+    border-radius: 4px;
     
-    .modal-image {
-      height: 160px;
-      border-top-left-radius: 8px;
-      border-top-right-radius: 8px;
-    }
-    
-    .modal-header {
-      padding: 20px 22px 14px;
-      
-      h3 {
-        font-size: 1.5rem;
-      }
-      
-      .price-tag {
-        top: 20px;
-        right: 22px;
-        padding: 6px 12px;
-        font-size: 1rem;
-      }
-    }
-    
-    .modal-close {
-      top: 10px;
-      right: 10px;
-      width: 32px;
-      height: 32px;
-      
-      span {
-        font-size: 1.5rem;
-      }
-    }
-    
-    .modal-info-grid {
-      grid-template-columns: 1fr;
-      padding: 18px 22px;
-      gap: 22px;
-    }
-    
-    .modal-description {
-      padding: 18px 22px;
-      
-      p {
-        font-size: 0.95rem;
-      }
-    }
-    
-    .modal-allergens, .modal-pairings {
-      padding: 0 22px 22px;
-    }
-    
-    .nutrition-info {
-      grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .nutrition-item {
-      padding: 10px 8px;
+    p {
+      margin: 0;
+      font-size: 0.8rem;
+      color: #695a4e;
+      font-style: italic;
     }
   }
 </style>
