@@ -226,6 +226,90 @@
     
     // Removed animation targeting non-existent ".menu-background" element
     
+    // Initialize typewriter animation for the menu recommender
+    const baseText = "Discover your perfect meal with our flavor profile algorithm that calculates harmonious taste combinations based on your ";
+    const lastWords = ["needs.", "preferences.", "cravings.", "taste.", "senses."];
+    const typingElement = document.querySelector('.typewriter-text');
+    const lastWordElement = document.querySelector('.last-word');
+    
+    if (typingElement && lastWordElement) {
+      // Type the base text first
+      let charIndex = 0;
+      const typingSpeed = 35; // milliseconds per character
+      
+      const typeNextChar = () => {
+        if (charIndex < baseText.length) {
+          typingElement.textContent += baseText.charAt(charIndex);
+          charIndex++;
+          setTimeout(typeNextChar, typingSpeed);
+        } else {
+          // When base text is complete, start animating the last word
+          setTimeout(animateLastWord, 500);
+        }
+      };
+      
+      // Function to animate the last word
+      const animateLastWord = () => {
+        let wordIndex = 0;
+        
+        // Type the first word
+        typeLastWord(lastWords[wordIndex]);
+        
+        // Set up interval to change the last word periodically
+        function changeLastWord() {
+          // Delete the current word with typewriter effect
+          deleteLastWord(() => {
+            // After deletion, type the next word
+            wordIndex = (wordIndex + 1) % lastWords.length;
+            typeLastWord(lastWords[wordIndex]);
+          });
+        }
+        
+        // Set up timing for word changes
+        setTimeout(() => {
+          // Start changing words after the first word has been displayed for a while
+          setInterval(changeLastWord, 4000);
+        }, 3000);
+      };
+      
+      // Function to type the last word character by character
+      function typeLastWord(word) {
+        let charIndex = 0;
+        lastWordElement.textContent = "";
+        
+        function typeChar() {
+          if (charIndex < word.length) {
+            lastWordElement.textContent += word.charAt(charIndex);
+            charIndex++;
+            setTimeout(typeChar, 35);
+          }
+        }
+        
+        typeChar();
+      }
+      
+      // Function to delete the last word character by character
+      function deleteLastWord(callback) {
+        let text = lastWordElement.textContent;
+        let charIndex = text.length;
+        
+        function deleteChar() {
+          if (charIndex > 0) {
+            charIndex--;
+            lastWordElement.textContent = text.substring(0, charIndex);
+            setTimeout(deleteChar, 35);
+          } else {
+            if (callback) callback();
+          }
+        }
+        
+        deleteChar();
+      }
+      
+      // Start the animation
+      typeNextChar();
+    }
+    
     return () => {
       window.removeEventListener('resize', resetContainerHeight);
     };
@@ -280,12 +364,25 @@
         <span class="icon"></span>
         <span class="line"></span>
       </div>
-      
-      <!-- Add guided menu button here -->
-      <div class="guided-menu-button-container">
-        <button class="guided-menu-button" on:click={openGuidedSelection}>
-          <span class="text">Find Your Perfect Dish</span>
-        </button>
+    </div>
+    
+    <!-- Menu recommender explanation section with typewriter animation -->
+    <div class="menu-recommender-section">
+      <div class="recommender-container">
+        <div class="recommender-text-container">
+          <h3 class="recommender-title">Not sure what to choose?</h3>
+          <p class="recommender-text">
+            <span class="typewriter-text"></span>
+            <span class="last-word" class:highlight-word={true}></span>
+            <span class="cursor"></span>
+          </p>
+        </div>
+        <div class="recommender-button-container">
+          <button class="recommender-button" on:click={openGuidedSelection}>
+            <span class="pulse-circle"></span>
+            <span class="button-text">Find Your Perfect Dish</span>
+          </button>
+        </div>
       </div>
     </div>
     
@@ -1065,6 +1162,180 @@
     @media (max-width: 767px) {
       font-size: 1rem;
       padding: 12px 20px;
+    }
+  }
+
+  /* Menu recommender section styles */
+  .menu-recommender-section {
+    max-width: 900px;
+    margin: 0 auto 60px;
+    padding: 0 20px;
+  }
+  
+  .recommender-container {
+    background: linear-gradient(to right, rgba(2, 92, 72, 0.05), rgba(2, 92, 72, 0.1));
+    border: 1px solid rgba(2, 92, 72, 0.15);
+    border-radius: 16px;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    box-shadow: 0 10px 30px rgba(106, 89, 72, 0.08);
+    position: relative;
+    overflow: hidden;
+    
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      background: linear-gradient(to right, v.$tertiary, v.$tertiary-dark);
+      opacity: 0.8;
+    }
+    
+    @media (max-width: 767px) {
+      padding: 25px 20px;
+    }
+  }
+  
+  .recommender-text-container {
+      text-align: center;
+      
+      .recommender-title {
+        font-family: "DynaPuff Regular", cursive;
+        color: v.$tertiary-dark;
+        font-size: 1.8rem;
+        margin: 0 0 15px;
+        
+        @media (max-width: 767px) {
+          font-size: 1.5rem;
+        }
+      }
+      
+      .recommender-text {
+        font-family: "Inter 24pt Regular", sans-serif;
+        font-size: 1.3rem;
+        line-height: 1.8;
+        color: #4a3c31;
+        margin: 0;
+        min-height: 3.6em;
+        display: inline;
+        text-align: center;
+        
+        .typewriter-text, .last-word {
+          display: inline;
+        }
+        
+        @media (max-width: 767px) {
+          font-size: 1.15rem;
+        }
+      }
+      
+      .cursor {
+        display: inline-block;
+        width: 2px;
+        height: 1.2em;
+        background-color: #000;
+        margin-left: 2px;
+        vertical-align: middle;
+        animation: blink 0.8s infinite;
+        box-shadow: none;
+        position: relative;
+        top: -0.15em;
+      }
+      
+      @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+      }
+      
+      .highlight-word {
+        color: v.$primary;
+        font-weight: 600;
+        font-size: 1.4em;
+        display: inline;
+        position: relative;
+        margin: 0 0.1em;
+        animation: glowing 1.5s ease-in-out infinite alternate;
+      }
+      
+      @keyframes glowing {
+        from {
+          text-shadow: 0 0 5px rgba(252, 98, 52, 0.3);
+        }
+        to {
+          text-shadow: 0 0 10px rgba(252, 98, 52, 0.7), 
+                     0 0 15px rgba(252, 98, 52, 0.5);
+        }
+      }
+    }
+  
+  .recommender-button-container {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .recommender-button {
+    background-color: v.$tertiary;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 16px 32px;
+    font-family: "DynaPuff Regular", cursive;
+    font-size: 1.2rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 15px rgba(2, 92, 72, 0.2);
+    
+    .pulse-circle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      height: 100%;
+      border-radius: 50px;
+      background-color: v.$tertiary;
+      opacity: 0.3;
+      z-index: -1;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.3;
+      }
+      50% {
+        transform: translate(-50%, -50%) scale(1.05);
+        opacity: 0.1;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.3;
+      }
+    }
+    
+    &:hover {
+      background-color: darken(v.$tertiary, 5%);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(2, 92, 72, 0.25);
+    }
+    
+    &:active {
+      transform: translateY(0);
+    }
+    
+    @media (max-width: 767px) {
+      font-size: 1.1rem;
+      padding: 14px 28px;
     }
   }
 </style>
