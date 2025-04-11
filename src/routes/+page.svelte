@@ -83,6 +83,10 @@
      @use "../lib/styles/variables" as v;
      @use "../lib/styles/global" as g;
 
+     :global(body) {
+          overflow-x: hidden;
+     }
+
      .hero-section {
           min-height: 75vh;
           display: flex;
