@@ -16,12 +16,6 @@
     let isBasketOpen = false;
     let isFirstLoad = true;
     let contentElement: HTMLDivElement;
-    let isScrolled = false;
-    
-    // Add handleScroll function that was missing
-    function handleScroll() {
-        isScrolled = window.scrollY > 50;
-    }
 
     onMount(() => {
         isFirstLoad = $firstLoad;
