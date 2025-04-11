@@ -12,6 +12,7 @@
     export let bg: string = "base";
 
     let isMenuOpen = false;
+    let isBagOpen = false;
     let isFirstLoad = true;
     let contentElement: HTMLDivElement;
 
@@ -55,16 +56,33 @@
         }
     ];
 
-    function toggleMenu() {
-        isMenuOpen = !isMenuOpen;
-        
-        if (isMenuOpen) {
+    function toggleNavbar(type: "menu" | "bag" | "close") {
+        if (type === "menu") {
+            isMenuOpen = !isMenuOpen;
+        } else if (type === "bag") {
+            isBagOpen = !isBagOpen;
+        } else if (type === "close") {
+            isMenuOpen = false;
+            isBagOpen = false;
+        }
+            
+        if (isMenuOpen || isBagOpen) {
             gsap.to(".content-box", {
                 height: 300,
                 duration: 0.5,
                 ease: "power2.inOut"
             });
-            
+        }
+
+        if (!isBagOpen && !isMenuOpen) {
+            gsap.to(".content-box", {
+                height: "100%",
+                duration: 0.5,
+                ease: "power2.inOut"
+            });
+        }
+         
+        if (isMenuOpen) {
             setTimeout(() => {
                 const menuLinks = document.querySelectorAll(".menu-content .menu-links a");
                 if (menuLinks.length > 0) {
@@ -77,7 +95,7 @@
                     });
                 }
             }, 300);
-        } else {
+        } else if (!isMenuOpen) {
             const menuLinks = document.querySelectorAll(".menu-content .menu-links a");
             if (menuLinks.length > 0) {
                 gsap.to(menuLinks, {
@@ -88,11 +106,28 @@
                     ease: "power2.in"
                 });
             }
-            gsap.to(".content-box", {
-                height: "100%",
-                duration: 0.5,
-                ease: "power2.inOut"
-            });
+        }
+
+        if (isBagOpen) {
+            setTimeout(() => {
+                const bagContent = document.querySelector(".bag-content");
+                if (bagContent) {
+                    gsap.to(bagContent, {
+                        opacity: 1,
+                        duration: 0.3,
+                        ease: "power2.out"
+                    });
+                }
+            }, 300);
+        } else if (!isBagOpen) {
+            const bagContent = document.querySelector(".bag-content");
+            if (bagContent) {
+                gsap.to(bagContent, {
+                    opacity: 0,
+                    duration: 0.2,
+                    ease: "power2.in"
+                });
+            }
         }
     }
 
@@ -159,27 +194,52 @@
 <div class="navbar">
     <div class="content" bind:this={contentElement}>
         <div class="content-box" class:expanded={isMenuOpen} class:dark={bg === "dark"} class:base={bg === "base"}></div>
-        {#if !isMenuOpen}
-            <button class="nav-btn" on:click={toggleMenu} on:keydown={(e) => e.key === 'Enter' && toggleMenu()}>
-                <p class="nav-text">MENU</p>
-            </button>
-        {:else}
-            <button class="nav-btn close-btn" on:click={toggleMenu} on:keydown={(e) => e.key === 'Enter' && toggleMenu()}>
-                <p class="nav-text">CLOSE</p>
-            </button>
-        {/if}
+        <button 
+            class="nav-btn" 
+            style:opacity={isBagOpen ? 0 : 1}
+            style:pointer-events={isBagOpen ? "none" : "auto"}
+            on:click={() => toggleNavbar(isMenuOpen || isBagOpen ? "close" : "menu")} 
+            on:keydown={(e) => e.key === 'Enter' && toggleNavbar(isMenuOpen || isBagOpen ? "close" : "menu")}
+        >
+            <p class="nav-text">
+                {#if !isMenuOpen && !isBagOpen}
+                    MENU
+                {:else}
+                    CLOSE
+                {/if}
+            </p>
+        </button>
         <div class="heading">
             <a href="/" on:click|preventDefault={() => navigateAndAnimate("/")}>VERDANTIA</a>
         </div>
-        <div class="cart-btn" style:opacity={isMenuOpen ? 0 : 1}>
-            <p class="nav-text">BAG</p>
-        </div>
+        <button
+            class="cart-btn"
+            style:opacity={isMenuOpen ? 0 : 1}
+            style:pointer-events={isMenuOpen ? "none" : "auto"}
+            on:click={() => toggleNavbar(isBagOpen || isMenuOpen ? "close" : "bag")}
+            on:keydown={(e) => e.key === 'Enter' && toggleNavbar(isBagOpen || isMenuOpen ? "close" : "bag")}
+            >
+            <p class="nav-text">
+                {#if !isBagOpen && !isMenuOpen}
+                    BAG
+                {:else}
+                    CLOSE
+                {/if}
+            </p>
+        </button>
         {#if isMenuOpen}
             <div class="menu-content">
                 <div class="menu-links">
                     {#each links as link, i}
                         <a href={link.href} on:click|preventDefault={() => navigateAndAnimate(link.href)} class:active={link.active} style="animation-delay: {i * 0.2}s; --orange-bg: url('{orange}')">{link.text}</a>
                     {/each}
+                </div>
+            </div>
+        {/if}
+        {#if isBagOpen}
+            <div class="bag-content">
+                <div class="bag-links">
+                    <p>YOYOYOY</p>
                 </div>
             </div>
         {/if}
@@ -209,7 +269,7 @@
             transform: translateY(0);
             opacity: 1;
 
-            .nav-btn {
+            .nav-btn, .cart-btn {
                 background: none;
                 border: none;
                 cursor: pointer;
@@ -276,7 +336,7 @@
                 }
             }
 
-            .menu-content {
+            .menu-content, .bag-content {
                 position: absolute;
                 top: 100%;
                 left: 0;
@@ -287,7 +347,9 @@
                 place-items: center;
                 height: 200px;
                 border-top: 1px solid rgba(0, 0, 0, 0.1);
+            }
 
+            .menu-content {
                 .menu-links {
                     display: flex;
                     flex-direction: column;
@@ -335,6 +397,10 @@
                         }
                     }
                 }
+            }
+
+            .bag-content {
+                opacity: 0;
             }
         }
     }
