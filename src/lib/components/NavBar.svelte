@@ -59,12 +59,61 @@
 
     function toggleMenu() {
         isMenuOpen = !isMenuOpen;
-        if (isMenuOpen) isBasketOpen = false;
+        if (isMenuOpen) {
+            isBasketOpen = false;
+            gsap.to(".content-box", {
+                height: 300,
+                duration: 0.5,
+                ease: "power2.inOut"
+            });
+            
+            setTimeout(() => {
+                const menuLinks = document.querySelectorAll(".menu-content .menu-links a");
+                if (menuLinks.length > 0) {
+                    gsap.to(menuLinks, {
+                        opacity: 1,
+                        y: 0,
+                        duration: 0.3,
+                        stagger: 0.1,
+                        ease: "power2.out"
+                    });
+                }
+            }, 300);
+        } else {
+            const menuLinks = document.querySelectorAll(".menu-content .menu-links a");
+            if (menuLinks.length > 0) {
+                gsap.to(menuLinks, {
+                    opacity: 0,
+                    y: 20,
+                    duration: 0.2,
+                    stagger: 0.1,
+                    ease: "power2.in"
+                });
+            }
+            gsap.to(".content-box", {
+                height: "100%",
+                duration: 0.5,
+                ease: "power2.inOut"
+            });
+        }
     }
     
     function toggleBasket() {
         isBasketOpen = !isBasketOpen;
-        if (isBasketOpen) isMenuOpen = false;
+        if (isBasketOpen) {
+            isMenuOpen = false;
+            gsap.to(".content-box", {
+                height: 430, // Larger height to accommodate basket contents
+                duration: 0.5,
+                ease: "power2.inOut"
+            });
+        } else {
+            gsap.to(".content-box", {
+                height: "100%",
+                duration: 0.5,
+                ease: "power2.inOut"
+            });
+        }
     }
 
     function navigateAndAnimate(href: string) {
@@ -73,6 +122,7 @@
         }
 
         isMenuOpen = false;
+        isBasketOpen = false;
         
         setTimeout(() => {
             shouldAnimate.set(true);
@@ -109,6 +159,43 @@
         alert('Checkout feature coming soon!');
         isBasketOpen = false;
     }
+
+    let lastScrollY = 0;
+    let goingDown = false;
+    let directionChange = false;
+
+    function handleScroll() {
+        const currentScrollY = window.scrollY;
+
+        if (goingDown) {
+            if (currentScrollY < lastScrollY) {
+                goingDown = false;
+                directionChange = true;
+
+                gsap.to(contentElement, {
+                    y: 0,
+                    opacity: 1,
+                    duration: 0.75,
+                    ease: "power2.out"
+                });
+            }
+        } else {
+            if (currentScrollY > lastScrollY) {
+                goingDown = true;
+                directionChange = true;
+
+                gsap.to(contentElement, {
+                    y: -200,
+                    opacity: 0,
+                    duration: 0.75,
+                    ease: "power2.out"
+                });
+            }
+        }
+
+        lastScrollY = currentScrollY;
+        directionChange = false;
+    }
 </script>
 
 <svelte:window on:scroll={handleScroll} />
@@ -117,7 +204,7 @@
 
 <div class="navbar">
     <div class="content" bind:this={contentElement}>
-        <div class="content-box" class:expanded={isMenuOpen || isBasketOpen}></div>
+        <div class="content-box" class:expanded={isMenuOpen || isBasketOpen} class:dark={bg === "dark"} class:base={bg === "base"}></div>
         {#if !isMenuOpen && !isBasketOpen}
             <button class="nav-btn" on:click={toggleMenu} on:keydown={(e) => e.key === 'Enter' && toggleMenu()}>
                 <p class="nav-text">MENU</p>
@@ -135,7 +222,10 @@
             <a href="/" on:click|preventDefault={() => navigateAndAnimate("/")}>VERDANTIA</a>
         </div>
         <button class="cart-btn" style:opacity={isMenuOpen ? 0 : 1} on:click={toggleBasket}>
-            <p class="nav-text">BAG {$basketCount > 0 ? `(${$basketCount})` : ''}</p>
+            <span class="nav-text">BAG</span>
+            {#if $basketCount > 0}
+                <span class="basket-count">{$basketCount}</span>
+            {/if}
         </button>
         {#if isMenuOpen}
             <div class="menu-content">
@@ -149,11 +239,11 @@
         
         {#if isBasketOpen}
             <div class="basket-content">
-                <h3 class="basket-title">Your Basket</h3>
+                <h3 class="basket-title">Your Bag</h3>
                 
                 {#if $basket.length === 0}
                     <div class="empty-basket">
-                        <p>Your basket is empty</p>
+                        <p>Your Bag is empty</p>
                         <button class="browse-menu-btn" on:click={() => {
                             isBasketOpen = false;
                             if (window.location.pathname !== '/menu') {
@@ -250,29 +340,21 @@
             .content-box {
                 width: 100%;
                 height: 100%;
+                background-color: #fff;
                 position: absolute;
                 top: 0;
                 left: 0;
-                background-color: #fff;
                 border-radius: 20px;
                 z-index: -1;
                 transition: transform .3s cubic-bezier(0.16, 1, 0.3, 1),
-                            box-shadow .3s cubic-bezier(0.16, 1, 0.3, 1),
-                            background-color .3s cubic-bezier(0.16, 1, 0.3, 1);
+                            height 1s cubic-bezier(0.16, 1, 0.3, 1),
+                            box-shadow .3s cubic-bezier(0.16, 1, 0.3, 1);
                 transform-origin: center;
                 box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
 
                 &.expanded {
                     height: 430px; /* Increased height to accommodate basket */
                     border-radius: 20px;
-                }
-
-                &.dark {
-                    background-color: v.$font-color-light;
-                }
-
-                &.base {
-                    background-color: #fff;
                 }
             }
 
@@ -309,7 +391,8 @@
                         font-size: clamp(1rem, 2vh, 1.4rem);
                         font-family: 'Inter 24pt Regular';
                         opacity: 0;
-                        transform: translateY(20px);
+                        transition: opacity .3s ease;
+                        animation: fadeIn 0.5s ease forwards;
                         position: relative;
 
                         &:hover {
@@ -532,6 +615,23 @@
                 display: flex;
                 align-items: center;
                 position: relative;
+                gap: 5px;
+                
+                .basket-count {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    background-color: v.$tertiary;
+                    color: white;
+                    border-radius: 50%;
+                    width: 20px;
+                    height: 20px;
+                    font-size: 0.8rem;
+                    font-family: 'Inter 24pt Regular';
+                    font-weight: 600;
+                    margin-left: 2px;
+                    transform: translateY(-1px);
+                }
             }
         }
     }
