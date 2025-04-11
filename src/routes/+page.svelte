@@ -81,7 +81,7 @@
 
 <style lang="scss">
      @use "../lib/styles/variables" as v;
-     /* Removed import of global.scss to avoid unused selectors */
+     @use "../lib/styles/global" as g;
 
      .hero-section {
           min-height: 75vh;
