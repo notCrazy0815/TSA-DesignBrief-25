@@ -8,6 +8,7 @@
   import MenuCategory from "$lib/components/MenuCategory.svelte";
   import type { MenuItem as MenuItemType } from "$lib/data/menu/types";
   import DietaryLegend from "$lib/components/DietaryLegend.svelte";
+  import GuidedMenuSelection from "$lib/components/GuidedMenuSelection.svelte";
   
   import menuItems, { menuCategories } from "$lib/data/menu";
 
@@ -169,38 +170,22 @@
       if (filters.vegan && !item.isVegan) return false;
       if (filters.vegetarian && !item.isVegetarian) return false;
 
-      // Enhanced allergen filtering with comprehensive matching patterns
-      const contains = item.contains.map(i => i.toLowerCase());
-
-      // Allergen filters - when selected, EXCLUDE items containing these allergens
-      if (filters.gluten && containsAllergen(contains, ['gluten', 'wheat', 'barley', 'rye', 'bread', 'pasta', 'flour'])) 
-        return false;
-        
-      if (filters.dairy && containsAllergen(contains, ['dairy', 'milk', 'cheese', 'cream', 'butter', 'yogurt', 'lactose']))
-        return false;
-        
-      if (filters.nuts && containsAllergen(contains, ['nut', 'almond', 'cashew', 'walnut', 'pecan', 'pistachio', 'hazelnut', 'peanut']))
-        return false;
-        
-      if (filters.soy && containsAllergen(contains, ['soy', 'tofu', 'edamame', 'soya', 'tamari']))
-        return false;
-        
-      if (filters.eggs && containsAllergen(contains, ['egg', 'mayo', 'mayonnaise', 'albumen']))
-        return false;
-        
-      if (filters.shellfish && containsAllergen(contains, ['shellfish', 'shrimp', 'prawn', 'crab', 'lobster', 'crayfish', 'mussel', 'clam', 'oyster', 'scallop']))
-        return false;
-        
-      if (filters.fish && containsAllergen(contains, ['fish', 'salmon', 'tuna', 'cod', 'bass', 'trout', 'halibut', 'anchovy', 'tilapia']))
-        return false;
-
-      // Add sesame filter
-      if (filters.sesame && containsAllergen(contains, ['sesame', 'tahini', 'halva', 'benne', 'goma', 'til']))
-        return false;
-
       // Special filters
       if (filters.seasonal && !item.seasonal) return false;
-      if (filters.spicy && !containsAllergen(contains, ['spic', 'chili', 'pepper', 'hot'])) return false;
+      if (filters.spicy && containsAllergen(item.contains, ['spic', 'chili', 'pepper', 'hot'])) return false;
+
+      // Allergen filters (using the contains array directly)
+      // When a filter is active, exclude items containing that allergen
+      const containsLower = item.contains.map(i => i.toLowerCase());
+      
+      if (filters.gluten && containsAllergen(containsLower, ['gluten', 'wheat', 'barley', 'rye'])) return false;
+      if (filters.dairy && containsAllergen(containsLower, ['dairy', 'milk', 'cheese', 'cream', 'butter', 'yogurt'])) return false;
+      if (filters.nuts && containsAllergen(containsLower, ['nut', 'almond', 'cashew', 'walnut', 'pecan', 'pistachio'])) return false;
+      if (filters.soy && containsAllergen(containsLower, ['soy', 'tofu', 'edamame'])) return false;
+      if (filters.eggs && containsAllergen(containsLower, ['egg', 'mayo', 'mayonnaise'])) return false;
+      if (filters.shellfish && containsAllergen(containsLower, ['shellfish', 'shrimp', 'crab', 'lobster'])) return false;
+      if (filters.fish && containsAllergen(containsLower, ['fish', 'salmon', 'tuna', 'cod'])) return false;
+      if (filters.sesame && containsAllergen(containsLower, ['sesame', 'tahini'])) return false;
 
       return true;
     });
@@ -239,11 +224,7 @@
       });
     }
     
-    gsap.from(".menu-background", {
-      opacity: 0,
-      duration: 0.8,
-      ease: "power2.out"
-    });
+    // Removed animation targeting non-existent ".menu-background" element
     
     return () => {
       window.removeEventListener('resize', resetContainerHeight);
@@ -269,6 +250,17 @@
     window.addEventListener('resize', adjustMenuHeight);
     return () => window.removeEventListener('resize', adjustMenuHeight);
   });
+
+  // Guided menu selection
+  let showGuidedSelection = false;
+
+  function openGuidedSelection() {
+    showGuidedSelection = true;
+  }
+
+  function closeGuidedSelection() {
+    showGuidedSelection = false;
+  }
 </script>
 
 <svelte:head>
@@ -287,6 +279,13 @@
         <span class="line"></span>
         <span class="icon"></span>
         <span class="line"></span>
+      </div>
+      
+      <!-- Add guided menu button here -->
+      <div class="guided-menu-button-container">
+        <button class="guided-menu-button" on:click={openGuidedSelection}>
+          <span class="text">Find Your Perfect Dish</span>
+        </button>
       </div>
     </div>
     
@@ -358,9 +357,13 @@
 
 <Footer />
 
+{#if showGuidedSelection}
+  <GuidedMenuSelection on:close={closeGuidedSelection} />
+{/if}
+
 <style lang="scss">
   @use "../../lib/styles/variables" as v;
-  @use "../../lib/styles/global" as g;
+  /* Removed import of global.scss to avoid unused selectors */
   
   main {
     width: 100%;
@@ -1024,6 +1027,44 @@
     @media (max-width: 767px) {
       display: block;
       font-size: 0.85rem;
+    }
+  }
+
+  .guided-menu-button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+  }
+  
+  .guided-menu-button {
+    background-color: v.$tertiary;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 14px 28px;
+    font-family: "DynaPuff Regular", cursive;
+    font-size: 1.1rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(2, 92, 72, 0.15);
+    
+    &:hover {
+      background-color: darken(v.$tertiary, 5%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(2, 92, 72, 0.2);
+    }
+    
+    &:active {
+      transform: translateY(0);
+    }
+    
+    @media (max-width: 767px) {
+      font-size: 1rem;
+      padding: 12px 20px;
     }
   }
 </style>

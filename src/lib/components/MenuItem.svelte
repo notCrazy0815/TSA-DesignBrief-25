@@ -1,4 +1,8 @@
 <script lang="ts">
+  import { fade } from 'svelte/transition';
+  import MenuItemModal from './MenuItemModal.svelte';
+  import { basket } from '$lib/stores/basketStore';
+  
   export let item: {
     id: number;
     name: string;
@@ -13,19 +17,61 @@
       protein: number;
       fat: number;
       carbs: number;
+      sugar?: number;
+      fiber?: number;
+      sodium?: number;
+    };
+    ingredients?: string[];
+    preparation?: string;
+    pairingRecommendation?: string;
+    sourceInfo?: {
+      local?: boolean;
+      organic?: boolean;
+      sources?: {name: string, location: string}[];
+    };
+    dietarySuitability?: {
+      glutenFree?: boolean;
+      dairyFree?: boolean;
+      nutFree?: boolean;
+      lowCarb?: boolean;
+      keto?: boolean;
+      paleo?: boolean;
     };
   };
   
-  // Change to export const to fix the warning
   export const index = 0;
 
   let isClicked = false;
+  let isModalOpen = false;
+
+  $: basketItem = $basket.find(basketItem => basketItem.id === item.id);
+  $: isInBasket = !!basketItem;
+  $: basketQuantity = basketItem?.quantity || 0;
 
   function handleClick() {
     isClicked = true;
     setTimeout(() => {
       isClicked = false;
+      openModal();
     }, 200);
+  }
+
+  function addToBasket(event: MouseEvent) {
+    event.stopPropagation();
+    basket.addToBasket(item);
+  }
+  
+  function removeFromBasket(event: MouseEvent) {
+    event.stopPropagation();
+    basket.removeFromBasket(item.id);
+  }
+
+  function openModal() {
+    isModalOpen = true;
+  }
+
+  function closeModal() {
+    isModalOpen = false;
   }
 
   function handleKeyDown(event: KeyboardEvent) {
@@ -72,7 +118,37 @@
       </div>
     {/if}
   </div>
+  
+  <div class="item-actions">
+    <button class="view-details-btn" on:click|stopPropagation={openModal}>
+      View Details
+    </button>
+    
+    <div class="basket-controls">
+      {#if isInBasket}
+        <button 
+          class="basket-btn remove-btn" 
+          on:click|stopPropagation={removeFromBasket}
+          aria-label="Remove from basket"
+        >
+          <span class="btn-icon">−</span>
+        </button>
+        
+        <span class="basket-quantity-display">{basketQuantity}</span>
+      {/if}
+      
+      <button 
+        class="basket-btn add-btn" 
+        on:click|stopPropagation={addToBasket}
+        aria-label="Add to basket"
+      >
+        <span class="btn-icon">+</span>
+      </button>
+    </div>
+  </div>
 </div>
+
+<MenuItemModal {item} isOpen={isModalOpen} on:close={closeModal} />
 
 <style lang="scss">
 @use "../../lib/styles/variables" as v;
@@ -101,6 +177,10 @@
     .item-name {
       color: v.$tertiary;
     }
+    
+    .view-details-btn {
+      opacity: 1;
+    }
   }
   
   &.clicked {
@@ -116,11 +196,11 @@
 }
 
 .item-name {
-  font-family: "Inter 24pt Regular", sans-serif; // Changed from "DynaPuff Regular" to normal body font
+  font-family: "Inter 24pt Regular", sans-serif;
   font-size: 1.1rem;
   color: #333;
   margin: 0;
-  font-weight: 600; // Increased from 500 to 600 for better visibility
+  font-weight: 600;
   
   @media (max-width: 767px) {
     font-size: 0.95rem;
@@ -146,7 +226,7 @@
   margin: 0 0 8px;
 
   @media (max-width: 767px) {
-    display: none; /* Hide description on mobile */
+    display: none;
   }
 }
 
@@ -156,7 +236,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: auto; // Push to bottom of flex container
+  margin-top: auto;
   
   @media (max-width: 767px) {
     margin-top: 4px;
@@ -170,14 +250,14 @@
   .badge {
     width: 22px;
     height: 22px;
-    border-radius: 3px; // Slightly less rounded corners
+    border-radius: 3px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 0.7rem;
     font-weight: bold;
     color: white;
-    border: 1.5px solid rgba(0, 0, 0, 0.08); // Simple border
+    border: 1.5px solid rgba(0, 0, 0, 0.08);
     position: relative;
     
     @media (max-width: 767px) {
@@ -188,18 +268,15 @@
   }
 
   .vegan { 
-    color: v.$tertiary; // Simple solid color
-    border-color: v.$tertiary; // Simple solid color
+    background-color: v.$tertiary;
   }
   
   .vegetarian { 
-    color: v.$secondary; // Simple solid color
-    border-color: v.$secondary; // Simple solid color
+    background-color: v.$secondary;
   }
   
   .seasonal { 
-    color: v.$primary; // Simple solid color
-    border-color: v.$primary; // Simple solid color
+    background-color: v.$primary;
   }
 }
 
@@ -220,6 +297,123 @@
   .allergens {
     font-style: italic;
     color: #333;
+  }
+}
+
+.view-details-btn {
+  margin-top: 10px;
+  align-self: center;
+  background-color: transparent;
+  border: 1px solid v.$tertiary;
+  color: v.$tertiary;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0;
+  
+  &:hover {
+    background-color: v.$tertiary;
+    color: white;
+  }
+  
+  @media (max-width: 767px) {
+    opacity: 1;
+    margin-top: 8px;
+    width: 100%;
+    padding: 8px;
+    background-color: rgba(2, 92, 72, 0.05);
+  }
+}
+
+.item-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  gap: 12px;
+}
+
+.basket-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  
+  .basket-quantity-display {
+    font-family: "Inter 24pt Regular", sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    width: 24px;
+    text-align: center;
+  }
+}
+
+.basket-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Inter 24pt Regular", sans-serif;
+  font-size: 1.2rem;
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    transform: scale(0);
+    transition: transform 0.3s ease;
+    border-radius: 50%;
+    z-index: 0;
+  }
+  
+  &:active::before {
+    transform: scale(1.5);
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  .btn-icon {
+    font-size: 1.2rem;
+    font-weight: bold;
+    line-height: 1;
+    z-index: 1;
+    position: relative;
+    transition: transform 0.2s ease;
+  }
+  
+  &:hover {
+    .btn-icon {
+      transform: scale(1.2);
+    }
+  }
+}
+
+.add-btn {
+  background-color: v.$tertiary;
+  
+  &:hover {
+    background-color: darken(v.$tertiary, 5%);
+  }
+}
+
+.remove-btn {
+  background-color: #e74c3c;
+  
+  &:hover {
+    background-color: darken(#e74c3c, 5%);
   }
 }
 </style>

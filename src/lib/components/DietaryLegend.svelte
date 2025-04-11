@@ -45,9 +45,9 @@
   @use "../../lib/styles/variables" as v;
 
   .dietary-legend {
-    background-color: white; // Changed from light beige to white
+    background-color: white; 
     border: 1px solid rgba(160, 147, 125, 0.2);
-    border-radius: 4px; // Keep angular shape
+    border-radius: 4px;
     padding: 14px 25px;
     display: flex;
     justify-content: center;
@@ -78,14 +78,14 @@
     .badge {
       width: 24px;
       height: 24px;
-      border-radius: 3px; // Slightly less rounded corners
+      border-radius: 3px;
       display: flex;
       justify-content: center;
       align-items: center;
       font-size: 0.75rem;
       font-weight: bold;
       color: white;
-      border: 1.5px solid rgba(0, 0, 0, 0.08); // Simple border
+      border: 1.5px solid rgba(0, 0, 0, 0.08);
       transition: transform 0.2s ease;
     }
     
@@ -101,18 +101,15 @@
     }
     
     .vegan { 
-      color: v.$tertiary; // Simple solid color
-      border-color: v.$tertiary; // Simple solid color
+      background-color: v.$tertiary; // Changed to solid color for consistency
     }
     
     .vegetarian { 
-      color: v.$secondary; // Simple solid color
-      border-color: v.$secondary; // Simple solid color
+      background-color: v.$secondary; // Changed to solid color for consistency
     }
     
     .seasonal { 
-      color: v.$primary; // Simple solid color
-      border-color: v.$primary; // Simple solid color
+      background-color: v.$primary; // Changed to solid color for consistency
     }
   }
   

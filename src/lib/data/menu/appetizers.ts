@@ -8,13 +8,54 @@ const appetizers: MenuItem[] = [
     price: "$7.95",
     isVegan: true,
     isVegetarian: true,
-    contains: [], // Using contains instead of containsAllergens
-    seasonal: true, // Using seasonal instead of isSeasonal
+    contains: [],
+    seasonal: true,
     nutrition: {
       calories: 220,
       protein: 4,
       fat: 15,
-      carbs: 18
+      carbs: 18,
+      sugar: 8,
+      fiber: 6,
+      sodium: 120
+    },
+    flavorProfile: {
+      sweet: 6,    // Orange segments provide natural sweetness
+      salty: 2,    // Light salt seasoning
+      sour: 7,     // Lime provides citrus acidity
+      bitter: 3,   // Slight bitterness from greens
+      umami: 4,    // Avocado provides some umami
+      spicy: 0,    // No spiciness
+      refreshing: 9, // Very refreshing dish
+      rich: 5      // Avocado provides richness balanced by citrus
+    },
+    dynamicPairings: true, // Use the dynamic pairing system
+    ingredients: [
+      "Fresh Avocado",
+      "Organic Valencia Oranges",
+      "Local Lime",
+      "Organic Mixed Greens",
+      "Extra Virgin Olive Oil",
+      "Sea Salt",
+      "Cracked Black Pepper"
+    ],
+    preparation: "Our citrus salad is freshly prepared to order. The avocados are sliced moments before serving to maintain optimal freshness and color.",
+    pairingRecommendation: "Pairs beautifully with our Green Detox Smoothie or a glass of our house-made mint-infused water.",
+    sourceInfo: {
+      local: true,
+      organic: true,
+      sources: [
+        {name: "Green Valley Farms", location: "15 miles from restaurant"},
+        {name: "Sunshine Citrus Groves", location: "Southern California"}
+      ]
+    },
+    dietarySuitability: {
+      glutenFree: true,
+      dairyFree: true,
+      nutFree: true,
+      lowCarb: true,
+      keto: true,
+      paleo: true
     }
   },
   {
@@ -24,8 +65,19 @@ const appetizers: MenuItem[] = [
     price: "$8.50",
     isVegan: true,
     isVegetarian: true,
-    contains: ["Gluten", "Sesame"], // Using contains instead of containsAllergens
-    seasonal: false, // Using seasonal instead of isSeasonal
+    contains: ["Gluten", "Sesame"],
+    seasonal: false,
+    flavorProfile: {
+      sweet: 4,    // Pomegranate adds some sweetness
+      salty: 3,    // Light salt in bread and eggplant
+      sour: 3,     // Slight tartness from pomegranate
+      bitter: 2,   // Minimal bitterness
+      umami: 8,    // Strong umami from charred eggplant
+      spicy: 1,    // Very mild spice
+      refreshing: 2, // Not particularly refreshing
+      rich: 7      // Tahini and eggplant create richness
+    },
+    dynamicPairings: true,
     nutrition: {
       calories: 250,
       protein: 6,
@@ -40,8 +92,19 @@ const appetizers: MenuItem[] = [
     price: "$7.95",
     isVegan: true,
     isVegetarian: true,
-    contains: [], // Using contains instead of containsAllergens
-    seasonal: false, // Using seasonal instead of isSeasonal
+    contains: [],
+    seasonal: false,
+    flavorProfile: {
+      sweet: 2,
+      salty: 4,
+      sour: 3,
+      bitter: 1,
+      umami: 5,
+      spicy: 0,
+      refreshing: 3,
+      rich: 6
+    },
+    dynamicPairings: true,
     nutrition: {
       calories: 200,
       protein: 4,
@@ -56,8 +119,19 @@ const appetizers: MenuItem[] = [
     price: "$9.95",
     isVegan: false,
     isVegetarian: true,
-    contains: ["Eggs", "Gluten"], // Using contains instead of containsAllergens
-    seasonal: true, // Using seasonal instead of isSeasonal
+    contains: ["Eggs", "Gluten"],
+    seasonal: true,
+    flavorProfile: {
+      sweet: 1,
+      salty: 5,
+      sour: 4,
+      bitter: 2,
+      umami: 6,
+      spicy: 0,
+      refreshing: 4,
+      rich: 7
+    },
+    dynamicPairings: true,
     nutrition: {
       calories: 280,
       protein: 5,
@@ -72,8 +146,19 @@ const appetizers: MenuItem[] = [
     price: "$8.25",
     isVegan: true,
     isVegetarian: true,
-    contains: ["Gluten"], // Using contains instead of containsAllergens
-    seasonal: false, // Using seasonal instead of isSeasonal
+    contains: ["Gluten"],
+    seasonal: false,
+    flavorProfile: {
+      sweet: 5,
+      salty: 3,
+      sour: 2,
+      bitter: 3,
+      umami: 4,
+      spicy: 0,
+      refreshing: 5,
+      rich: 4
+    },
+    dynamicPairings: true,
     nutrition: {
       calories: 180,
       protein: 3,
@@ -88,8 +173,19 @@ const appetizers: MenuItem[] = [
     price: "$8.95",
     isVegan: false,
     isVegetarian: true,
-    contains: ["Dairy"], // Using contains instead of containsAllergens
-    seasonal: false, // Using seasonal instead of isSeasonal
+    contains: ["Dairy"],
+    seasonal: false,
+    flavorProfile: {
+      sweet: 2,
+      salty: 4,
+      sour: 3,
+      bitter: 2,
+      umami: 5,
+      spicy: 6,
+      refreshing: 3,
+      rich: 6
+    },
+    dynamicPairings: true,
     nutrition: {
       calories: 220,
       protein: 4,
@@ -104,8 +200,19 @@ const appetizers: MenuItem[] = [
     price: "$6.95",
     isVegan: true,
     isVegetarian: true,
-    contains: [], // Using contains instead of containsAllergens
-    seasonal: true, // Using seasonal instead of isSeasonal
+    contains: [],
+    seasonal: true,
+    flavorProfile: {
+      sweet: 7,
+      salty: 2,
+      sour: 3,
+      bitter: 1,
+      umami: 2,
+      spicy: 0,
+      refreshing: 9,
+      rich: 3
+    },
+    dynamicPairings: true,
     nutrition: {
       calories: 120,
       protein: 2,
@@ -120,8 +227,19 @@ const appetizers: MenuItem[] = [
     price: "$7.50",
     isVegan: true,
     isVegetarian: true,
-    contains: [], // Using contains instead of containsAllergens
-    seasonal: false, // Using seasonal instead of isSeasonal
+    contains: [],
+    seasonal: false,
+    flavorProfile: {
+      sweet: 5,
+      salty: 3,
+      sour: 2,
+      bitter: 1,
+      umami: 4,
+      spicy: 2,
+      refreshing: 3,
+      rich: 6
+    },
+    dynamicPairings: true,
     nutrition: {
       calories: 240,
       protein: 3,
@@ -136,8 +254,19 @@ const appetizers: MenuItem[] = [
     price: "$9.25",
     isVegan: true,
     isVegetarian: true,
-    contains: ["Gluten"], // Using contains instead of containsAllergens
-    seasonal: false, // Using seasonal instead of isSeasonal
+    contains: ["Gluten"],
+    seasonal: false,
+    flavorProfile: {
+      sweet: 1,
+      salty: 4,
+      sour: 2,
+      bitter: 3,
+      umami: 8,
+      spicy: 0,
+      refreshing: 2,
+      rich: 7
+    },
+    dynamicPairings: true,
     nutrition: {
       calories: 260,
       protein: 5,
