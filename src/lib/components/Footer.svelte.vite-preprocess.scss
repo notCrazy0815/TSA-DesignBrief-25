@@ -1,0 +1,11 @@
+@use "../styles/variables" as v;
+@import "sass:color";
+
+/* Replace deprecated darken() calls with color.adjust() */
+.some-element {
+  background-color: color.adjust(v.$primary, $lightness: -10%);
+}
+
+.another-element {  
+  background-color: color.adjust(v.$tertiary-dark, $lightness: -5%);
+}

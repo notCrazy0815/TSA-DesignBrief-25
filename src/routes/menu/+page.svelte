@@ -3,37 +3,55 @@
   import NavBar from "$lib/components/NavBar.svelte";
   import Footer from "$lib/components/Footer.svelte";
   import { gsap } from "gsap";
+  import FilterMenu from "$lib/components/FilterMenu.svelte";
+  import MenuHeader from "../../lib/components/MenuHeader.svelte";
+  import MenuCategory from "$lib/components/MenuCategory.svelte";
+  import type { MenuItem as MenuItemType } from "$lib/data/menu/types";
+  import DietaryLegend from "$lib/components/DietaryLegend.svelte";
+  import GuidedMenuSelection from "$lib/components/GuidedMenuSelection.svelte";
+  
+  import menuItems, { menuCategories } from "$lib/data/menu";
 
-  const cards = [
-    { id: 1, title: "Appetizers", text: "Kick off your culinary journey with our delightful plant-based appetizers, featuring fresh, innovative bites that tease your taste buds with vibrant flavors and sustainable ingredients." },
-    { id: 2, title: "Main", text: "Enjoy exquisite vegan and vegetarian main courses crafted with passion and precision. Our mains blend traditional flavors with modern twists, using farm-fresh produce to create memorable plant-based dishes." },
-    { id: 3, title: "Drinks", text: "Refresh yourself with our curated selection of organic, plant-based beverages and handcrafted cocktails. From fruit-infused creations to botanical blends, each sip complements your sustainable dining experience." },
-    { id: 4, title: "Desserts", text: "End your dining experience on a sweet note with our decadent vegan desserts. Classic indulgence meets modern creativity with plant-based ingredients that prove sustainable eating never compromises on taste." }
-  ];
+  const cards = menuCategories.map((category) => ({
+    id: category.id,
+    title: category.title,
+    text: category.description // Changed from category.text to category.description
+  }));
   
   const cardRotations: number[] = [-5, 4, 10, -6];
   
   let activeCardId: number | null = null;
   let cardsContainer: HTMLElement | null = null;
-  
-  const FIXED_MENU_OFFSET = 120;
-  const EXTRA_OFFSET = 60;
+  let menuSection: HTMLElement | null = null;
+  let menuContentEl: HTMLElement | null = null;
 
   function scrollToActiveCard(): void {
     const activeCard = document.querySelector('.card.active') as HTMLElement | null;
     if (activeCard) {
       const rect = activeCard.getBoundingClientRect();
-      const targetScroll = window.scrollY + rect.top - (FIXED_MENU_OFFSET + EXTRA_OFFSET);
-      gsap.to(window, { duration: 0.5, scrollTo: { y: targetScroll }, ease: "power2.out" });
+      const offset = window.innerWidth < 768 ? 60 : 100;
+      const targetScroll = window.scrollY + rect.top - offset;
+      gsap.to(window, { 
+        duration: 0.5, 
+        scrollTo: { y: targetScroll }, 
+        ease: "power2.out" 
+      });
+    }
+  }
+
+  function closeActiveCard(): void {
+    if (activeCardId !== null) {
+      activeCardId = null;
+      setTimeout(() => {
+        (document.activeElement as HTMLElement | null)?.blur();
+      }, 50);
+      resetContainerHeight();
     }
   }
 
   async function openCard(cardId: number): Promise<void> {
     if (activeCardId === cardId) {
-      activeCardId = null;
-      setTimeout(() => {
-        (document.activeElement as HTMLElement | null)?.blur();
-      }, 50);
+      closeActiveCard();
     } else {
       activeCardId = cardId;
     }
@@ -50,23 +68,37 @@
           height: activeCardElement.offsetHeight + 100,
           ease: "power2.out"
         });
+        
+        if (window.innerWidth < 768) {
+          const cards = gsap.utils.toArray('.card:not(.active)');
+          gsap.to(cards, {
+            opacity: 0,
+            x: '100vw',
+            stagger: 0.05,
+            duration: 0.5,
+            ease: "power2.inOut"
+          });
+        }
       } else {
         scrollToActiveCard();
       }
     } else {
       resetContainerHeight();
+      
+      if (window.innerWidth < 768) {
+        const cards = gsap.utils.toArray('.card');
+        gsap.to(cards, {
+          opacity: 1,
+          x: 0,
+          duration: 0.5,
+          stagger: 0.05,
+          ease: "power2.out",
+          clearProps: "all"
+        });
+      }
     }
   }
   
-  function calculateMobileCardHeight(): number {
-    if (window.innerWidth <= 767) {
-      const cardWidth = window.innerWidth * 0.9;
-      const cardHeight = cardWidth * (2/3);
-      return cardHeight;
-    }
-    return 0;
-  }
-
   function resetContainerHeight(): void {
     if (cardsContainer) {
       if (window.innerWidth < 768) {
@@ -90,19 +122,149 @@
     return activeCardId === null ? '' : activeCardId === cardId ? 'active' : 'fly-out';
   }
   
-  onMount(async () => {
-    // Dynamically import ScrollToPlugin only on the client
-    const { ScrollToPlugin } = await import("gsap/ScrollToPlugin");
-    gsap.registerPlugin(ScrollToPlugin);
+  onMount(() => {
+    const initializePlugins = async () => {
+      const { ScrollToPlugin } = await import("gsap/ScrollToPlugin");
+      gsap.registerPlugin(ScrollToPlugin);
+      
+      cardsContainer = document.querySelector('.menu-category-cards') as HTMLElement;
+      resetContainerHeight();
+      window.addEventListener('resize', resetContainerHeight);
+    };
     
-    cardsContainer = document.querySelector('.menu-category-cards') as HTMLElement;
-    resetContainerHeight();
-    window.addEventListener('resize', resetContainerHeight);
+    initializePlugins();
+    
     return () => {
       window.removeEventListener('resize', resetContainerHeight);
     };
   });
+
+  let activeFilters: Record<string, boolean> = {
+    vegetarian: true,
+    vegan: false,
+    gluten: false,
+    dairy: false,
+    nuts: false,
+    soy: false,
+    eggs: false,
+    shellfish: false,
+    fish: false,
+    sesame: false, // Add sesame filter
+    seasonal: false,
+    spicy: false
+  };
+  
+  $: filteredItems = activeCardId ? filterMenuItems(menuItems[activeCardId], activeFilters) : [];
+  
+  function handleFilterChange(event: CustomEvent<Record<string, boolean>>): void {
+    activeFilters = event.detail;
+  }
+  
+  function filterMenuItems(items: MenuItemType[], filters: Record<string, boolean>): MenuItemType[] {
+    if (!Object.values(filters).some(Boolean)) {
+      return items;
+    }
+
+    return items.filter((item: MenuItemType) => {
+      // Dietary filters
+      if (filters.vegan && !item.isVegan) return false;
+      if (filters.vegetarian && !item.isVegetarian) return false;
+
+      // Special filters
+      if (filters.seasonal && !item.seasonal) return false;
+      if (filters.spicy && containsAllergen(item.contains, ['spic', 'chili', 'pepper', 'hot'])) return false;
+
+      // Allergen filters (using the contains array directly)
+      // When a filter is active, exclude items containing that allergen
+      const containsLower = item.contains.map(i => i.toLowerCase());
+      
+      if (filters.gluten && containsAllergen(containsLower, ['gluten', 'wheat', 'barley', 'rye'])) return false;
+      if (filters.dairy && containsAllergen(containsLower, ['dairy', 'milk', 'cheese', 'cream', 'butter', 'yogurt'])) return false;
+      if (filters.nuts && containsAllergen(containsLower, ['nut', 'almond', 'cashew', 'walnut', 'pecan', 'pistachio'])) return false;
+      if (filters.soy && containsAllergen(containsLower, ['soy', 'tofu', 'edamame'])) return false;
+      if (filters.eggs && containsAllergen(containsLower, ['egg', 'mayo', 'mayonnaise'])) return false;
+      if (filters.shellfish && containsAllergen(containsLower, ['shellfish', 'shrimp', 'crab', 'lobster'])) return false;
+      if (filters.fish && containsAllergen(containsLower, ['fish', 'salmon', 'tuna', 'cod'])) return false;
+      if (filters.sesame && containsAllergen(containsLower, ['sesame', 'tahini'])) return false;
+
+      return true;
+    });
+  }
+
+  // Helper function to match allergens against an array of keywords
+  function containsAllergen(ingredients: string[], allergenKeywords: string[]): boolean {
+    return ingredients.some(ingredient => 
+      allergenKeywords.some(keyword => ingredient.includes(keyword))
+    );
+  }
+
+  function resetFilters(): void {
+    activeFilters = {};
+  }
+
+  onMount(() => {
+    const initializePlugins = async () => {
+      const { ScrollToPlugin } = await import("gsap/ScrollToPlugin");
+      gsap.registerPlugin(ScrollToPlugin);
+      
+      cardsContainer = document.querySelector('.menu-category-cards') as HTMLElement;
+      resetContainerHeight();
+      window.addEventListener('resize', resetContainerHeight);
+    };
+    
+    initializePlugins();
+    
+    if (menuSection) { 
+      gsap.from(".menu-heading", {
+        y: 30,
+        opacity: 0,
+        duration: 0.8,
+        ease: "power2.out",
+        delay: 0.2
+      });
+    }
+    
+    // Removed animation targeting non-existent ".menu-background" element
+    
+    return () => {
+      window.removeEventListener('resize', resetContainerHeight);
+    };
+  });
+
+  function adjustMenuHeight(): void {
+    if (menuContentEl) {
+      const contentHeight = menuContentEl.scrollHeight;
+      gsap.to(menuContentEl, {
+        height: contentHeight,
+        duration: 0.5,
+        ease: "power2.out"
+      });
+    }
+  }
+
+  $: if (activeCardId !== null) {
+    adjustMenuHeight();
+  }
+
+  onMount(() => {
+    window.addEventListener('resize', adjustMenuHeight);
+    return () => window.removeEventListener('resize', adjustMenuHeight);
+  });
+
+  // Guided menu selection
+  let showGuidedSelection = false;
+
+  function openGuidedSelection() {
+    showGuidedSelection = true;
+  }
+
+  function closeGuidedSelection() {
+    showGuidedSelection = false;
+  }
 </script>
+
+<svelte:head>
+</svelte:head>
 
 <svelte:window on:resize={() => activeCardId === null && resetContainerHeight()}/>
 
@@ -115,8 +277,15 @@
       <p class="subtitle">Featuring locally-sourced produce and sustainable ingredients</p>
       <div class="decorative-element">
         <span class="line"></span>
-        <span class="icon">✧</span>
+        <span class="icon"></span>
         <span class="line"></span>
+      </div>
+      
+      <!-- Add guided menu button here -->
+      <div class="guided-menu-button-container">
+        <button class="guided-menu-button" on:click={openGuidedSelection}>
+          <span class="text">Find Your Perfect Dish</span>
+        </button>
       </div>
     </div>
     
@@ -126,6 +295,7 @@
           class="card {getCardClasses(card.id)}"
           data-id={card.id}
           on:click={() => openCard(card.id)}
+          on:touchend={(e) => { e.preventDefault(); openCard(card.id); }}
           aria-pressed={activeCardId === card.id}
           style={activeCardId === null ? `transform: translate3d(-50%, -50%, 0) rotateZ(${getRotation(i)}deg)` : ''}
         >
@@ -139,21 +309,61 @@
         </button>
       {/each}
     </div>
-    
-    {#if activeCardId !== null}
-      <div class="scroll-down-elegant">
-        <span class="arrow-elegant"></span>
-        <span class="hint-elegant">Category Selected</span>
-      </div>
-    {/if}
   </section>
+  
+  {#if activeCardId !== null}
+    <div class="scroll-down-elegant">
+      <span class="arrow-elegant"></span>
+      <span class="hint-elegant">Scroll Down for Menu</span>
+    </div>
+    
+    <section class="menu-showcase">
+      <div class="menu-container">
+        <MenuHeader 
+          title={cards.find(c => c.id === activeCardId)?.title || ''} 
+          subtitle="Seasonal Selection" 
+        />
+        <DietaryLegend />
+        
+        <div class="menu-layout">
+          <div class="filter-sidebar">
+            <FilterMenu category={cards.find(c => c.id === activeCardId)?.title || ''} on:filterChange={handleFilterChange} />
+          </div>
+          
+          <div class="menu-content" bind:this={menuContentEl}>
+            {#if filteredItems.length > 0}
+              <MenuCategory 
+                title={cards.find(c => c.id === activeCardId)?.title || ''} 
+                items={filteredItems} 
+              />
+            {:else}
+              <div class="empty-state">
+                <p>No items match your filter criteria.</p>
+                <button class="reset-button" on:click={resetFilters}>Reset Filters</button>
+              </div>
+            {/if}
+          </div>
+        </div>
+        
+        <div class="menu-footer">
+          <button class="back-to-menu" on:click={closeActiveCard}>
+            Back to Menu Categories
+          </button>
+        </div>
+      </div>
+    </section>
+  {/if}
 </main>
 
 <Footer />
 
+{#if showGuidedSelection}
+  <GuidedMenuSelection on:close={closeGuidedSelection} />
+{/if}
+
 <style lang="scss">
   @use "../../lib/styles/variables" as v;
-  @use "../../lib/styles/global" as g;
+  /* Removed import of global.scss to avoid unused selectors */
   
   main {
     width: 100%;
@@ -171,45 +381,47 @@
       letter-spacing: 1px;
       font-family: "DynaPuff Regular", cursive;
     }
-  }
-  
-  .title-font {
-    font-family: "DynaPuff Regular", cursive;
-    text-transform: none;
-    position: relative;
-    display: inline-block;
-  }
-
-  .subtitle {
-    font-size: 1.2rem;
-    color: #695a4e;
-    font-weight: 300;
-    margin-top: 0.5rem;
-    font-style: italic;
-    font-family: "Inter 24pt Regular", sans-serif;
-  }
-  
-  .decorative-element {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 20px auto;
-    max-width: 300px;
     
-    .line {
-      height: 1px;
-      background-color: #a0937d;
-      flex-grow: 1;
-      opacity: 0.6;
+    .title-font {
+      font-family: "DynaPuff Regular", cursive;
+      text-transform: none;
+      position: relative;
+      display: inline-block;
     }
     
-    .icon {
-      font-size: 1rem;
-      color: #a0937d;
-      margin: 0 15px;
+    .subtitle {
+      font-size: 1.2rem;
+      color: #695a4e;
+      font-weight: 300;
+      margin-top: 0.5rem;
+      font-style: italic;
+      font-family: "Inter 24pt Regular", sans-serif;
+    }
+    
+    .decorative-element {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 20px auto;
+      max-width: 300px;
+      
+      .line {
+        height: 1px;
+        background-color: #a0937d;
+        flex-grow: 1;
+        opacity: 0.6;
+      }
+      
+      .icon {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #a0937d;
+        margin: 0 15px;
+      }
     }
   }
-
+  
   section#menu-categories {
     padding: 80px 0;
     background-color: v.$background-color-light;
@@ -217,7 +429,7 @@
     overflow: clip;
     z-index: 1;
   }
-
+  
   .menu-category-cards {
     position: relative;
     height: 80vw;
@@ -235,15 +447,15 @@
     padding: 38px;
     box-sizing: border-box;
     border: 1px solid rgba(160, 147, 125, 0.2);
-    box-shadow: 0 5px 20px rgba(106, 89, 72, 0.08);
-    display: grid; 
+    box-shadow: 0 8px 16px rgba(106, 89, 72, 0.06);
+    display: grid;
     grid-template-columns: 40% 60%;
     grid-template-rows: 1fr auto;
     align-items: end;
     align-content: end;
     transform-origin: center center;
     transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1), border 0.3s ease;
-    border-radius: 12px;
+    border-radius: 20px;
     width: 60vw;
     aspect-ratio: 3/2;
     position: absolute;
@@ -253,9 +465,6 @@
     &:not(.active) {
       border: 1px solid rgba(160, 147, 125, 0.2);
       box-shadow: 0 5px 20px rgba(106, 89, 72, 0.08);
-    }
-    
-    &.active {
     }
     
     &::before {
@@ -268,20 +477,17 @@
       background: linear-gradient(to right, #a0937d, #8c7b6b);
       opacity: 0.8;
       transition: height 0.3s ease;
+      border-radius: 8px 8px 0 0;
     }
     
     &:hover, &:focus {
-      box-shadow: 0 15px 30px rgba(106, 89, 72, 0.15);
+      box-shadow: 0 12px 24px rgba(106, 89, 72, 0.10);
       transform: translate3d(-50%, -55%, 0) rotateZ(0.5deg) !important;
       transition: all 0.3s ease;
       outline: none;
       
       &::before {
         height: 8px;
-      }
-      
-      .card-pattern {
-        opacity: 0.07;
       }
     }
     
@@ -304,10 +510,6 @@
       padding-right: 25px;
       position: relative;
       
-      &::after {
-        display: none;
-      }
-      
       h3 {
         font-size: clamp(2.2rem, 4vw, 3.5rem);
         letter-spacing: 0.5px;
@@ -329,11 +531,14 @@
       &::before {
         content: "";
         position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
-        background-color: rgba(255, 255, 255, 0.2);
-        opacity: 1;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        backdrop-filter: blur(0.5px); // Even lighter blur to make text more readable
+        -webkit-backdrop-filter: blur(0.5px);
+        background-color: rgba(255, 255, 255, 0.1); // Reduced opacity further
+        opacity: 0.3; // Reduced opacity to make text more visible
         transition: opacity 500ms ease-out;
         z-index: 2;
         pointer-events: none;
@@ -341,17 +546,17 @@
       }
       
       p {
-        font-weight: 300;
-        font-size: clamp(1rem, 1.2vw, 1.25rem);
+        font-weight: 400; // Slightly bolder for better readability
+        font-size: clamp(1.1rem, 1.3vw, 1.3rem); // Slightly larger font size
         color: #4a3c31;
-        line-height: 1.7;
+        line-height: 1.5;
         font-family: "Inter 24pt Regular", sans-serif;
         margin: 0;
         padding: 0;
         position: relative;
         z-index: 1;
         display: block;
-        opacity: 0.8;
+        opacity: 1; // Full opacity
         white-space: normal;
         word-wrap: break-word;
         overflow-wrap: break-word;
@@ -365,10 +570,9 @@
       -webkit-backdrop-filter: blur(0px);
     }
 
-    &.fly-out {
-      opacity: 0;
-      pointer-events: none;
-      transform: translateX(100vw) !important;
+    &.active .text p {
+      opacity: 1;
+      color: #4a3c31;
     }
   }
   
@@ -395,7 +599,7 @@
     top: 55vw;
     z-index: 1;
   }
-
+  
   .scroll-down-elegant {
     position: relative;
     left: 50%;
@@ -406,29 +610,9 @@
     flex-direction: column;
     align-items: center;
     opacity: 1;
-    margin-top: 30px;
+    margin-top: -50px;
+    margin-bottom: 30px;
     transition: all 0.3s ease-out;
-    
-    .arrow-elegant {
-      display: block;
-      width: 20px;
-      height: 20px;
-      border-left: 2px solid v.$tertiary;
-      border-bottom: 2px solid v.$tertiary;
-      transform: rotate(-45deg);
-      animation: bounce 2s infinite;
-      margin-bottom: 12px;
-      filter: drop-shadow(0 2px 3px rgba(2, 92, 72, 0.1));
-    }
-    
-    .hint-elegant {
-      font-size: 0.9rem;
-      color: v.$tertiary-dark;
-      font-weight: 500;
-      letter-spacing: 0.5px;
-      font-style: italic;
-      font-family: "Inter 24pt Regular", sans-serif;
-    }
   }
   
   @keyframes bounce {
@@ -459,16 +643,17 @@
       grid-template-columns: 45% 55%;
     }
   }
-
+  
   @media screen and (max-width: 767px) {
     .menu-category-cards {
       min-height: 300px;
       transition: height 0.3s ease;
-      padding: 0 15px; 
+      padding: 0 15px;
+      -webkit-overflow-scrolling: touch;
     }
     
     .card {
-      width: 90vw !important;
+      width: 85vw !important;
       height: auto !important;
       aspect-ratio: 3/2 !important;
       flex-direction: column !important;
@@ -484,26 +669,12 @@
       box-shadow: 0 8px 20px rgba(106, 89, 72, 0.12);
       display: flex;
       overflow: hidden;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: rgba(0,0,0,0);
       
       &::before {
         height: 4px;
         transition: height 0.3s ease;
-      }
-      
-      &::after {
-        content: "";
-        position: absolute;
-        bottom: 0;
-        right: 0;
-        width: 70px;
-        height: 70px;
-        background-image: url('/static/favicon.png');
-        background-size: contain;
-        background-position: bottom right;
-        background-repeat: no-repeat;
-        opacity: 0.03;
-        z-index: 0;
-        pointer-events: none;
       }
       
       &:hover, &:focus, &:active {
@@ -514,49 +685,53 @@
           height: 8px;
         }
       }
-    }
-    
-    .card .title {
-      width: 100% !important;
-      padding-right: 0;
-      text-align: center;
-      padding-bottom: 0;
-      margin-bottom: 10px;
       
-      h3 {
-        font-size: clamp(1.8rem, 7vw, 2.2rem);
+      .title {
+        width: 100% !important;
+        padding-right: 0;
         text-align: center;
-        margin: 0;
-        padding: 0;
-      }
-    }
-    
-    .card .text {
-      width: 100% !important;
-      padding-left: 0;
-      flex: 1;
-      display: block;
-      overflow: hidden;
-      padding-bottom: 15px;
-      position: relative;
-      
-      &::before {
-        border-radius: 8px;
-        background-color: rgba(251, 249, 246, 0.15);
-        backdrop-filter: blur(3px);
-        -webkit-backdrop-filter: blur(3px);
+        padding-bottom: 0;
+        margin-bottom: 10px;
+        
+        h3 {
+          font-size: clamp(1.8rem, 7vw, 2.2rem);
+          text-align: center;
+          margin: 0;
+          padding: 0;
+        }
       }
       
-      p {
-        font-size: 0.95rem;
-        line-height: 1.5;
-        padding: 4px 8px;
-        width: 100%;
-        font-weight: 300;
-        font-family: "Inter 24pt Regular", sans-serif;
-        margin: 0;
-        color: #4a3c31;
+      .text {
+        width: 100% !important;
+        padding-left: 0;
+        flex: 1;
+        display: block;
         overflow: visible;
+        padding-bottom: 15px;
+        position: relative;
+        margin-top: 8px;
+        
+        &::before {
+          opacity: 0.3;
+          border-radius: 8px;
+          background-color: rgba(251, 249, 246, 0.1);
+          backdrop-filter: blur(0.5px);
+          -webkit-backdrop-filter: blur(0.5px);
+        }
+        
+        p {
+          font-weight: 300;
+          font-size: 0.95rem;
+          line-height: 1.5;
+          padding: 4px 8px;
+          width: 100%;
+          font-family: "Inter 24pt Regular", sans-serif;
+          margin: 0;
+          color: #4a3c31;
+          overflow: visible;
+          display: block;
+          opacity: 1;
+        }
       }
     }
     
@@ -566,36 +741,35 @@
     }
     
     .menu-category-cards .card:nth-child(2) {
-      top: calc(10px + (90vw * 2/3) + 20px);
+      top: calc(10px + (85vw * 2/3) + 20px);
       z-index: 3;
     }
     
     .menu-category-cards .card:nth-child(3) {
-      top: calc(10px + (90vw * 4/3) + 40px);
+      top: calc(10px + (85vw * 4/3) + 40px);
       z-index: 2;
     }
     
     .menu-category-cards .card:nth-child(4) {
-      top: calc(10px + (90vw * 6/3) + 60px);
+      top: calc(10px + (85vw * 6/3) + 60px);
       z-index: 1;
     }
     
     .card.active {
-      aspect-ratio: auto !important;
-      min-height: auto !important;
+      aspect-ratio: 3/2 !important;
       height: auto !important;
-      top: 0 !important;
-      transform: translate3d(-50%, 0, 0) rotateZ(0deg) !important;
-      position: relative !important;
-      padding-bottom: 30px;
+      position: absolute !important;
+      left: 50% !important;
+      top: 50% !important;
+      transform: translate3d(-50%, -50%, 0) rotateZ(0deg) !important;
+      z-index: 10;
+      width: 85vw !important;
+      padding-bottom: 20px;
+      display: flex;
+      flex-direction: column;
       
-      &::before {
-        height: 6px;
-        background: linear-gradient(to right, #8c7b6b, #a0937d);
-      }
-      
-      .title h3 {
-        color: #4a3c31;
+      .title {
+        margin-bottom: 12px;
       }
       
       .text {
@@ -604,112 +778,23 @@
           backdrop-filter: blur(0px);
           -webkit-backdrop-filter: blur(0px);
         }
+        
+        p {
+          opacity: 1;
+          color: #4a3c31;
+          font-size: 1rem;
+          margin-bottom: 0;
+        }
       }
     }
     
-    .card::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 5px;
-      height: 5px;
-      background: rgba(160, 147, 125, 0.3);
+    .card.fly-out {
       opacity: 0;
-      border-radius: 100%;
-      transform: scale(1, 1) translate(-50%);
-      transform-origin: 50% 50%;
-    }
-    
-    .card:active::after {
-      animation: ripple 0.6s ease-out;
-    }
-    
-    @keyframes ripple {
-      0% {
-        transform: scale(0, 0);
-        opacity: 0.5;
-      }
-      20% {
-        transform: scale(25, 25);
-        opacity: 0.3;
-      }
-      100% {
-        opacity: 0;
-        transform: scale(40, 40);
-      }
-    }
-
-    .menu-category-cards .card {
-      transform: translate3d(-50%, 0, 0) !important;
-      box-shadow: none !important;
-    }
-  }
-
-  @media screen and (max-width: 600px) {
-    .section-header h2 {
-      font-size: 2rem;
-    }
-    
-    .subtitle {
-      font-size: 1rem;
-    }
-    
-    .card {
-      padding: 22px;
-      min-height: 200px !important;
-      border-radius: 14px;
-      
-      &.active {
-        border: 2px solid rgba(160, 147, 125, 0.4);
-        box-shadow: 0 15px 30px rgba(106, 89, 72, 0.15);
-      }
-      
-      .text::before {
-        backdrop-filter: blur(2.5px);
-        -webkit-backdrop-filter: blur(2.5px);
-      }
-      
-      .text p {
-        font-size: 0.9rem;
-        padding: 4px 6px;
-      }
-    }
-    
-    .card-pattern {
-      width: 100px;
-      height: 100px;
-    }
-    
-    .menu-category-cards .card:nth-child(2) {
-      top: calc(10px + (90vw * 2/3) + 20px);
-    }
-    
-    .menu-category-cards .card:nth-child(3) {
-      top: calc(10px + (90vw * 4/3) + 40px);
-    }
-    
-    .menu-category-cards .card:nth-child(4) {
-      top: calc(10px + (90vw * 6/3) + 60px);
-    }
-    
-    .card.active .text p {
-      font-size: 0.9rem;
+      pointer-events: none;
+      transform: translateX(100vw) !important;
     }
   }
   
-  @media screen and (max-width: 767px) {
-    .card.active {
-      z-index: 10;
-      left: 50% !important;
-      top: 0 !important;
-      transform: translate3d(-50%, 0, 0) rotateZ(0deg) !important;
-      width: 90vw;
-      height: auto !important;
-      aspect-ratio: 3/2 !important;
-    }
-  }
-
   @media screen and (min-width: 768px) {
     .card.active {
       z-index: 10;
@@ -717,14 +802,269 @@
       top: 50% !important;
       transform: translate3d(-50%, -50%, 0) rotateZ(0deg) !important;
       width: 60vw !important;
-      aspect-ratio: 3/2;
-      height: calc(60vw * 2/3) !important;
+      aspect-ratio: 3/2 !important;
+      height: auto !important;
       overflow: hidden;
+      
+      .text {
+        p {
+          opacity: 1;
+        }
+      }
     }
+    
     .card.fly-out {
       opacity: 0;
       pointer-events: none;
       transform: translateX(100vw) !important;
+    }
+  }
+  
+  .menu-content {
+    margin-top: 40px;
+    width: 100%;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    
+    @media (max-width: 767px) {
+      padding: 0 15px;
+      margin-top: 30px;
+    }
+  }
+  
+  .menu-items-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+    width: 100%;
+    
+    @media (max-width: 767px) {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+  }
+  
+  .no-results {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 20px;
+    background-color: #f7f5f2;
+    border-radius: 12px;
+    border: 1px dashed rgba(160, 147, 125, 0.3);
+    
+    p {
+      font-family: "Inter 24pt Regular", sans-serif;
+      color: #8c7b6b;
+      font-style: italic;
+      margin: 0;
+    }
+  }
+  
+  .menu-showcase {
+    background: linear-gradient(to bottom, white, #f9f7f4);
+    padding: 60px 0 80px;
+    position: relative;
+    margin-top: -20px;
+    
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(to right, rgba(2, 92, 72, 0.2), v.$tertiary 50%, rgba(2, 92, 72, 0.2));
+    }
+    
+    @media (max-width: 767px) {
+      padding: 40px 20px 60px;
+      margin-top: 30px;
+    }
+  }
+  
+  .menu-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 
+      0 10px 30px rgba(106, 89, 72, 0.08),
+      0 1px 3px rgba(106, 89, 72, 0.1);
+    border: 1px solid rgba(160, 147, 125, 0.2);
+    padding: 40px;
+    position: relative;
+    overflow: visible;
+    
+    @media (max-width: 767px) {
+      padding: 30px 15px;
+      border-radius: 4px;
+      margin: 0 10px;
+    }
+  }
+
+  .menu-layout {
+    position: relative;
+    width: 100%;
+    margin: 30px 0;
+    
+    @media (max-width: 767px) {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+    
+    @media (min-width: 768px) and (max-width: 991px) {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+    
+    @media (min-width: 992px) {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+    
+    @media (min-width: 1200px) {
+      grid-template-columns: 300px 1fr;
+      gap: 50px;
+    }
+  }
+
+  .filter-sidebar {
+    width: 100%;
+    
+    @media (max-width: 991px) {
+      max-width: 600px;
+      margin: 0 auto 30px;
+    }
+    
+    @media (min-width: 992px) {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      padding-left: 0;
+    }
+  }
+
+  .menu-content {
+    width: 100%;
+    
+    @media (max-width: 991px) {
+      padding: 0;
+    }
+    
+    @media (min-width: 992px) {
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  }
+  
+  .menu-footer {
+    width: 100%;
+    text-align: center;
+    padding: 30px 0 10px;
+    border-top: 1px solid rgba(160, 147, 125, 0.15);
+    margin-top: 20px;
+    position: relative;
+    z-index: 1;
+    
+    &::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: -15px;
+      transform: translateX(-50%) rotate(45deg);
+      width: 30px;
+      height: 30px;
+      background: white;
+      border: 1px solid rgba(160, 147, 125, 0.15);
+      border-bottom: none;
+      border-right: none;
+      z-index: 0;
+    }
+    
+    .back-to-menu {
+      position: relative;
+      z-index: 1;
+      background: white;
+      border: 2px solid v.$tertiary;
+      color: v.$tertiary;
+      padding: 12px 24px;
+      border-radius: 4px;
+      font-family: "DynaPuff Regular", cursive;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        background-color: v.$tertiary;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(2, 92, 72, 0.2);
+      }
+      
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+
+  .item-description {
+    font-family: "Inter 24pt Regular", sans-serif;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #333;
+    margin: 0 0 8px;
+
+    @media (max-width: 767px) {
+      display: block;
+      font-size: 0.85rem;
+    }
+  }
+
+  .guided-menu-button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+  }
+  
+  .guided-menu-button {
+    background-color: v.$tertiary;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 14px 28px;
+    font-family: "DynaPuff Regular", cursive;
+    font-size: 1.1rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(2, 92, 72, 0.15);
+    
+    &:hover {
+      background-color: darken(v.$tertiary, 5%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(2, 92, 72, 0.2);
+    }
+    
+    &:active {
+      transform: translateY(0);
+    }
+    
+    @media (max-width: 767px) {
+      font-size: 1rem;
+      padding: 12px 20px;
     }
   }
 </style>
