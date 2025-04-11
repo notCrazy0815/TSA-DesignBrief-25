@@ -6,7 +6,7 @@
     import { shouldAnimate, firstLoad, isLoading } from "$lib/stores/navStore";
     import { page } from "$app/stores";
     import { gsap } from "gsap";
-    import { basket, basketCount } from "$lib/stores/basketStore";
+    import { basket, basketCount } from "$lib/stores/basketStore"; // Warenkorb-Store hinzugefügt
     
     type ActivePage = "approach" | "menu" | "news";
     export let active: ActivePage = "approach";
@@ -140,10 +140,10 @@
     }
 
     function calculateTotal() {
-        return $basket.reduce((total, item) => {
-            const price = parseFloat(item.price.replace('$', ''));
-            return total + (price * item.quantity);
-        }, 0).toFixed(2);
+    return $basket.reduce((total, item) => {
+        const price = parseFloat(item.price.replace('$', ''));
+        return total + (price * item.quantity);
+    }, 0).toFixed(2);
     }
 
 
@@ -364,7 +364,7 @@
                 &.expanded {
                     border-radius: 20px;
                     height: auto;
-                    // min-height: 400px;
+                    min-height: 400px;
                 }
 
                 &.dark {
