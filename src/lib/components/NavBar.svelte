@@ -194,7 +194,7 @@
 <div class="navbar">
     <div class="content" bind:this={contentElement}>
         <div class="content-box" class:expanded={isMenuOpen} class:dark={bg === "dark"} class:base={bg === "base"}></div>
-        <button 
+        <button
             class="nav-btn" 
             style:opacity={isBagOpen ? 0 : 1}
             style:pointer-events={isBagOpen ? "none" : "auto"}
