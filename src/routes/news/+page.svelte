@@ -152,86 +152,88 @@
     }
 </script>
 
-<div class="news-page">
-    <NavBar active="news" />
-    
-    <section class="featured-dishes">
-        <h2>New on our Menu</h2>
-        <p class="section-intro">
-            Discover our latest plant-based creations, crafted with seasonal ingredients from local farms.
-        </p>
+<div class="news-page-wrapper">
+    <div class="news-page">
+        <NavBar active="news" />
         
-        <div class="dishes-grid">
-            {#each newDishes as dish}
-                <NewDish {dish} />
+        <section class="featured-dishes">
+            <h2>New on our Menu</h2>
+            <p class="section-intro">
+                Discover our latest plant-based creations, crafted with seasonal ingredients from local farms.
+            </p>
+            
+            <div class="dishes-grid">
+                {#each newDishes as dish}
+                    <NewDish {dish} />
+                {/each}
+            </div>
+        </section>
+        
+        <section class="recent-news">
+            <h2>Latest News</h2>
+            
+            {#each newsArticles as article, i}
+                {@const likeData = $likeStore[article.id] || { likes: 0, userLiked: false }}
+                <div role="article"
+                    class="news-card" 
+                    on:click={() => openArticle(article)}
+                    in:fly={{ y: 50, delay: i * 100, duration: 500 }}
+                >
+                    <div class="like-control">
+                        <button 
+                            class="like-btn" 
+                            class:active={likeData.userLiked} 
+                            on:click={(e) => handleLike(article.id, e)}
+                            aria-label="Like"
+                        >
+                            <span class="heart-icon">♥</span>
+                            {#if likeData.likes > 0}
+                                <span class="like-count">{likeData.likes}</span>
+                            {/if}
+                        </button>
+                    </div>
+                    
+                    <div class="news-content">
+                        <div class="news-date">{article.date}</div>
+                        <h3>{article.title}</h3>
+                        <p>{article.summary}</p>
+                        <span class="read-more">Read more</span>
+                    </div>
+                </div>
             {/each}
-        </div>
-    </section>
-    
-    <section class="recent-news">
-        <h2>Latest News</h2>
+        </section>
         
-        {#each newsArticles as article, i}
-            {@const likeData = $likeStore[article.id] || { likes: 0, userLiked: false }}
-            <div aria-role="article"
-                class="news-card" 
-                on:click={() => openArticle(article)}
-                in:fly={{ y: 50, delay: i * 100, duration: 500 }}
-            >
-                <div class="like-control">
-                    <button 
-                        class="like-btn" 
-                        class:active={likeData.userLiked} 
-                        on:click={(e) => handleLike(article.id, e)}
-                        aria-label="Like"
-                    >
-                        <span class="heart-icon">♥</span>
-                        {#if likeData.likes > 0}
-                            <span class="like-count">{likeData.likes}</span>
-                        {/if}
-                    </button>
-                </div>
+        <Newsletter />
+        
+        <Modal bind:showModal title={selectedArticle.title}>
+            <div class="modal-article">
+                <div class="article-date">{selectedArticle.date}</div>
                 
-                <div class="news-content">
-                    <div class="news-date">{article.date}</div>
-                    <h3>{article.title}</h3>
-                    <p>{article.summary}</p>
-                    <span class="read-more">Read more</span>
+                {#if $likeStore[selectedArticle.id]}
+                    <div class="modal-like-control">
+                        <button 
+                            class="like-btn" 
+                            class:active={$likeStore[selectedArticle.id].userLiked} 
+                            on:click={() => likeStore.toggleLike(selectedArticle.id)}
+                        >
+                            <span class="heart-icon">♥</span>
+                            {#if $likeStore[selectedArticle.id].likes > 0}
+                                <span class="like-count">{$likeStore[selectedArticle.id].likes}</span>
+                            {/if}
+                        </button>
+                        <span class="like-label">Did you find this helpful?</span>
+                    </div>
+                {/if}
+                
+                <div class="article-content">
+                    {@html selectedArticle.content}
                 </div>
             </div>
-        {/each}
-    </section>
-    
-    <Newsletter />
-    
-    <Modal bind:showModal title={selectedArticle.title}>
-        <div class="modal-article">
-            <div class="article-date">{selectedArticle.date}</div>
-            
-            {#if $likeStore[selectedArticle.id]}
-                <div class="modal-like-control">
-                    <button 
-                        class="like-btn" 
-                        class:active={$likeStore[selectedArticle.id].userLiked} 
-                        on:click={() => likeStore.toggleLike(selectedArticle.id)}
-                    >
-                        <span class="heart-icon">♥</span>
-                        {#if $likeStore[selectedArticle.id].likes > 0}
-                            <span class="like-count">{$likeStore[selectedArticle.id].likes}</span>
-                        {/if}
-                    </button>
-                    <span class="like-label">Did you find this helpful?</span>
-                </div>
-            {/if}
-            
-            <div class="article-content">
-                {@html selectedArticle.content}
-            </div>
-        </div>
-    </Modal>
-</div>
+        </Modal>
+    </div>
 
-<Footer />
+    <Footer />
+</div>
 
 <style lang="scss">
     @use "../../lib/styles/variables" as v;
@@ -240,11 +242,16 @@
         font-family: sans-serif;
     }
 
+    .news-page-wrapper {
+        width: 100%;
+        position: relative;
+        overflow-x: hidden;
+    }
+
     .news-page {
         width: 100%;
         max-width: 1200px;
         margin: 0 auto;
-        padding: 0 1rem 4rem;
     }
 
     h2 {
@@ -264,6 +271,7 @@
 
     .featured-dishes {
         margin: 3rem 0;
+        padding: 0 1rem 4rem;
 
         .dishes-grid {
             display: grid;
@@ -275,6 +283,7 @@
 
     .recent-news {
         margin: 4rem 0;
+        padding: 0 1rem 4rem;
 
         .news-card {
             background-color: white;

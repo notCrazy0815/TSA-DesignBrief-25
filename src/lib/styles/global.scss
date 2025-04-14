@@ -12,7 +12,7 @@
     background-color: v.$background-color-light;
     overflow-x: hidden;
     overscroll-behavior: none;
-    overflow: none;
+    overflow-y: auto;
     scroll-behavior: smooth;
 }
 
@@ -48,5 +48,5 @@ a {
 
 :global(html) {
     overscroll-behavior: none;
-    overflow: none;
+    overflow-y: auto;
 }

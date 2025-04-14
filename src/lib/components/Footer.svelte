@@ -92,7 +92,7 @@
     @use "../styles/global" as g;
 
     .footer {
-        width: 100vw;
+        width: 100%;
         overflow: hidden;
 
         .footer-content {
