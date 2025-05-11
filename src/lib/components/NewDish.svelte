@@ -36,11 +36,6 @@
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-    transition: transform 0.3s ease;
-
-    &:hover {
-      transform: translateY(-8px);
-    }
   }
 
   .image-placeholder {

@@ -3,34 +3,37 @@
     import NewDish from "$lib/components/NewDish.svelte";
     import Newsletter from "$lib/components/Newsletter.svelte";
     import Modal from "$lib/components/Modal.svelte";
-    import { fly, scale } from 'svelte/transition';
-    import { elasticOut } from 'svelte/easing';
-    // Import the new likeStore instead of voteStore
+    import { fly, scale, fade } from 'svelte/transition';
+    import { elasticOut, quintOut } from 'svelte/easing';
     import { likeStore } from "$lib/stores/voteStore";
     import Footer from "$lib/components/Footer.svelte";
+    import { onMount } from 'svelte';
+    import { gsap } from 'gsap';
+    import { ScrollTrigger } from 'gsap/ScrollTrigger';
     
     // Sample data for new dishes
-    import dish1 from "$lib/assets/news/chungus-image-img-1742148353457-wayj7s9.png";
-    import dish2 from "$lib/assets/news/chungus-image-img-1742148407649-ge7uqdp.png";
-    import dish3 from "$lib/assets/news/chungus-image-img-1742148407650-h9m4kpx.png";
+    import leafImg from "$lib/assets/news/leaf.png";
+    import orangeImg from "$lib/assets/news/orange.png";
+    import lavenderImg from "$lib/assets/news/lavender.png";
+    import flowerImg from "$lib/assets/news/leaf.png";
 
     const newDishes = [
         {
             title: "Artisanal Mushroom Risotto",
             description: "Creamy arborio rice with locally foraged wild mushrooms and truffle oil",
-            imageUrl: dish1,
+            imageUrl: leafImg,
             tags: ["new", "seasonal", "gluten-free"]
         },
         {
             title: "Rainbow Buddha Bowl",
             description: "Nutrient-packed bowl with quinoa, roasted vegetables, avocado and tahini dressing",
-            imageUrl: dish2,
+            imageUrl: orangeImg,
             tags: ["popular", "protein-rich"]
         },
         {
             title: "Jackfruit Tacos",
             description: "Spicy pulled jackfruit with homemade corn tortillas and lime-cilantro slaw",
-            imageUrl: dish3,
+            imageUrl: lavenderImg,
             tags: ["new", "spicy"]
         }
     ];
@@ -124,22 +127,88 @@
     // Modal state
     let showModal = false;
     let selectedArticle = newsArticles[0];
+    let isClosing = false;
     
     function openArticle(article: any) {
         selectedArticle = article;
         showModal = true;
     }
 
+    function closeModal() {
+        isClosing = true;
+        setTimeout(() => {
+            showModal = false;
+            isClosing = false;
+        }, 300);
+    }
+
     // Initialize likes for all articles
-    import { onMount } from 'svelte';
     
     onMount(() => {
+        gsap.registerPlugin(ScrollTrigger);
+
         // Initialize like data for all articles with initial dummy values
         newsArticles.forEach(article => {
             likeStore.initArticleWithCount(
                 article.id, 
                 article.initialLikes
             );
+        });
+        
+        // GSAP 
+        gsap.fromTo(".mega-text", 
+            { y: 100, opacity: 0 },
+            {
+                y: 0,
+                opacity: 1,
+                duration: 1,
+                stagger: 0.2,
+                scrollTrigger: {
+                    trigger: ".news-hero",
+                    start: "top 80%",
+                    end: "center center",
+                    scrub: 1
+                }
+            }
+        );
+        
+        // Animate the dishes on scroll
+        gsap.from(".dishes-grid .dish-card", {
+            y: 100,
+            opacity: 0,
+            duration: 0.8,
+            stagger: 0.2,
+            scrollTrigger: {
+                trigger: ".dishes-grid",
+                start: "top 80%",
+                end: "center center",
+                toggleActions: "play none none none"
+            }
+        });
+        
+        // Animate news cards on scroll
+        gsap.from(".news-card", {
+            y: 50,
+            opacity: 0,
+            duration: 0.5,
+            stagger: 0.2,
+            scrollTrigger: {
+                trigger: ".recent-news",
+                start: "top 70%",
+                toggleActions: "play none none none"
+            }
+        });
+        
+        // Parallax
+        gsap.to(".bg-image-container", {
+            y: "-30%",
+            ease: "none",
+            scrollTrigger: {
+                trigger: ".news-page",
+                start: "top top",
+                end: "bottom top",
+                scrub: true
+            }
         });
     });
 
@@ -155,6 +224,21 @@
 <div class="news-page-wrapper">
     <div class="news-page">
         <NavBar active="news" />
+        
+        <div class="bg-image-container">
+            <img src={flowerImg} alt="" class="bg-image" />
+        </div>
+        
+        <section class="news-hero">
+            <div class="news-hero-content">
+                <h1>
+                    <span class="mega-text">NEWS</span>
+                    <span class="mega-text">&</span>
+                    <span class="mega-text">UPDATES</span>
+                </h1>
+                <p class="hero-subtitle">Stay informed about our latest events, menu launches, and sustainability initiatives.</p>
+            </div>
+        </section>
         
         <section class="featured-dishes">
             <h2>New on our Menu</h2>
@@ -177,7 +261,6 @@
                 <div role="article"
                     class="news-card" 
                     on:click={() => openArticle(article)}
-                    in:fly={{ y: 50, delay: i * 100, duration: 500 }}
                 >
                     <div class="like-control">
                         <button 
@@ -204,36 +287,61 @@
         </section>
         
         <Newsletter />
-        
-        <Modal bind:showModal title={selectedArticle.title}>
-            <div class="modal-article">
-                <div class="article-date">{selectedArticle.date}</div>
-                
-                {#if $likeStore[selectedArticle.id]}
-                    <div class="modal-like-control">
-                        <button 
-                            class="like-btn" 
-                            class:active={$likeStore[selectedArticle.id].userLiked} 
-                            on:click={() => likeStore.toggleLike(selectedArticle.id)}
-                        >
-                            <span class="heart-icon">♥</span>
-                            {#if $likeStore[selectedArticle.id].likes > 0}
-                                <span class="like-count">{$likeStore[selectedArticle.id].likes}</span>
-                            {/if}
-                        </button>
-                        <span class="like-label">Did you find this helpful?</span>
-                    </div>
-                {/if}
-                
-                <div class="article-content">
-                    {@html selectedArticle.content}
-                </div>
-            </div>
-        </Modal>
     </div>
 
     <Footer />
 </div>
+
+{#if showModal}
+    <div 
+        class="modal-overlay" 
+        on:click={closeModal}
+        transition:fade={{ duration: 250 }}
+    >
+        <button 
+            class="close-button" 
+            on:click={closeModal} 
+            aria-label="Close"
+            in:scale={{delay: 200, duration: 200, start: 0.8}}
+            out:scale={{duration: 150}}
+        >
+            ×
+        </button>
+        
+        <div 
+            class="modal-content"
+            class:closing={isClosing}
+            on:click|stopPropagation={() => {}}
+            in:fly={{ y: 30, duration: 350, easing: quintOut }}
+            out:fly={{ y: 20, duration: 250 }}
+        >
+            <div class="modal-header">
+                <h2>{selectedArticle.title}</h2>
+                <div class="article-date">{selectedArticle.date}</div>
+            </div>
+            
+            {#if $likeStore[selectedArticle.id]}
+                <div class="modal-like-control">
+                    <button 
+                        class="like-btn" 
+                        class:active={$likeStore[selectedArticle.id].userLiked} 
+                        on:click={() => likeStore.toggleLike(selectedArticle.id)}
+                    >
+                        <span class="heart-icon">♥</span>
+                        {#if $likeStore[selectedArticle.id].likes > 0}
+                            <span class="like-count">{$likeStore[selectedArticle.id].likes}</span>
+                        {/if}
+                    </button>
+                    <span class="like-label">Did you find this helpful?</span>
+                </div>
+            {/if}
+            
+            <div class="article-content">
+                {@html selectedArticle.content}
+            </div>
+        </div>
+    </div>
+{/if}
 
 <style lang="scss">
     @use "../../lib/styles/variables" as v;
@@ -252,6 +360,62 @@
         width: 100%;
         max-width: 1200px;
         margin: 0 auto;
+        position: relative;
+    }
+    
+    .bg-image-container {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100%;
+        height: 120vh;
+        z-index: -1;
+        overflow: hidden;
+        opacity: 0.08;
+        
+        .bg-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+    }
+
+    .news-hero {
+        height: 90vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        
+        .news-hero-content {
+            text-align: center;
+            max-width: 1000px;
+            padding: 0 2rem;
+            
+            h1 {
+                display: flex;
+                flex-direction: column;
+                font-family: "DynaPuff Regular";
+                font-size: clamp(3rem, 20vw, 8rem);
+                line-height: 0.9;
+                margin-bottom: 1.5rem;
+                color: v.$tertiary-dark;
+                
+                .mega-text {
+                    opacity: 0;
+                    font-family: "DynaPuff Regular";
+                }
+            }
+            
+            .hero-subtitle {
+                font-size: 1.4rem;
+                color: v.$tertiary;
+                max-width: 600px;
+                margin: 0 auto;
+                line-height: 1.4;
+            }
+        }
     }
 
     h2 {
@@ -444,39 +608,124 @@
         }
     }
 
-    .modal-article {
+    /* Modal Styles */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        padding: 20px;
+        backdrop-filter: blur(3px);
+    }
+
+    .modal-content {
+        background-color: white;
+        width: 100%;
+        max-width: 800px;
+        max-height: 90vh;
+        border-radius: 8px;
+        padding: 30px;
+        position: relative;
+        overflow-y: auto;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        transform-origin: center;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+
+        &.closing {
+            transform: scale(0.98);
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            padding: 20px;
+            max-height: 80vh;
+        }
+    }
+
+    .close-button {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(255, 255, 255, 0.95);
+        border: none;
+        font-size: 22px;
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        color: v.$tertiary;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        z-index: 20;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+        font-weight: 300;
+
+        &:hover {
+            background-color: v.$tertiary;
+            color: white;
+            transform: rotate(90deg) scale(1.1);
+        }
+
+        &:active {
+            transform: rotate(90deg) scale(0.95);
+        }
+    }
+
+    .modal-header {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 20px;
+        border-bottom: 1px solid rgba(5, 113, 95, 0.1);
+        padding-bottom: 15px;
+        
+        h2 {
+            font-family: "Inter 24pt Regular", sans-serif;
+            font-size: 2rem;
+            font-weight: 600;
+            color: v.$tertiary;
+            margin: 0 0 5px 0;
+            text-align: left;
+        }
+        
         .article-date {
             color: v.$tertiary-light;
             font-size: 0.9rem;
+        }
+    }
+
+    .article-content {
+        :global(p) {
             margin-bottom: 1.5rem;
+            line-height: 1.7;
         }
 
-        .article-content {
-            :global(p) {
-                margin-bottom: 1.5rem;
-                line-height: 1.7;
-            }
+        :global(h4) {
+            color: v.$tertiary-dark;
+            font-family: "DynaPuff Regular";
+            font-size: 1.3rem;
+            margin: 1.5rem 0 0.8rem;
+        }
 
-            :global(h4) {
-                color: v.$tertiary-dark;
-                font-family: "DynaPuff Regular";
-                font-size: 1.3rem;
-                margin: 1.5rem 0 0.8rem;
-            }
+        :global(ul) {
+            margin-bottom: 1.5rem;
+            padding-left: 1.5rem;
 
-            :global(ul) {
-                margin-bottom: 1.5rem;
-                padding-left: 1.5rem;
-
-                :global(li) {
-                    margin-bottom: 0.5rem;
-                    line-height: 1.5;
-                }
+            :global(li) {
+                margin-bottom: 0.5rem;
+                line-height: 1.5;
             }
+        }
 
-            :global(strong) {
-                color: v.$tertiary;
-            }
+        :global(strong) {
+            color: v.$tertiary;
         }
     }
 </style>
