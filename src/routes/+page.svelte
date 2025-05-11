@@ -8,7 +8,7 @@
      import Footer from "$lib/components/Footer.svelte";
      import { gsap } from "gsap";
      import { ScrollTrigger } from "gsap/ScrollTrigger";
-     import WeAreSection from "$lib/components/WeAreSection.svelte";
+    import WeAreSection from "$lib/components/WeAreSection.svelte";
 
      let bg = "base";
 
@@ -22,36 +22,44 @@
                     document.body.style.overflow = "auto";
                }, 2600);
           }
-
-          // gsap.fromTo(".second-section-bg", {
-          //      width: "100%",
-          //      height: "20%",
-          //      opacity: 0.8,
-          //      borderRadius: "0",
-          //      ease: "power2.out"
-          // }, {
-          //      width: "100%",
-          //      height: "100%",
-          //      opacity: 1,
-          //      borderRadius: "0 0 0 0",
-          //      duration: 1,
-          //      ease: "power1.in",
-          //      scrollTrigger: {
-          //           trigger: ".second-section",
-          //           start: "-95% top top",
-          //           end: "-10% top top",
-          //           scrub: true,
-          //           onLeave: () => {
-          //                bg = "dark";
-          //           },
-          //           onEnterBack: () => {
-          //                bg = "base";
-          //           },
-          //           onEnter: () => {
-          //                bg = "base";
-          //           }
-          //      },
-          // });
+          
+          gsap.to(".hero-plants-wrapper", {
+               scrollTrigger: {
+                    trigger: ".hero-section",
+                    start: "top top", 
+                    end: "bottom top",
+                    scrub: 1
+               },
+               scale: 5,
+               filter: "blur(30px)",
+               ease: "power1.out",
+          });
+          
+          gsap.to(".hero-plants-wrapper", {
+               scrollTrigger: {
+                    trigger: ".hero-section",
+                    start: "bottom top",
+                    end: "bottom+=40% top",
+                    scrub: true
+               },
+               opacity: 0,
+               ease: "power2.in",
+          });
+          
+          const ctaTimeline = gsap.timeline({
+               scrollTrigger: {
+                    trigger: ".hero-section",
+                    start: "top+=2% top",
+                    end: "top+=8% top",
+                    scrub: 1
+               }
+          });
+          
+          ctaTimeline.to(".hero-cta-container", {
+               opacity: 0,
+               duration: 0.2,
+               ease: "power1.inOut",
+          }).set(".hero-cta-container", { visibility: "hidden" });
      });
 </script>
 
@@ -69,8 +77,7 @@
      <div class="hero-cta-container">
           <HeroCta />
      </div>
-
-     <div class="we-are-section-wrapper">
+     <div class="we-are-section-container">
           <WeAreSection />
      </div>
 </div>
@@ -94,7 +101,6 @@
           align-items: center;
           flex-direction: column;
           gap: 1rem;
-          margin-bottom: 145vh;
      }
 
      .hero-plants-container {
@@ -108,7 +114,7 @@
 
           .hero-plants-wrapper {
                height: fit-content;
-               position: absolute;
+               position: fixed;
                bottom: 0;
                left: 50%;
                transform: translateX(-50%);
@@ -136,12 +142,4 @@
                translate: 0 0;
           }
      }
-
-     .we-are-section-wrapper {
-          position: absolute;
-          width: 100%;
-          top: 100vh;
-          z-index: 4;
-     }
-
 </style>
