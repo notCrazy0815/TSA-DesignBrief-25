@@ -2,7 +2,6 @@
     import { onMount } from "svelte";
     import gsap from "gsap";
     import { ScrollTrigger } from "gsap/ScrollTrigger";
-    import branch1s from "../assets/branches/branch1s.png";
 
     onMount(() => {
         gsap.registerPlugin(ScrollTrigger);
@@ -20,32 +19,31 @@
                     ease: "power2.out",
                     scrollTrigger: {
                         trigger: p,
-                        start: "top 80%",
-                        end: "top 20%",
-                        toggleActions: "play none none reverse",
-                        scrub: 1
+                        start: "top 75%",
+                        end: "top 90%",
+                        toggleActions: "play none none reverse"
                     }
                 }
             );
         });
 
-        gsap.to(".we-are-section-content", {
-            y: "-20%",
-            ease: "none",
+        gsap.fromTo(".we-are-section-content", {
+            scale: 0.8,
+        },
+        {
+            scale: 1,
+            ease: "power1.out",
             scrollTrigger: {
-                trigger: ".we-are-section",
-                start: "top bottom",
-                end: "bottom top",
-                scrub: 1
+                trigger: ".we-are-section-content",
+                start: "top 90%",
+                end: "top 70%",
+                toggleActions: "play none none reverse"
             }
-        })
+        });
     });
 </script>
 
 <section class="we-are-section">
-    <div class="we-are-section-bg">
-        <img src={branch1s} alt="branch1s" />
-    </div>
     <div class="we-are-section-content">
         <div class="we-are-logo">
             <p>
@@ -89,30 +87,8 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: v.$tertiary-dark;
         position: relative;
-
-        .we-are-section-bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-
-            display: flex;
-            justify-content: center;
-            align-items: center;
-
-            padding: 1rem;
-            padding-bottom: 0;
-
-            img {
-                width: 175%;
-                aspect-ratio: 1/1;
-                opacity: 0.6;
-            }
-        }
+        z-index: 1;
 
         .we-are-section-content {
             width: 100%;
@@ -125,7 +101,7 @@
             .we-are-logo {
                 p {
                     font-size: clamp(0.9rem, 2vw, 1rem);
-                    color: v.$font-color-light;
+                    color: v.$font-color-dark;
                     font-family: "DynaPuff Regular";
                 }
             }
@@ -138,7 +114,7 @@
                 p {
                     font-size: clamp(1.4rem, 10vw, 5rem);
                     font-weight: 600;
-                    color: v.$font-color-light;
+                    color: v.$font-color-dark;
                     text-transform: uppercase;
                     text-align: center;
                     line-height: 1.1;
@@ -148,7 +124,7 @@
                         font-family: "DynaPuff Regular";
                         text-transform: none;
                         color: v.$primary;
-                        text-shadow: 0 0 100px v.$primary;
+                        text-shadow: 0 0 clamp(60px, 8vw, 100px) v.$primary;
                     }
                 }
             }
