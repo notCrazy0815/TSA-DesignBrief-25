@@ -124,7 +124,7 @@
 
   .newsletter {
     margin: 5rem 0 2rem;
-    background-color: v.$background-color-light;
+    background-color: v.$tertiary-dark;
     padding: 4rem 3rem;
     border-radius: 16px;
     position: relative;
@@ -142,7 +142,7 @@
 
       .bg-image {
         position: absolute;
-        opacity: 0.5;
+        opacity: 0.15;
 
         &.flower {
           top: 10%;
@@ -185,7 +185,7 @@
       text-align: center;
 
       h2 {
-        color: v.$tertiary-dark;
+        color: white;
         margin-bottom: 0.5rem;
         font-size: 2.5rem;
         font-weight: bold;
@@ -195,7 +195,7 @@
       .divider {
         width: 80px;
         height: 4px;
-        background: linear-gradient(90deg, v.$tertiary, v.$primary);
+        background: linear-gradient(90deg, white, v.$primary);
         border-radius: 2px;
         margin: 1.5rem auto;
       }
@@ -204,7 +204,7 @@
         margin-bottom: 2rem;
         font-size: 1.1rem;
         line-height: 1.6;
-        color: v.$tertiary-dark;
+        color: white;
         opacity: 0.85;
         max-width: 500px;
         margin-left: auto;
