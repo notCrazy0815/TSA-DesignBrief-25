@@ -8,7 +8,8 @@
      import Footer from "$lib/components/Footer.svelte";
      import { gsap } from "gsap";
      import { ScrollTrigger } from "gsap/ScrollTrigger";
-    import WeAreSection from "$lib/components/WeAreSection.svelte";
+     import WeAreSection from "$lib/components/WeAreSection.svelte";
+     import CardSection from "$lib/components/CardSection.svelte";
 
      let bg = "base";
 
@@ -79,6 +80,9 @@
      </div>
      <div class="we-are-section-container">
           <WeAreSection />
+     </div>
+     <div class="card-section-container">
+          <CardSection />
      </div>
 </div>
 
