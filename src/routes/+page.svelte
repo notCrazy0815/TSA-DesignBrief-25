@@ -8,7 +8,8 @@
      import Footer from "$lib/components/Footer.svelte";
      import { gsap } from "gsap";
      import { ScrollTrigger } from "gsap/ScrollTrigger";
-    import WeAreSection from "$lib/components/WeAreSection.svelte";
+     import WeAreSection from "$lib/components/WeAreSection.svelte";
+     import CardSection from "$lib/components/CardSection.svelte";
 
      let bg = "base";
 
@@ -80,6 +81,10 @@
      <div class="we-are-section-container">
           <WeAreSection />
      </div>
+     <div class="card-section-container">
+          <CardSection />
+     </div>
+     <div style="height: 100vh"></div>
 </div>
 
 <div class="footer-wrapper">
@@ -132,6 +137,16 @@
           align-items: end;
           padding-bottom: 4rem;
           z-index: 3;
+     }
+
+     .we-are-section-container {
+          z-index: 2;
+     }
+
+     .card-section-container {
+          z-index: 2;
+          width: 100%;
+          display: flex;
      }
 
      @keyframes moveIn {
