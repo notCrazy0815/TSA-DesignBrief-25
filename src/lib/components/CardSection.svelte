@@ -3,6 +3,7 @@
     import gsap from "gsap";
     import { ScrollTrigger } from "gsap/ScrollTrigger";
     import usa from "$lib/assets/svg/usa.svg";
+    import branch2d from "$lib/assets/branches/branch_2d_s.png";
 
     onMount(() => {
         gsap.registerPlugin(ScrollTrigger);
@@ -63,6 +64,26 @@
             ease: "power2.out",
             scrollTrigger: {
                 trigger: ".card.local",
+                start: "top 60%",
+                end: "top 40%",
+                scrub: false,
+                toggleActions: "play none none reverse"
+            }
+        });
+
+        const seasonalImage = document.querySelector(".card.seasonal .card-graphic img");
+        gsap.set(seasonalImage, { 
+            scale: 0,
+            y: 60
+        });
+
+        gsap.to(seasonalImage, {
+            scale: 1,
+            duration: 1,
+            y: 0,
+            ease: "power2.out",
+            scrollTrigger: {
+                trigger: ".card.seasonal",
                 start: "top 60%",
                 end: "top 40%",
                 scrub: false,
@@ -132,7 +153,9 @@
                         <p>Our dishes follow the rhythm of nature — changing with the seasons to feature what’s at its peak. This keeps things exciting and minimizes waste.</p>
                     </div>
                 </div>
-                <div class="card-graphic"></div>
+                <div class="card-graphic">
+                    <img src={branch2d} alt="Branch" />
+                </div>
             </div>
         </div>
         <div class="card-container">
@@ -327,6 +350,20 @@
                         background-color: v.$secondary-lighter;
                         color: #fff;
                         border: 2px solid v.$secondary;
+                        overflow: hidden;
+
+                        .card-graphic {
+                            width: 100%;
+                            height: 100%;
+                            display: flex;
+                            justify-content: center;
+                            align-items: end;
+
+                            img {
+                                height: 90%;
+                                object-fit: contain;
+                            }
+                        }
                     }
 
                     &.plant-based {
