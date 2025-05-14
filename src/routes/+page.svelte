@@ -31,8 +31,8 @@
                     end: "bottom top",
                     scrub: 1
                },
-               scale: 5,
-               filter: "blur(30px)",
+               scale: 1.2,
+               filter: "blur(100px)",
                ease: "power1.out",
           });
           

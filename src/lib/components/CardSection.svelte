@@ -2,6 +2,7 @@
     import { onMount } from "svelte";
     import gsap from "gsap";
     import { ScrollTrigger } from "gsap/ScrollTrigger";
+    import usa from "$lib/assets/svg/usa.svg";
 
     onMount(() => {
         gsap.registerPlugin(ScrollTrigger);
@@ -17,6 +18,43 @@
                 start: "top 90%",
                 end: "top 70%", 
                 scrub: 0.5
+            }
+        });
+
+        const title = document.querySelector(".title h1");
+        gsap.set(title, { opacity: 0, y: 50 });
+
+        gsap.to(title, {
+            opacity: 1,
+            y: 0,
+            duration: 0.8,
+            scrollTrigger: {
+                trigger: title,
+                start: "top 80%",
+                end: "top 60%",
+                scrub: 0.5
+            }
+        });
+
+        const usaImage = document.querySelector(".card.local .card-graphic img");
+        gsap.set(usaImage, { 
+            scale: 0.8, 
+            opacity: 0.9, 
+            //rotation: -15
+        });
+
+        gsap.to(usaImage, {
+            scale: 1,
+            opacity: 1,
+            rotation: 0,
+            duration: 1,
+            ease: "power2.out",
+            scrollTrigger: {
+                trigger: ".card.local",
+                start: "top 60%",
+                end: "top 40%",
+                scrub: false,
+                toggleActions: "play none none reverse"
             }
         });
 
@@ -38,8 +76,8 @@
                 ease: "none",
                 scrollTrigger: {
                     trigger: container,
-                    start: "top " + (20 + 3 * i) + "%",
-                    end: "bottom 70%",
+                    start: "top " + (5 + 3 * i) + "%",
+                    end: "bottom bottom",
                     endTrigger: ".card-section",
                     scrub: true,
                     pin: container,
@@ -57,16 +95,58 @@
     </div>
     <div class="cards">
         <div class="card-container">
-            <div class="card local">Local</div>
+            <div class="card local">
+                <div class="card-text">
+                    <div class="card-title card-title-local">
+                        <h3>Locally Sourced</h3>
+                    </div>
+                    <div class="card-description">
+                        <p>We work directly with nearby farms and suppliers to bring you ingredients grown close to home. This not only supports our local economy but also ensures fresher, better-tasting food.</p>
+                    </div>
+                </div>
+                <div class="card-graphic">
+                    <img src={usa} alt="USA" />
+                </div>
+            </div>
         </div>
         <div class="card-container">
-            <div class="card seasonal">Seasonal</div>
+            <div class="card seasonal">
+                <div class="card-text">
+                    <div class="card-title card-title-seasonal">
+                        <h3>Seasonal Menus</h3>
+                    </div>
+                    <div class="card-description">
+                        <p>Our dishes follow the rhythm of nature — changing with the seasons to feature what’s at its peak. This keeps things exciting and minimizes waste.</p>
+                    </div>
+                </div>
+                <div class="card-graphic"></div>
+            </div>
         </div>
         <div class="card-container">
-            <div class="card plant-based">Plant-based</div>
+            <div class="card plant-based">
+                <div class="card-text">
+                    <div class="card-title card-title-plant-based">
+                        <h3>Plant-based</h3>
+                    </div>
+                    <div class="card-description">
+                        <p>While not strictly vegan, our menu is rooted in plants. We highlight vegetables, grains, and legumes — making plants the star of every dish.</p>
+                    </div>
+                </div>
+                <div class="card-graphic"></div>
+            </div>
         </div>
         <div class="card-container">
-            <div class="card tasty">Tasty</div>
+            <div class="card tasty">
+                <div class="card-text">
+                    <div class="card-title card-title-tasty">
+                        <h3>Flavor Comes First</h3>
+                    </div>
+                    <div class="card-description">
+                        <p>Our food isn’t just good for you or the planet — it’s seriously delicious. We focus on bold flavors, rich textures, and surprising combinations that satisfy every time.</p>
+                    </div>
+                </div>
+                <div class="card-graphic"></div>
+            </div>
         </div>
     </div>
 </div>
@@ -76,14 +156,14 @@
     @use "../styles/global" as g;
 
     .card-section {
+        z-index: 2;
         width: 100%;
         min-height: 100vh;
         padding-top: 3rem;
-        padding-bottom: 50px;
         display: flex;
         flex-direction: column;
         background-color: v.$tertiary-light-low-opacity;
-        padding-bottom: 35vh;
+        padding-bottom: 70vh;
         border-top: 2px solid v.$tertiary-light;
         border-bottom: 2px solid v.$tertiary-light;
 
@@ -93,6 +173,7 @@
             justify-content: center;
             align-items: center;
             margin-bottom: 50px;
+            padding: 0 2rem;
 
             h1 {
                 font-size: clamp(1.3rem, 3vw, 3rem);
@@ -108,7 +189,6 @@
         .cards {
             width: 100%;
             margin: 0 auto;
-            padding: 0 50px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -125,25 +205,91 @@
                 }
 
                 .card {
-                    width: 95%;
-                    max-width: 1100px;
-                    height: 400px;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
+                    width: 92%;
+                    max-width: 600px;
+                    height: clamp(400px, 70vh, 700px);
                     font-size: 30px;
                     border-radius: 10px;
                     color: v.$font-color-dark;
+                    display: flex;
+                    flex-direction: column;
+                    padding: 4rem 3rem;
 
                     background-color: #fbf9f6;
-                    border-radius: 1rem;
+                    border-radius: 3rem;
                     border: 2px solid rgba(160, 147, 125, 0.5);
                     box-shadow: 0 8px 16px rgba(105, 89, 72, 0.06);
 
                     font-family: "Inter 24pt Regular";
 
+                    .card-text {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 1rem;
+
+                        .card-title {
+                            h3 {
+                                font-size: clamp(1.1rem, 2vw, 1.2rem);
+                                font-family: "Inter 24pt Regular";
+                            }
+
+                            padding: 0.3rem;
+
+                            &.card-title-local {
+                                background-color: v.$tertiary-dark;
+                                color: #fff;
+                                width: fit-content;
+                            }
+
+                            &.card-title-seasonal {
+                                background-color: v.$primary;
+                                color: #fff;
+                                padding: 0.3rem;
+                                width: fit-content;
+                            }
+
+                            &.card-title-plant-based {
+                                background-color: v.$secondary;
+                                color: #fff;
+                                padding: 0.3rem;
+                                width: fit-content;
+                            }
+
+                            &.card-title-tasty {
+                                background-color: #fff;
+                                color: v.$font-color-dark;
+                                padding: 0.3rem;
+                                width: fit-content;
+                            }
+                        }
+
+                        .card-description {
+                            p {
+                                font-size: clamp(1rem, 1.4vw, 1.6rem);
+                                font-family: "Inter 24pt Regular";
+                                line-height: 1.5;
+                            }
+                        }
+                    }
+
                     &.local {
                         background-color: #fff;
+                        gap: 1rem;
+
+                        .card-graphic {
+                            width: 100%;
+                            height: 100%;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+
+                            img {
+                                width: 100%;
+                                height: 100%;
+                                object-fit: contain;
+                                filter: brightness(0) saturate(100%) invert(18%) sepia(37%) saturate(1155%) hue-rotate(120deg) brightness(101%) contrast(102%);
+                            }
+                        }
                     }
 
                     &.seasonal {
@@ -159,8 +305,9 @@
                     }
 
                     &.tasty {
-                        background-color: v.$primary-lighter;
+                        background-color: v.$primary;
                         color: #fff;
+                        border: 2px solid v.$primary-dark;
                     }
                 }
             }
