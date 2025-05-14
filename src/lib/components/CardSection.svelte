@@ -21,12 +21,11 @@
             }
         });
 
-        const title = document.querySelector(".title h1");
-        gsap.set(title, { opacity: 0, y: 50 });
+        const title = document.querySelector(".title h1 span");
+        gsap.set(title, { opacity: 0 });
 
         gsap.to(title, {
             opacity: 1,
-            y: 0,
             duration: 0.8,
             scrollTrigger: {
                 trigger: title,
@@ -36,17 +35,30 @@
             }
         });
 
+        const subtitle = document.querySelector(".title p");
+        gsap.set(subtitle, { opacity: 0, y: 20 });
+
+        gsap.to(subtitle, {
+            opacity: 1,
+            y: 0,
+            duration: 0.8,
+            scrollTrigger: {
+                trigger: subtitle,
+                start: "top 80%",
+                end: "top 60%",
+                scrub: 0.5
+            }
+        });
+
         const usaImage = document.querySelector(".card.local .card-graphic img");
         gsap.set(usaImage, { 
-            scale: 0.8, 
-            opacity: 0.9, 
-            //rotation: -15
+            scale: 0, 
+            opacity: 0
         });
 
         gsap.to(usaImage, {
             scale: 1,
             opacity: 1,
-            rotation: 0,
             duration: 1,
             ease: "power2.out",
             scrollTrigger: {
@@ -91,7 +103,8 @@
 
 <div class="card-section">
     <div class="title">
-        <h1>Our concept can be described by 4 key aspects</h1>
+        <h1>What makes <span>Verdantia</span> different</h1>
+        <p>Learn about the 4 principles behind every plate we serve.</p>
     </div>
     <div class="cards">
         <div class="card-container">
@@ -172,6 +185,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            flex-direction: column;
             margin-bottom: 50px;
             padding: 0 2rem;
 
@@ -183,6 +197,23 @@
                 line-height: 1.2;
                 max-width: 800px;
                 text-transform: uppercase;
+                line-height: 1.2;
+                overflow: hidden;
+
+                span {
+                    color: v.$tertiary-dark;
+                    font-family: "DynaPuff Regular"
+                }
+            }
+
+            p {
+                font-size: clamp(0.8rem, 2vw, 1.05rem);
+                font-family: "Inter 24pt Regular";
+                color: v.$font-color-dark;
+                text-align: center;
+                max-width: 800px;
+                line-height: 1.2;
+                overflow: hidden !important;
             }
         }
 
@@ -218,7 +249,7 @@
                     background-color: #fbf9f6;
                     border-radius: 3rem;
                     border: 2px solid rgba(160, 147, 125, 0.5);
-                    box-shadow: 0 8px 16px rgba(105, 89, 72, 0.06);
+                    box-shadow: 0 8px 100px rgba(105, 89, 72, 0.15);
 
                     font-family: "Inter 24pt Regular";
 
@@ -284,8 +315,8 @@
                             align-items: center;
 
                             img {
-                                width: 100%;
-                                height: 100%;
+                                width: 80%;
+                                height: 90%;
                                 object-fit: contain;
                                 filter: brightness(0) saturate(100%) invert(18%) sepia(37%) saturate(1155%) hue-rotate(120deg) brightness(101%) contrast(102%);
                             }
