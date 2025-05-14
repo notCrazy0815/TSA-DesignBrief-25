@@ -3,6 +3,7 @@
     import gsap from "gsap";
     import { ScrollTrigger } from "gsap/ScrollTrigger";
     import usa from "$lib/assets/svg/usa.svg";
+    import leaf from "$lib/assets/svg/leaf.svg";
     import branch2d from "$lib/assets/branches/branch_2d_s.png";
 
     onMount(() => {
@@ -53,7 +54,7 @@
 
         const usaImage = document.querySelector(".card.local .card-graphic img");
         gsap.set(usaImage, { 
-            scale: 0, 
+            scale: 0,
             opacity: 0
         });
 
@@ -81,9 +82,29 @@
             scale: 1,
             duration: 1,
             y: 0,
-            ease: "power2.out",
+            ease: "elastic.out",
             scrollTrigger: {
                 trigger: ".card.seasonal",
+                start: "top 60%",
+                end: "top 40%",
+                scrub: false,
+                toggleActions: "play none none reverse"
+            }
+        });
+
+        const plantBasedImage = document.querySelector(".card.plant-based .card-graphic img");
+        gsap.set(plantBasedImage, { 
+            scale: 0,
+            y: 60
+        });
+
+        gsap.to(plantBasedImage, {
+            scale: 1,
+            duration: 1,
+            y: 0,
+            ease: "bounce",
+            scrollTrigger: {
+                trigger: ".card.plant-based",
                 start: "top 60%",
                 end: "top 40%",
                 scrub: false,
@@ -168,7 +189,9 @@
                         <p>While not strictly vegan, our menu is rooted in plants. We highlight vegetables, grains, and legumes — making plants the star of every dish.</p>
                     </div>
                 </div>
-                <div class="card-graphic"></div>
+                <div class="card-graphic">
+                    <img src={leaf} alt="Leaf" />
+                </div>
             </div>
         </div>
         <div class="card-container">
@@ -178,7 +201,7 @@
                         <h3>Flavor Comes First</h3>
                     </div>
                     <div class="card-description">
-                        <p>Our food isn’t just good for you or the planet — it’s seriously delicious. We focus on bold flavors, rich textures, and surprising combinations that satisfy every time.</p>
+                        <p>Our food isn’t just good for you and the planet — it’s seriously delicious. We focus on bold flavors, rich textures, and surprising combinations that satisfy every time.</p>
                     </div>
                 </div>
                 <div class="card-graphic"></div>
@@ -199,7 +222,7 @@
         display: flex;
         flex-direction: column;
         background-color: v.$tertiary-light-low-opacity;
-        padding-bottom: 70vh;
+        padding-bottom: 60vh;
         border-top: 2px solid v.$tertiary-light;
         border-bottom: 2px solid v.$tertiary-light;
 
@@ -370,6 +393,19 @@
                         background-color: v.$tertiary-lighter;
                         color: #fff;
                         border: 2px solid v.$tertiary;
+
+                        .card-graphic {
+                            width: 100%;
+                            height: 100%;
+                            display: flex;
+                            justify-content: center;
+
+                            img {
+                                width: 80%;
+                                height: 90%;
+                                object-fit: contain;
+                            }
+                        }
                     }
 
                     &.tasty {
