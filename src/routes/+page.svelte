@@ -10,6 +10,7 @@
      import { ScrollTrigger } from "gsap/ScrollTrigger";
      import WeAreSection from "$lib/components/WeAreSection.svelte";
      import CardSection from "$lib/components/CardSection.svelte";
+    import TestimonialsSection from "$lib/components/TestimonialsSection.svelte";
 
      let bg = "base";
 
@@ -27,7 +28,7 @@
           gsap.to(".hero-plants-wrapper", {
                scrollTrigger: {
                     trigger: ".hero-section",
-                    start: "top top", 
+                    start: "top top",
                     end: "bottom top",
                     scrub: 1
                },
@@ -84,7 +85,9 @@
      <div class="card-section-container">
           <CardSection />
      </div>
-     <div style="height: 100vh"></div>
+     <div class="testimonials-section-container">
+          <TestimonialsSection />
+     </div>
 </div>
 
 <div class="footer-wrapper">
@@ -144,6 +147,12 @@
      }
 
      .card-section-container {
+          z-index: 2;
+          width: 100%;
+          display: flex;
+     }
+
+     .testimonials-section-container {
           z-index: 2;
           width: 100%;
           display: flex;

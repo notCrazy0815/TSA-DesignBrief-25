@@ -3,6 +3,8 @@
     import gsap from "gsap";
     import { ScrollTrigger } from "gsap/ScrollTrigger";
     import usa from "$lib/assets/svg/usa.svg";
+    import leaf from "$lib/assets/svg/leaf.svg";
+    import branch2d from "$lib/assets/branches/branch_2d_s.png";
 
     onMount(() => {
         gsap.registerPlugin(ScrollTrigger);
@@ -21,12 +23,11 @@
             }
         });
 
-        const title = document.querySelector(".title h1");
-        gsap.set(title, { opacity: 0, y: 50 });
+        const title = document.querySelector(".title h1 span");
+        gsap.set(title, { opacity: 0 });
 
         gsap.to(title, {
             opacity: 1,
-            y: 0,
             duration: 0.8,
             scrollTrigger: {
                 trigger: title,
@@ -36,21 +37,74 @@
             }
         });
 
+        const subtitle = document.querySelector(".title p");
+        gsap.set(subtitle, { opacity: 0, y: 20 });
+
+        gsap.to(subtitle, {
+            opacity: 1,
+            y: 0,
+            duration: 0.8,
+            scrollTrigger: {
+                trigger: subtitle,
+                start: "top 80%",
+                end: "top 60%",
+                scrub: 0.5
+            }
+        });
+
         const usaImage = document.querySelector(".card.local .card-graphic img");
         gsap.set(usaImage, { 
-            scale: 0.8, 
-            opacity: 0.9, 
-            //rotation: -15
+            scale: 0,
+            opacity: 0
         });
 
         gsap.to(usaImage, {
             scale: 1,
             opacity: 1,
-            rotation: 0,
             duration: 1,
             ease: "power2.out",
             scrollTrigger: {
                 trigger: ".card.local",
+                start: "top 60%",
+                end: "top 40%",
+                scrub: false,
+                toggleActions: "play none none reverse"
+            }
+        });
+
+        const seasonalImage = document.querySelector(".card.seasonal .card-graphic img");
+        gsap.set(seasonalImage, { 
+            scale: 0,
+            y: 60
+        });
+
+        gsap.to(seasonalImage, {
+            scale: 1,
+            duration: 1,
+            y: 0,
+            ease: "elastic.out",
+            scrollTrigger: {
+                trigger: ".card.seasonal",
+                start: "top 60%",
+                end: "top 40%",
+                scrub: false,
+                toggleActions: "play none none reverse"
+            }
+        });
+
+        const plantBasedImage = document.querySelector(".card.plant-based .card-graphic img");
+        gsap.set(plantBasedImage, { 
+            scale: 0,
+            y: 60
+        });
+
+        gsap.to(plantBasedImage, {
+            scale: 1,
+            duration: 1,
+            y: 0,
+            ease: "bounce",
+            scrollTrigger: {
+                trigger: ".card.plant-based",
                 start: "top 60%",
                 end: "top 40%",
                 scrub: false,
@@ -91,7 +145,8 @@
 
 <div class="card-section">
     <div class="title">
-        <h1>Our concept can be described by 4 key aspects</h1>
+        <h1>What makes <span>Verdantia</span> different</h1>
+        <p>Learn about the 4 principles behind every plate we serve.</p>
     </div>
     <div class="cards">
         <div class="card-container">
@@ -119,7 +174,9 @@
                         <p>Our dishes follow the rhythm of nature — changing with the seasons to feature what’s at its peak. This keeps things exciting and minimizes waste.</p>
                     </div>
                 </div>
-                <div class="card-graphic"></div>
+                <div class="card-graphic">
+                    <img src={branch2d} alt="Branch" />
+                </div>
             </div>
         </div>
         <div class="card-container">
@@ -132,7 +189,9 @@
                         <p>While not strictly vegan, our menu is rooted in plants. We highlight vegetables, grains, and legumes — making plants the star of every dish.</p>
                     </div>
                 </div>
-                <div class="card-graphic"></div>
+                <div class="card-graphic">
+                    <img src={leaf} alt="Leaf" />
+                </div>
             </div>
         </div>
         <div class="card-container">
@@ -142,7 +201,7 @@
                         <h3>Flavor Comes First</h3>
                     </div>
                     <div class="card-description">
-                        <p>Our food isn’t just good for you or the planet — it’s seriously delicious. We focus on bold flavors, rich textures, and surprising combinations that satisfy every time.</p>
+                        <p>Our food isn’t just good for you and the planet — it’s seriously delicious. We focus on bold flavors, rich textures, and surprising combinations that satisfy every time.</p>
                     </div>
                 </div>
                 <div class="card-graphic"></div>
@@ -163,7 +222,7 @@
         display: flex;
         flex-direction: column;
         background-color: v.$tertiary-light-low-opacity;
-        padding-bottom: 70vh;
+        padding-bottom: 60vh;
         border-top: 2px solid v.$tertiary-light;
         border-bottom: 2px solid v.$tertiary-light;
 
@@ -172,6 +231,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            flex-direction: column;
             margin-bottom: 50px;
             padding: 0 2rem;
 
@@ -183,6 +243,23 @@
                 line-height: 1.2;
                 max-width: 800px;
                 text-transform: uppercase;
+                line-height: 1.2;
+                overflow: hidden;
+
+                span {
+                    color: v.$tertiary-dark;
+                    font-family: "DynaPuff Regular"
+                }
+            }
+
+            p {
+                font-size: clamp(0.8rem, 2vw, 1.05rem);
+                font-family: "Inter 24pt Regular";
+                color: v.$font-color-dark;
+                text-align: center;
+                max-width: 800px;
+                line-height: 1.2;
+                overflow: hidden !important;
             }
         }
 
@@ -218,7 +295,7 @@
                     background-color: #fbf9f6;
                     border-radius: 3rem;
                     border: 2px solid rgba(160, 147, 125, 0.5);
-                    box-shadow: 0 8px 16px rgba(105, 89, 72, 0.06);
+                    box-shadow: 0 8px 100px rgba(105, 89, 72, 0.15);
 
                     font-family: "Inter 24pt Regular";
 
@@ -284,8 +361,8 @@
                             align-items: center;
 
                             img {
-                                width: 100%;
-                                height: 100%;
+                                width: 80%;
+                                height: 90%;
                                 object-fit: contain;
                                 filter: brightness(0) saturate(100%) invert(18%) sepia(37%) saturate(1155%) hue-rotate(120deg) brightness(101%) contrast(102%);
                             }
@@ -296,12 +373,39 @@
                         background-color: v.$secondary-lighter;
                         color: #fff;
                         border: 2px solid v.$secondary;
+                        overflow: hidden;
+
+                        .card-graphic {
+                            width: 100%;
+                            height: 100%;
+                            display: flex;
+                            justify-content: center;
+                            align-items: end;
+
+                            img {
+                                height: 90%;
+                                object-fit: contain;
+                            }
+                        }
                     }
 
                     &.plant-based {
                         background-color: v.$tertiary-lighter;
                         color: #fff;
                         border: 2px solid v.$tertiary;
+
+                        .card-graphic {
+                            width: 100%;
+                            height: 100%;
+                            display: flex;
+                            justify-content: center;
+
+                            img {
+                                width: 80%;
+                                height: 90%;
+                                object-fit: contain;
+                            }
+                        }
                     }
 
                     &.tasty {

@@ -18,6 +18,8 @@
             stagger: 0.08,
             scrollTrigger: {
                 trigger: ".bottom",
+                start: "top 90%",
+                end: "top 70%",
                 toggleActions: "play none none none"
             }
         });
