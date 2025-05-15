@@ -310,33 +310,22 @@
                                 font-family: "Inter 24pt Regular";
                             }
 
-                            padding: 0.3rem;
+                            padding: 0 0 1rem 0;
 
                             &.card-title-local {
-                                background-color: v.$tertiary-dark;
-                                color: #fff;
-                                width: fit-content;
+                                border-bottom: 2px solid rgba(160, 147, 125, 0.5);
                             }
 
                             &.card-title-seasonal {
-                                background-color: v.$primary;
-                                color: #fff;
-                                padding: 0.3rem;
-                                width: fit-content;
+                                border-bottom: 2px solid v.$secondary;
                             }
 
                             &.card-title-plant-based {
-                                background-color: v.$secondary;
-                                color: #fff;
-                                padding: 0.3rem;
-                                width: fit-content;
+                                border-bottom: 2px solid v.$tertiary;
                             }
 
                             &.card-title-tasty {
-                                background-color: #fff;
-                                color: v.$font-color-dark;
-                                padding: 0.3rem;
-                                width: fit-content;
+                                border-bottom: 2px solid v.$primary-dark;
                             }
                         }
 

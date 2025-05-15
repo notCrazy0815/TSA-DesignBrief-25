@@ -1,28 +1,37 @@
 <script lang="ts">
-    import gsap from "gsap";
-    import { ScrollTrigger } from "gsap/all";
-    import { onMount } from "svelte";
+    import { onMount, onDestroy } from "svelte";
     import { shouldAnimate, isLoading } from "$lib/stores/navStore";
     import { goto } from "$app/navigation";
 
+    let resizeObserver: ResizeObserver;
+
+    function updateFooterSpacing() {
+        const footer = document.querySelector('.footer');
+        const footerExtraSpace = document.querySelector('.footer-extra-space');
+        
+        if (footer && footerExtraSpace) {
+            const footerHeight = footer.getBoundingClientRect().height;
+            footerExtraSpace.setAttribute('style', `margin-bottom: ${footerHeight}px`);
+        }
+    }
+
     onMount(() => {
-        gsap.registerPlugin(ScrollTrigger);
+        updateFooterSpacing();
 
-        const text = document.querySelectorAll(".footer h1 span");
-
-        gsap.from(text, {
-            y: "100%",
-            opacity: 0,
-            duration: 0.8,
-            ease: "power4.out",
-            stagger: 0.08,
-            scrollTrigger: {
-                trigger: ".bottom",
-                start: "top 90%",
-                end: "top 70%",
-                toggleActions: "play none none none"
-            }
+        resizeObserver = new ResizeObserver(() => {
+            updateFooterSpacing();
         });
+
+        const footer = document.querySelector('.footer');
+        if (footer) {
+            resizeObserver.observe(footer);
+        }
+    });
+
+    onDestroy(() => {
+        if (resizeObserver) {
+            resizeObserver.disconnect();
+        }
     });
 
     function navigateAndAnimate(href: string) {
@@ -42,52 +51,60 @@
     }
 </script>
 
+<svelte:window on:resize={updateFooterSpacing}/>
+
 <div class="footer">
     <div class="footer-content">
         <div class="top">
-            <div class="references-and-links">
-                <div class="references link-list">
-                    <p>References</p> 
-                    <div class="list">
-                        <p>Worklog</p>
-                        <p>Copyright Checklist</p>
-                        <p>Sources</p>
-                    </div>
-                </div>
-                <div class="links link-list">
-                    <p>Links</p>
-                    <div class="list">
-                        <div on:click={() => navigateAndAnimate("/")} on:keydown={(e) => e.key === 'Enter' && navigateAndAnimate("/")} tabindex="0" role="button">Approach</div>
-                        <div on:click={() => navigateAndAnimate("/menu")} on:keydown={(e) => e.key === 'Enter' && navigateAndAnimate("/menu")} tabindex="0" role="button">Menu</div>
-                        <div on:click={() => navigateAndAnimate("/news")} on:keydown={(e) => e.key === 'Enter' && navigateAndAnimate("/news")} tabindex="0" role="button">News</div>
-                    </div>
+            <div class="left">
+                <div class="slogan">
+                    <h4>Good food for <span>everyone</span></h4>
                 </div>
             </div>
-            <div class="divider"></div>
-            <div class="copyright">
-                <div class="copyright-info">
-                    <p>Copyright &copy; 2024-2025 Verdantia</p>
+            <div class="right">
+                <div class="links">
+                    <div class="link">
+                        <a href="/">Our approach</a>
+                    </div>
+                    <div class="link">
+                        <a href="/menu">Our seasonal menu</a>
+                    </div>
+                    <div class="link">
+                        <a href="/news">News</a>
+                    </div>
                 </div>
-                <div class="rights">
-                    <p>All rights reserved.</p>
+                <div class="contact-and-location">
+                    <div class="location">
+                        <p>Location</p>
+                        <div class="info">
+                            <p>1234 Streetname</p>
+                            <p>Nashville, TN, 37XXX</p>
+                        </div>
+                    </div>
+                    <div class="contant">
+                        <p>Contact</p>
+                        <div class="info">
+                            <p>+1 (123) 456-7890</p>
+                            <p>info@verdantia.com</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="bottom">
-            <h1>
-                <span>V</span>
-                <span>e</span>
-                <span>r</span>
-                <span>d</span>
-                <span>a</span>
-                <span>n</span>
-                <span>t</span>
-                <span>i</span>
-                <span>a</span>
-            </h1>
+            <h1>V</h1>
+            <h1>e</h1>
+            <h1>r</h1>
+            <h1>d</h1>
+            <h1>a</h1>
+            <h1>n</h1>
+            <h1>t</h1>
+            <h1>i</h1>
+            <h1>a</h1>
         </div>
     </div>
 </div>
+<div class="footer-extra-space"></div>
 
 <style lang="scss">
     @use "../styles/variables" as v;
@@ -96,87 +113,63 @@
     .footer {
         width: 100%;
         overflow: hidden;
+        z-index: 0;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        background-color: v.$secondary-lighter;
+        border-top: 2px solid v.$secondary;
 
         .footer-content {
             width: 100%;
             display: flex;
             flex-direction: column;
+            justify-content: center;
+            align-items: center;
 
             .top {
                 display: flex;
-                flex-direction: column;
-                gap: 1rem;
-                padding: 1rem 2rem;
+                width: 90%;
+                padding: 3rem 2rem;
 
-                .references-and-links {
-                    display: flex;
-                    justify-content: end;
-                    gap: 2.6rem;
-                    margin-right: 1.5rem;
-                    
-                    .link-list {
-                        display: flex;
-                        flex-direction: column;
-                        gap: 0.4rem;
+                .left {
+                    width: 50%;
 
-                        p {
-                            font-size: clamp(0.8rem, 3vw, 0.95rem);
-                        }
-
-                        .list {
-                            display: flex;
-                            flex-direction: column;
-                            gap: 0.2rem;
-
-                            p, div {
-                                font-size: clamp(0.7rem, 3vw, 0.85rem);
-                                font-family: "Inter 24pt Regular";
-                                cursor: pointer;
-
-                                &:hover {
-                                    text-shadow: 0 0 20px rgba(v.$secondary, 1);
-                                }
+                    .slogan {
+                        h4 {
+                            font-family: "Inter 24pt Regular";
+                            font-size: clamp(1.2rem, 2vw, 1.6rem);
+                            color: v.$font-color-light;
+                            
+                            span {
+                                font-family: "DynaPuff Regular";
                             }
                         }
                     }
-                }
-
-                .divider {
-                    width: 100%;
-                    height: 2px;
-                    background-color: rgba(v.$font-color-dark, 0.15);
-                }
-
-                .copyright {
-                    width: 100%;
-                    font-size: clamp(0.8rem, 3vw, 0.95rem);
-                    color: v.$font-color-dark;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 0.5rem 0rem;
                 }
             }
 
             .bottom {
                 display: flex;
+                flex-wrap: no-wrap;
                 justify-content: center;
                 align-items: center;
                 padding: 1rem 2rem;
-                background-color: v.$secondary;
-                gap: 1rem;
-                box-shadow: 0 0 15px 0 rgba(v.$secondary, 0.7);
 
                 h1 {
-                    display: flex;
-                    justify-content: center;
                     color: v.$font-color-light;
-                    font-size: clamp(20px, 12vw, 600px);
+                    font-size: clamp(30px, 17vw, 620px);
                     line-height: 1;
+                    padding: 0;
+                    margin: 0;
                     overflow: hidden;
-
-                    span {
-                        display: inline-block;
+                    display: inline-block;
+                    cursor: pointer;
+                    transition: transform 0.2s ease-in-out;
+                    transform: translateY(clamp(15px, 8vw, 90px));
+                    
+                    &:hover {
+                        transform: translateY(clamp(5px, 2vw, 30px));
                     }
                 }
             }

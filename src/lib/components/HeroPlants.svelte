@@ -61,6 +61,7 @@
         min-height: 300px;
         position: relative;
         overflow: visible;
+        pointer-events: none;
 
         .plant-small {
             height: clamp(150px, 50vh, 1000px);
