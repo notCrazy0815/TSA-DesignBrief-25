@@ -15,7 +15,6 @@
     export let bg: string = "base";
 
     let isMenuOpen = false;
-    let isBagOpen = false;
     let contentElement: HTMLDivElement;
     let basketItems: BasketItem[] = [];
     let currentSubtotal = 0;
@@ -74,7 +73,6 @@
             return;
         } else if (type === "close") {
             isMenuOpen = false;
-            isBagOpen = false;
         }
             
         if (isMenuOpen) {
@@ -123,8 +121,6 @@
     let directionChange = false;
 
     function handleScroll() {
-        if (isMenuOpen) toggleNavbar("close");
-
         const currentScrollY = window.scrollY;
 
         if (goingDown) {
@@ -135,7 +131,7 @@
                 gsap.to(contentElement, {
                     y: 0,
                     opacity: 1,
-                    duration: 0.25,
+                    duration: 0.3,
                     ease: "power2.out"
                 });
             }
@@ -147,7 +143,7 @@
                 gsap.to(contentElement, {
                     y: -200,
                     opacity: 0,
-                    duration: 0.75,
+                    duration: 0.3,
                     ease: "power2.out"
                 });
             }
@@ -155,6 +151,8 @@
 
         lastScrollY = currentScrollY;
         directionChange = false;
+
+        if (isMenuOpen) toggleNavbar("close");
     }
 </script>
 
