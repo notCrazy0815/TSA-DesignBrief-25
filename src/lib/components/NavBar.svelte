@@ -184,7 +184,7 @@
             on:keydown={(e) => e.key === 'Enter' && toggleNavbar("bag")}
             class:has-items={basketItems.length > 0}
             >
-            <p class="nav-text">BAG</p>
+            <p class="nav-text">&nbsp;BAG&nbsp;</p>
             {#if basketItems.length > 0}
                 <span class="item-count-badge">{basketItems.length}</span>
             {/if}

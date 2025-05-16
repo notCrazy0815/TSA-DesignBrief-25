@@ -1,6 +1,5 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
-    import { shouldAnimate, isLoading } from "$lib/stores/navStore";
     import { gsap } from "gsap";
     import { onMount } from "svelte";
 
@@ -15,27 +14,11 @@
             delay: 1.3
         });
     });
-
-    function navigateAndAnimate(href: string) {
-        if (window.location.pathname === href) {
-            return;
-        }
-
-        setTimeout(() => {
-            shouldAnimate.set(true);
-            isLoading.set(true);
-        }, 0);
-
-        setTimeout(() => {
-            shouldAnimate.set(false);
-            goto(href);
-        }, 950);
-    }
 </script>
 
-<div class="hero-cta" bind:this={heroCtaElement} on:click={() => navigateAndAnimate("/menu")} role="button" tabindex="0" on:keydown={(e) => {
+<div class="hero-cta" bind:this={heroCtaElement} on:click={() => goto("/menu")} role="button" tabindex="0" on:keydown={(e) => {
     if (e.key === "Enter" || e.key === " ") {
-        navigateAndAnimate("/menu");
+        goto("/menu");
     }
 }}>
     <div class="hero-cta-bg"></div>
@@ -51,6 +34,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        z-index: 2;
 
         .hero-cta-bg {
             position: absolute;
@@ -58,19 +42,20 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: #fff;
+            background-color: #fbf9f6;
+            border: 1px solid rgba(160, 147, 125, 0.5);
+            box-shadow: 0 8px 100px rgba(105, 89, 72, 0.15);
             border-radius: 15px;
             cursor: pointer;
-            z-index: -1;
             transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
                 box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.25);
+            z-index: 2;
         }
 
         &:hover {
             .hero-cta-bg {
                 transform: scale(1.1);
-                box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
+                box-shadow: 0 8px 100px rgba(105, 89, 72, 0.25);
             }
         }
 
@@ -83,6 +68,7 @@
             transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
             white-space: nowrap;
             background-color: transparent;
+            z-index: 3;
         }
     }
 </style>
