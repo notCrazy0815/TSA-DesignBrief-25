@@ -42,7 +42,7 @@
             },
         });
 
-        footerLetters.forEach((letter: any, index: number) => {
+        footerLetters.forEach((letter: any) => {
             gsap.set(letter, {
                 opacity: 0,
                 y: "120%",

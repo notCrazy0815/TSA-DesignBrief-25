@@ -11,6 +11,7 @@
   import GuidedMenuSelection from "$lib/components/GuidedMenuSelection.svelte";
   
   import menuItems, { menuCategories } from "$lib/data/menu";
+    import FooterTopBorder from "$lib/components/FooterTopBorder.svelte";
 
   const cards = menuCategories.map((category) => ({
     id: category.id,

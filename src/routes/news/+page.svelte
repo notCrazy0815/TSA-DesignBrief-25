@@ -2,9 +2,8 @@
     import NavBar from "$lib/components/NavBar.svelte";
     import NewDish from "$lib/components/NewDish.svelte";
     import Newsletter from "$lib/components/Newsletter.svelte";
-    import Modal from "$lib/components/Modal.svelte";
     import { fly, scale, fade } from 'svelte/transition';
-    import { elasticOut, quintOut } from 'svelte/easing';
+    import { quintOut } from 'svelte/easing';
     import { likeStore } from "$lib/stores/voteStore";
     import Footer from "$lib/components/Footer.svelte";
     import { onMount } from 'svelte';
@@ -16,6 +15,7 @@
     import orangeImg from "$lib/assets/news/orange.png";
     import lavenderImg from "$lib/assets/news/lavender.png";
     import flowerImg from "$lib/assets/news/leaf.png";
+    import FooterTopBorder from "$lib/components/FooterTopBorder.svelte";
 
     const newDishes = [
         {
@@ -289,8 +289,10 @@
         <Newsletter />
     </div>
 
-    <Footer />
+    <FooterTopBorder />
 </div>
+
+<Footer />
 
 {#if showModal}
     <div 
@@ -353,7 +355,9 @@
     .news-page-wrapper {
         width: 100%;
         position: relative;
-        overflow-x: hidden;
+        overflow: hidden;
+        background-color: v.$background-color-light;
+        z-index: 3;
     }
 
     .news-page {
@@ -361,6 +365,8 @@
         max-width: 1200px;
         margin: 0 auto;
         position: relative;
+        z-index: 3;
+        background-color: v.$background-color-light;
     }
     
     .bg-image-container {
