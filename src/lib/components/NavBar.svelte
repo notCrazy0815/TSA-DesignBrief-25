@@ -1,3 +1,7 @@
+<script context="module" lang="ts">
+    export type ActivePage = "approach" | "menu" | "news" | "checkout";
+</script>
+
 <script lang="ts">
     import orange from "$lib/assets/icons/orange.png";
     import LoadingScreen from "./LoadingScreen.svelte";
@@ -6,26 +10,29 @@
     import { shouldAnimate, firstLoad, isLoading } from "$lib/stores/navStore";
     import { page } from "$app/stores";
     import { gsap } from "gsap";
+    import { basket, basketSubtotal, type BasketItem } from "$lib/stores/basketStore";
     
-    type ActivePage = "approach" | "menu" | "news";
     export let active: ActivePage = "approach";
     export let bg: string = "base";
 
     let isMenuOpen = false;
     let isBagOpen = false;
-    let isFirstLoad = true;
     let contentElement: HTMLDivElement;
+    let basketItems: BasketItem[] = [];
+    let currentSubtotal = 0;
+
+    // Subscribe to basket store
+    const unsubscribeBasket = basket.subscribe(items => {
+        basketItems = items;
+    });
+
+    const unsubscribeSubtotal = basketSubtotal.subscribe(value => {
+        currentSubtotal = value;
+    });
 
     onMount(() => {
-        isFirstLoad = $firstLoad;
-        firstLoad.set(false);
-
-        if (!isFirstLoad) {
-            isLoading.set(true);
-
-            setTimeout(() => {
-                isLoading.set(false);
-            }, 1000);
+        if ($firstLoad) {
+            firstLoad.set(false);
         }
 
         const delay = $page.url.pathname !== "/" ? 0.4 : 1.6;
@@ -34,8 +41,13 @@
             opacity: 0,
             duration: 0.75,
             ease: "power2.out",
-            delay: delay
+            delay: $firstLoad ? delay : 0
         });
+
+        return () => {
+            unsubscribeBasket();
+            unsubscribeSubtotal();
+        };
     });
 
     let links = [
@@ -60,21 +72,20 @@
         if (type === "menu") {
             isMenuOpen = !isMenuOpen;
         } else if (type === "bag") {
-            isBagOpen = !isBagOpen;
+            goToCheckout();
+            return;
         } else if (type === "close") {
             isMenuOpen = false;
             isBagOpen = false;
         }
             
-        if (isMenuOpen || isBagOpen) {
+        if (isMenuOpen) {
             gsap.to(".content-box", {
                 height: 300,
                 duration: 0.5,
                 ease: "power2.inOut"
             });
-        }
-
-        if (!isBagOpen && !isMenuOpen) {
+        } else {
             gsap.to(".content-box", {
                 height: "100%",
                 duration: 0.5,
@@ -107,46 +118,33 @@
                 });
             }
         }
-
-        if (isBagOpen) {
-            setTimeout(() => {
-                const bagContent = document.querySelector(".bag-content");
-                if (bagContent) {
-                    gsap.to(bagContent, {
-                        opacity: 1,
-                        duration: 0.3,
-                        ease: "power2.out"
-                    });
-                }
-            }, 300);
-        } else if (!isBagOpen) {
-            const bagContent = document.querySelector(".bag-content");
-            if (bagContent) {
-                gsap.to(bagContent, {
-                    opacity: 0,
-                    duration: 0.2,
-                    ease: "power2.in"
-                });
-            }
-        }
     }
 
     function navigateAndAnimate(href: string) {
         if (window.location.pathname === href) {
+            isMenuOpen = false;
             return;
         }
 
         isMenuOpen = false;
         
-        setTimeout(() => {
-            shouldAnimate.set(true);
-            isLoading.set(true);
-        }, 200);
+        isLoading.set(true);
+        shouldAnimate.set(true);
 
         setTimeout(() => {
-            shouldAnimate.set(false);
             goto(href);
-        }, 1150);
+            setTimeout(() => {
+                isLoading.set(false);
+                shouldAnimate.set(false);
+            }, 1200);
+        }, 300);
+    }
+
+    function goToCheckout() {
+        isMenuOpen = false;
+        isBagOpen = false;
+        
+        navigateAndAnimate("/checkout");
     }
 
     let lastScrollY = 0;
@@ -196,13 +194,12 @@
         <div class="content-box" class:expanded={isMenuOpen} class:dark={bg === "dark"} class:base={bg === "base"}></div>
         <button
             class="nav-btn" 
-            style:opacity={isBagOpen ? 0 : 1}
-            style:pointer-events={isBagOpen ? "none" : "auto"}
-            on:click={() => toggleNavbar(isMenuOpen || isBagOpen ? "close" : "menu")} 
-            on:keydown={(e) => e.key === 'Enter' && toggleNavbar(isMenuOpen || isBagOpen ? "close" : "menu")}
+            style:opacity={1}
+            on:click={() => toggleNavbar(isMenuOpen ? "close" : "menu")} 
+            on:keydown={(e) => e.key === 'Enter' && toggleNavbar(isMenuOpen ? "close" : "menu")}
         >
             <p class="nav-text">
-                {#if !isMenuOpen && !isBagOpen}
+                {#if !isMenuOpen}
                     MENU
                 {:else}
                     CLOSE
@@ -214,18 +211,14 @@
         </div>
         <button
             class="cart-btn"
-            style:opacity={isMenuOpen ? 0 : 1}
-            style:pointer-events={isMenuOpen ? "none" : "auto"}
-            on:click={() => toggleNavbar(isBagOpen || isMenuOpen ? "close" : "bag")}
-            on:keydown={(e) => e.key === 'Enter' && toggleNavbar(isBagOpen || isMenuOpen ? "close" : "bag")}
+            on:click={() => toggleNavbar("bag")}
+            on:keydown={(e) => e.key === 'Enter' && toggleNavbar("bag")}
+            class:has-items={basketItems.length > 0}
             >
-            <p class="nav-text">
-                {#if !isBagOpen && !isMenuOpen}
-                    BAG
-                {:else}
-                    CLOSE
-                {/if}
-            </p>
+            <p class="nav-text">BAG</p>
+            {#if basketItems.length > 0}
+                <span class="item-count-badge">{basketItems.length}</span>
+            {/if}
         </button>
         {#if isMenuOpen}
             <div class="menu-content">
@@ -233,13 +226,6 @@
                     {#each links as link, i}
                         <a href={link.href} on:click|preventDefault={() => navigateAndAnimate(link.href)} class:active={link.active} style="animation-delay: {i * 0.2}s; --orange-bg: url('{orange}')">{link.text}</a>
                     {/each}
-                </div>
-            </div>
-        {/if}
-        {#if isBagOpen}
-            <div class="bag-content">
-                <div class="bag-links">
-                    <p>YOYOYOY</p>
                 </div>
             </div>
         {/if}
@@ -273,7 +259,41 @@
                 background: none;
                 border: none;
                 cursor: pointer;
-                padding: 0;   
+                padding: 0.5rem;
+                border-radius: 4px;
+                transition: background-color 0.2s ease-in-out;
+                position: relative;
+                display: flex;
+                align-items: center;
+
+                &:hover {
+                    background-color: rgba(v.$font-color-dark, 0.05);
+                }
+            }
+
+            .cart-btn {
+                &.has-items {
+                    // background-color: rgba(v.$primary, 0.05);
+                }
+                .nav-text {
+                    margin-right: 0.3em;
+                }
+            }
+            
+            .item-count-badge {
+                background-color: v.$primary;
+                color: v.$font-color-light;
+                border-radius: 50%;
+                padding: 0.15em 0.5em;
+                font-size: 0.75rem;
+                font-weight: 600;
+                line-height: 1;
+                position: absolute;
+                top: -2px;
+                right: -2px;
+                min-width: 1.5em;
+                text-align: center;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.2);
             }
 
             .nav-text {
@@ -401,6 +421,73 @@
 
             .bag-content {
                 opacity: 0;
+                
+                .bag-preview {
+                    width: 100%;
+                    
+                    h3 {
+                        font-family: 'DynaPuff Regular';
+                        color: v.$tertiary-dark;
+                        margin-bottom: 1rem;
+                        text-align: center;
+                    }
+                    
+                    .empty-bag-notice {
+                        text-align: center;
+                        padding: 1rem 0;
+                        
+                        p {
+                            font-size: 0.9rem;
+                            color: #666;
+                        }
+                    }
+                    
+                    .bag-items {
+                        max-height: 100px;
+                        overflow-y: auto;
+                        margin-bottom: 1rem;
+                        
+                        .bag-item {
+                            display: flex;
+                            justify-content: space-between;
+                            padding: 0.5rem 0;
+                            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+                            
+                            .item-name {
+                                font-size: 0.9rem;
+                            }
+                            
+                            .item-price {
+                                font-weight: bold;
+                            }
+                        }
+                    }
+                    
+                    .bag-total {
+                        display: flex;
+                        justify-content: space-between;
+                        font-weight: bold;
+                        margin: 1rem 0;
+                        padding-top: 0.5rem;
+                        border-top: 1px solid rgba(0, 0, 0, 0.1);
+                    }
+                    
+                    .checkout-btn {
+                        width: 100%;
+                        padding: 0.8rem;
+                        background-color: v.$tertiary-dark;
+                        color: white;
+                        border: none;
+                        border-radius: 8px;
+                        font-size: 0.9rem;
+                        cursor: pointer;
+                        transition: background-color 0.3s;
+                        
+                        &:hover {
+                            background-color: darken(v.$tertiary-dark, 10%);
+                        }
+                    }
+                }
             }
         }
     }

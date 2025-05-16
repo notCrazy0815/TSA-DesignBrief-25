@@ -8,7 +8,6 @@
 
   let filterMenuEl: HTMLElement;
 
-  // Set default filters - vegetarian is standard selected
   let activeFilters: Record<string, boolean> = {
     vegetarian: true,
     vegan: false,
@@ -19,12 +18,11 @@
     eggs: false,
     shellfish: false,
     fish: false,
-    sesame: false, // Add sesame filter
+    sesame: false,
     seasonal: false,
     spicy: false
   };
 
-  // Updated allergen items with more descriptive labels
   const filterGroups: {
     id: string;
     label: string;
@@ -46,7 +44,7 @@
         { id: 'eggs', label: 'Eggs', description: 'All egg products' },
         { id: 'shellfish', label: 'Shellfish', description: 'Shrimp, crab, lobster' },
         { id: 'fish', label: 'Fish', description: 'Salmon, tuna, cod' },
-        { id: 'sesame', label: 'Sesame', description: 'Seeds, tahini, oil' } // Add sesame to the allergen list
+        { id: 'sesame', label: 'Sesame', description: 'Seeds, tahini, oil' }
       ]
     },
     {
@@ -63,7 +61,6 @@
 
   let expandedGroup: string | null = null;
 
-  // Toggle for diet preference
   function toggleDiet(type: 'vegetarian' | 'vegan'): void {
     activeFilters.vegetarian = type === 'vegetarian';
     activeFilters.vegan = type === 'vegan';
@@ -71,7 +68,6 @@
     dispatch('filterChange', activeFilters);
   }
 
-  // Regular filter toggles
   function toggleFilter(groupId: string, itemId: string): void {
     if (filterGroups.find(g => g.id === groupId)?.exclusive) {
       Object.keys(activeFilters).forEach(key => {
@@ -99,7 +95,6 @@
   }
 
   onMount(() => {
-    // Simple animation on mount - no scroll tracking
     gsap.from('.filter-group', { 
       y: 20,
       opacity: 0,
@@ -216,7 +211,7 @@
     
     @media (min-width: 992px) {
       position: sticky;
-      top: 120px; // Simple sticky positioning without complex scroll logic
+      top: 120px;
       align-self: flex-start;
       border-left: 3px solid v.$tertiary;
     }

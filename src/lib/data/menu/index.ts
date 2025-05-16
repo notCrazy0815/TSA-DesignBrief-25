@@ -1,8 +1,30 @@
 import type { MenuItem, MenuCategory } from './types';
-import appetizers from './appetizers';
-import mains from './mains';
-import drinks from './drinks';
-import desserts from './desserts';
+import appetizersData from './appetizers';
+import mainsData from './mains';
+import drinksData from './drinks';
+import dessertsData from './desserts';
+
+// Function to process menu items
+function processMenuItems(items: any[]): MenuItem[] {
+  return items.map(item => {
+    // Convert string price to number if needed
+    let price = item.price;
+    if (typeof price === 'string') {
+      price = parseFloat(price.replace(/[^0-9.-]+/g, ""));
+      if (isNaN(price)) price = 0;
+    }
+    
+    return {
+      ...item,
+      price
+    };
+  });
+}
+
+const appetizers = processMenuItems(appetizersData);
+const mains = processMenuItems(mainsData);
+const drinks = processMenuItems(drinksData);
+const desserts = processMenuItems(dessertsData);
 
 const menuItems: Record<number, MenuItem[]> = {
   1: appetizers,

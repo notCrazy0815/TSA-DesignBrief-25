@@ -7,7 +7,7 @@
     id: number;
     name: string;
     description: string;
-    price: string;
+    price: number;
     isVegan: boolean;
     isVegetarian: boolean;
     contains: string[];
@@ -47,6 +47,10 @@
   $: basketItem = $basket.find(basketItem => basketItem.id === item.id);
   $: isInBasket = !!basketItem;
   $: basketQuantity = basketItem?.quantity || 0;
+
+  function formatPrice(price: number): string {
+    return `$${price.toFixed(2)}`;
+  }
 
   function handleClick() {
     isClicked = true;
@@ -92,7 +96,7 @@
 >
   <div class="item-header">
     <h3 class="item-name">{item.name}</h3>
-    <div class="item-price">{item.price}</div>
+    <div class="item-price">{formatPrice(item.price)}</div>
   </div>
   
   <p class="item-description">{item.description}</p>
