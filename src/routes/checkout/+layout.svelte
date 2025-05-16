@@ -10,7 +10,6 @@
 
 <style lang="scss">
     main {
-        padding-top: 100px;
         min-height: 100vh;
     }
 </style> 
