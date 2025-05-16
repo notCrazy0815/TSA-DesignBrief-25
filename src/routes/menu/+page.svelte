@@ -12,6 +12,7 @@
   
   import menuItems, { menuCategories } from "$lib/data/menu";
     import FooterTopBorder from "$lib/components/FooterTopBorder.svelte";
+    import TsaIcon from "$lib/components/TSAIcon.svelte";
 
   const cards = menuCategories.map((category) => ({
     id: category.id,
@@ -242,6 +243,8 @@
 </svelte:head>
 
 <svelte:window on:resize={() => activeCardId === null && resetContainerHeight()}/>
+
+<TsaIcon />
 
 <NavBar active="menu" />
 

@@ -12,6 +12,7 @@
      import CardSection from "$lib/components/CardSection.svelte";
      import TestimonialsSection from "$lib/components/TestimonialsSection.svelte";
      import FooterTopBorder from "$lib/components/FooterTopBorder.svelte";
+     import TsaIcon from "$lib/components/TSAIcon.svelte";
 
      let bg = "base";
 
@@ -70,6 +71,8 @@
           }).set(".hero-cta-container", { visibility: "hidden" });
      });
 </script>
+
+<TsaIcon />
 
 <NavBar {bg} />
 
@@ -144,13 +147,14 @@
      .hero-cta-container {
           position: absolute;
           width: 100%;
-          height: 100%;
+          height: 100vh;
           top: 0;
           left: 0;
           display: flex;
           justify-content: center;
           align-items: end;
-          padding-bottom: 4rem;
+          padding-bottom: 10rem;
+          z-index: 2;
      }
 
      .card-section-container, .we-are-section-container, .testimonials-section-container {

@@ -9,20 +9,6 @@
     onMount(() => {
         gsap.registerPlugin(ScrollTrigger);
 
-        const cardSection = document.querySelector(".card-section");
-        gsap.set(cardSection, { opacity: 0 });
-        
-        gsap.to(cardSection, {
-            opacity: 1,
-            duration: 0.8,
-            scrollTrigger: {
-                trigger: cardSection,
-                start: "top 90%",
-                end: "top 70%", 
-                scrub: 0.5
-            }
-        });
-
         const title = document.querySelector(".title h1 span");
         gsap.set(title, { opacity: 0 });
 
