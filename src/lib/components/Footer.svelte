@@ -2,8 +2,11 @@
     import { onMount, onDestroy } from "svelte";
     import { shouldAnimate, isLoading } from "$lib/stores/navStore";
     import { goto } from "$app/navigation";
+    import gsap from "gsap";
+    import { ScrollTrigger } from "gsap/ScrollTrigger";
 
     let resizeObserver: ResizeObserver;
+    let footerAnimation: ScrollTrigger;
 
     function updateFooterSpacing() {
         const footer = document.querySelector('.footer');
@@ -11,11 +14,13 @@
         
         if (footer && footerExtraSpace) {
             const footerHeight = footer.getBoundingClientRect().height;
-            footerExtraSpace.setAttribute('style', `margin-bottom: ${footerHeight}px`);
+            footerExtraSpace.setAttribute('style', `height: ${footerHeight}px`);
         }
     }
 
     onMount(() => {
+        gsap.registerPlugin(ScrollTrigger);
+
         updateFooterSpacing();
 
         resizeObserver = new ResizeObserver(() => {
@@ -26,6 +31,57 @@
         if (footer) {
             resizeObserver.observe(footer);
         }
+
+        const footerLetters = gsap.utils.toArray('.bottom h1');
+        const sortedFooterLetters = centerOutReorder(footerLetters);
+
+        const footerAnimation = gsap.timeline({
+            scrollTrigger: {
+                trigger: ".footer-extra-space",
+                start: "top+=20% bottom",
+                end: "bottom top",
+                toggleActions: "play none none reverse"
+            },
+        });
+
+        footerLetters.forEach((letter: any, index: number) => {
+            gsap.set(letter, {
+                opacity: 0,
+                y: "120%",
+            });
+
+            const colors = ["#0a3161", "white", "#0a3161", "#b31942", "white", "#b31942", "white", "#b31942", "white", "#b31942"];
+
+            console.log(colors[index], letter.innerText);
+
+            letter.addEventListener("mouseenter", () => {
+                gsap.to(letter, {
+                    scale: 1.1,
+                    y: "0%",
+                    duration: 0.3,
+                    color: colors[index],
+                    ease: "power3.out",
+                });
+            });
+
+            letter.addEventListener("mouseleave", () => {
+                gsap.to(letter, {
+                    scale: 1,
+                    y: "30%",
+                    duration: 0.3,
+                    ease: "power3.out",
+                });
+            });
+        });
+
+        sortedFooterLetters.forEach((letter: any, index: number) => {
+            footerAnimation.to(letter, {
+                opacity: 1,
+                y: "30%",
+                duration: 0.3,
+                ease: "power3.out",
+            }, index * 0.05);
+        });
     });
 
     onDestroy(() => {
@@ -33,6 +89,19 @@
             resizeObserver.disconnect();
         }
     });
+
+    function centerOutReorder(arr: any[]) {
+        const result = [];
+        const mid = Math.floor(arr.length / 2);
+        result.push(arr[mid]);
+
+        for (let i = 1; i <= mid; i++) {
+            if (mid - i >= 0) result.push(arr[mid - i]);
+            if (mid + i < arr.length) result.push(arr[mid + i]);
+        }
+
+        return result;
+    }
 
     function navigateAndAnimate(href: string) {
         if (window.location.pathname === href) {
@@ -110,6 +179,10 @@
     @use "../styles/variables" as v;
     @use "../styles/global" as g;
 
+    .footer-extra-space {
+        width: 100%;
+    }
+
     .footer {
         width: 100%;
         overflow: hidden;
@@ -118,7 +191,6 @@
         bottom: 0;
         left: 0;
         background-color: v.$secondary-lighter;
-        border-top: 2px solid v.$secondary;
 
         .footer-content {
             width: 100%;
@@ -165,12 +237,6 @@
                     overflow: hidden;
                     display: inline-block;
                     cursor: pointer;
-                    transition: transform 0.2s ease-in-out;
-                    transform: translateY(clamp(15px, 8vw, 90px));
-                    
-                    &:hover {
-                        transform: translateY(clamp(5px, 2vw, 30px));
-                    }
                 }
             }
         }

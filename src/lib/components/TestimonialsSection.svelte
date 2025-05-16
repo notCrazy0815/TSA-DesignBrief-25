@@ -256,7 +256,7 @@
                     grid-template-columns: repeat(3, minmax(250px, 1fr));
                     gap: 1rem;
 
-                    @media screen and (max-width: 1200px) {
+                    @media screen and (max-width: 1350px) {
                         grid-template-columns: repeat(2, minmax(250px, 1fr));
                     }
 
