@@ -4,10 +4,9 @@
 
 <script lang="ts">
     import orange from "$lib/assets/icons/orange.png";
-    import LoadingScreen from "./LoadingScreen.svelte";
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
-    import { shouldAnimate, firstLoad, isLoading } from "$lib/stores/navStore";
+    import { firstLoad } from "$lib/stores/navStore";
     import { page } from "$app/stores";
     import { gsap } from "gsap";
     import { basket, basketSubtotal, type BasketItem } from "$lib/stores/basketStore";
@@ -21,7 +20,6 @@
     let basketItems: BasketItem[] = [];
     let currentSubtotal = 0;
 
-    // Subscribe to basket store
     const unsubscribeBasket = basket.subscribe(items => {
         basketItems = items;
     });
@@ -72,7 +70,7 @@
         if (type === "menu") {
             isMenuOpen = !isMenuOpen;
         } else if (type === "bag") {
-            goToCheckout();
+            goto("/checkout");
             return;
         } else if (type === "close") {
             isMenuOpen = false;
@@ -120,38 +118,13 @@
         }
     }
 
-    function navigateAndAnimate(href: string) {
-        if (window.location.pathname === href) {
-            isMenuOpen = false;
-            return;
-        }
-
-        isMenuOpen = false;
-        
-        isLoading.set(true);
-        shouldAnimate.set(true);
-
-        setTimeout(() => {
-            goto(href);
-            setTimeout(() => {
-                isLoading.set(false);
-                shouldAnimate.set(false);
-            }, 1200);
-        }, 300);
-    }
-
-    function goToCheckout() {
-        isMenuOpen = false;
-        isBagOpen = false;
-        
-        navigateAndAnimate("/checkout");
-    }
-
     let lastScrollY = 0;
     let goingDown = false;
     let directionChange = false;
 
     function handleScroll() {
+        if (isMenuOpen) toggleNavbar("close");
+
         const currentScrollY = window.scrollY;
 
         if (goingDown) {
@@ -162,7 +135,7 @@
                 gsap.to(contentElement, {
                     y: 0,
                     opacity: 1,
-                    duration: 0.75,
+                    duration: 0.25,
                     ease: "power2.out"
                 });
             }
@@ -187,8 +160,6 @@
 
 <svelte:window on:scroll={handleScroll} />
 
-<LoadingScreen />
-
 <div class="navbar">
     <div class="content" bind:this={contentElement}>
         <div class="content-box" class:expanded={isMenuOpen} class:dark={bg === "dark"} class:base={bg === "base"}></div>
@@ -200,14 +171,14 @@
         >
             <p class="nav-text">
                 {#if !isMenuOpen}
-                    MENU
+                    MENU&nbsp;
                 {:else}
                     CLOSE
                 {/if}
             </p>
         </button>
         <div class="heading">
-            <a href="/" on:click|preventDefault={() => navigateAndAnimate("/")}>VERDANTIA</a>
+            <a href="/" on:click|preventDefault={() => goto("/")}>VERDANTIA</a>
         </div>
         <button
             class="cart-btn"
@@ -224,7 +195,13 @@
             <div class="menu-content">
                 <div class="menu-links">
                     {#each links as link, i}
-                        <a href={link.href} on:click|preventDefault={() => navigateAndAnimate(link.href)} class:active={link.active} style="animation-delay: {i * 0.2}s; --orange-bg: url('{orange}')">{link.text}</a>
+                        <a 
+                            href={link.href} 
+                            on:click|preventDefault={() => goto(link.href)}
+                            class:active={link.active} 
+                            style="animation-delay: {i * 0.2}s; --orange-bg: url('{orange}')">
+                            {link.text}
+                        </a>
                     {/each}
                 </div>
             </div>
@@ -327,14 +304,15 @@
                 position: absolute;
                 top: 0;
                 left: 0;
-                background-color: #fff;
+                background-color: #fbf9f6;
+                border: 1px solid rgba(160, 147, 125, 0.5);
+                box-shadow: 0 8px 100px rgba(105, 89, 72, 0.15);
                 border-radius: 20px;
                 z-index: -1;
                 transition: transform .3s cubic-bezier(0.16, 1, 0.3, 1),
                             box-shadow .3s cubic-bezier(0.16, 1, 0.3, 1),
                             background-color .3s cubic-bezier(0.16, 1, 0.3, 1);
                 transform-origin: center;
-                box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
 
                 &.expanded {
                     border-radius: 20px;
@@ -352,7 +330,6 @@
             &:hover {
                 .content-box {
                     transform: scale(1.05);
-                    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
                 }
             }
 
@@ -366,7 +343,7 @@
                 display: grid;
                 place-items: center;
                 height: 200px;
-                border-top: 1px solid rgba(0, 0, 0, 0.1);
+                border-top: 1px solid rgba(160, 147, 125, 0.5);
             }
 
             .menu-content {
