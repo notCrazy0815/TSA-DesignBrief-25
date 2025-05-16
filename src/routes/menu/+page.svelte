@@ -15,7 +15,7 @@
   const cards = menuCategories.map((category) => ({
     id: category.id,
     title: category.title,
-    text: category.description // Changed from category.text to category.description
+    text: category.description
   }));
   
   const cardRotations: number[] = [-5, 4, 10, -6];
@@ -121,6 +121,30 @@
   function getCardClasses(cardId: number): string {
     return activeCardId === null ? '' : activeCardId === cardId ? 'active' : 'fly-out';
   }
+
+  let touchStartY = 0;
+  let touchEndY = 0;
+  let touchThreshold = 10;
+  let isScrolling = false;
+
+  function handleTouchStart(e: TouchEvent) {
+    touchStartY = e.touches[0].clientY;
+    isScrolling = false;
+  }
+
+  function handleTouchMove(e: TouchEvent) {
+    touchEndY = e.touches[0].clientY;
+    if (Math.abs(touchEndY - touchStartY) > touchThreshold) {
+      isScrolling = true;
+    }
+  }
+
+  function handleTouchEnd(e: TouchEvent, cardId: number) {
+    if (!isScrolling) {
+      openCard(cardId);
+    }
+    isScrolling = false;
+  }
   
   onMount(() => {
     const initializePlugins = async () => {
@@ -149,7 +173,7 @@
     eggs: false,
     shellfish: false,
     fish: false,
-    sesame: false, // Add sesame filter
+    sesame: false,
     seasonal: false,
     spicy: false
   };
@@ -166,184 +190,50 @@
     }
 
     return items.filter((item: MenuItemType) => {
-      // Dietary filters
       if (filters.vegan && !item.isVegan) return false;
       if (filters.vegetarian && !item.isVegetarian) return false;
 
-      // Special filters
-      if (filters.seasonal && !item.seasonal) return false;
-      if (filters.spicy && containsAllergen(item.contains, ['spic', 'chili', 'pepper', 'hot'])) return false;
-
-      // Allergen filters (using the contains array directly)
-      // When a filter is active, exclude items containing that allergen
-      const containsLower = item.contains.map(i => i.toLowerCase());
+      if (filters.gluten && item.contains.some(i => i.toLowerCase().includes('gluten'))) return false;
+      if (filters.dairy && item.contains.some(i => i.toLowerCase().includes('dairy'))) return false;
+      if (filters.nuts && item.contains.some(i => i.toLowerCase().includes('nut'))) return false;
+      if (filters.soy && item.contains.some(i => i.toLowerCase().includes('soy'))) return false;
+      if (filters.eggs && item.contains.some(i => i.toLowerCase().includes('egg'))) return false;
+      if (filters.shellfish && item.contains.some(i => i.toLowerCase().includes('shellfish'))) return false;
+      if (filters.fish && item.contains.some(i => i.toLowerCase().includes('fish'))) return false;
+      if (filters.sesame && item.contains.some(i => i.toLowerCase().includes('sesame'))) return false;
       
-      if (filters.gluten && containsAllergen(containsLower, ['gluten', 'wheat', 'barley', 'rye'])) return false;
-      if (filters.dairy && containsAllergen(containsLower, ['dairy', 'milk', 'cheese', 'cream', 'butter', 'yogurt'])) return false;
-      if (filters.nuts && containsAllergen(containsLower, ['nut', 'almond', 'cashew', 'walnut', 'pecan', 'pistachio'])) return false;
-      if (filters.soy && containsAllergen(containsLower, ['soy', 'tofu', 'edamame'])) return false;
-      if (filters.eggs && containsAllergen(containsLower, ['egg', 'mayo', 'mayonnaise'])) return false;
-      if (filters.shellfish && containsAllergen(containsLower, ['shellfish', 'shrimp', 'crab', 'lobster'])) return false;
-      if (filters.fish && containsAllergen(containsLower, ['fish', 'salmon', 'tuna', 'cod'])) return false;
-      if (filters.sesame && containsAllergen(containsLower, ['sesame', 'tahini'])) return false;
-
+      if (filters.seasonal && !item.seasonal) return false;
+      if (filters.spicy && (item.flavorProfile?.spicy || 0) < 5) return false;
+      
       return true;
     });
   }
-
-  // Helper function to match allergens against an array of keywords
-  function containsAllergen(ingredients: string[], allergenKeywords: string[]): boolean {
-    return ingredients.some(ingredient => 
-      allergenKeywords.some(keyword => ingredient.includes(keyword))
-    );
-  }
-
+  
   function resetFilters(): void {
-    activeFilters = {};
-  }
-
-  onMount(() => {
-    const initializePlugins = async () => {
-      const { ScrollToPlugin } = await import("gsap/ScrollToPlugin");
-      gsap.registerPlugin(ScrollToPlugin);
-      
-      cardsContainer = document.querySelector('.menu-category-cards') as HTMLElement;
-      resetContainerHeight();
-      window.addEventListener('resize', resetContainerHeight);
+    activeFilters = {
+      vegetarian: true,
+      vegan: false,
+      gluten: false,
+      dairy: false,
+      nuts: false,
+      soy: false,
+      eggs: false,
+      shellfish: false,
+      fish: false,
+      sesame: false,
+      seasonal: false,
+      spicy: false
     };
-    
-    initializePlugins();
-    
-    if (menuSection) { 
-      gsap.from(".menu-heading", {
-        y: 30,
-        opacity: 0,
-        duration: 0.8,
-        ease: "power2.out",
-        delay: 0.2
-      });
-    }
-    
-    // Removed animation targeting non-existent ".menu-background" element
-    
-    // Initialize typewriter animation for the menu recommender
-    const baseText = "Discover your perfect meal with our flavor profile algorithm that calculates harmonious taste combinations based on your ";
-    const lastWords = ["needs.", "preferences.", "cravings.", "taste.", "senses."];
-    const typingElement = document.querySelector('.typewriter-text');
-    const lastWordElement = document.querySelector('.last-word');
-    
-    if (typingElement && lastWordElement) {
-      // Type the base text first
-      let charIndex = 0;
-      const typingSpeed = 35; // milliseconds per character
-      
-      const typeNextChar = () => {
-        if (charIndex < baseText.length) {
-          typingElement.textContent += baseText.charAt(charIndex);
-          charIndex++;
-          setTimeout(typeNextChar, typingSpeed);
-        } else {
-          // When base text is complete, start animating the last word
-          setTimeout(animateLastWord, 500);
-        }
-      };
-      
-      // Function to animate the last word
-      const animateLastWord = () => {
-        let wordIndex = 0;
-        
-        // Type the first word
-        typeLastWord(lastWords[wordIndex]);
-        
-        // Set up interval to change the last word periodically
-        function changeLastWord() {
-          // Delete the current word with typewriter effect
-          deleteLastWord(() => {
-            // After deletion, type the next word
-            wordIndex = (wordIndex + 1) % lastWords.length;
-            typeLastWord(lastWords[wordIndex]);
-          });
-        }
-        
-        // Set up timing for word changes
-        setTimeout(() => {
-          // Start changing words after the first word has been displayed for a while
-          setInterval(changeLastWord, 4000);
-        }, 3000);
-      };
-      
-      // Function to type the last word character by character
-      function typeLastWord(word) {
-        let charIndex = 0;
-        lastWordElement.textContent = "";
-        
-        function typeChar() {
-          if (charIndex < word.length) {
-            lastWordElement.textContent += word.charAt(charIndex);
-            charIndex++;
-            setTimeout(typeChar, 35);
-          }
-        }
-        
-        typeChar();
-      }
-      
-      // Function to delete the last word character by character
-      function deleteLastWord(callback) {
-        let text = lastWordElement.textContent;
-        let charIndex = text.length;
-        
-        function deleteChar() {
-          if (charIndex > 0) {
-            charIndex--;
-            lastWordElement.textContent = text.substring(0, charIndex);
-            setTimeout(deleteChar, 35);
-          } else {
-            if (callback) callback();
-          }
-        }
-        
-        deleteChar();
-      }
-      
-      // Start the animation
-      typeNextChar();
-    }
-    
-    return () => {
-      window.removeEventListener('resize', resetContainerHeight);
-    };
-  });
-
-  function adjustMenuHeight(): void {
-    if (menuContentEl) {
-      const contentHeight = menuContentEl.scrollHeight;
-      gsap.to(menuContentEl, {
-        height: contentHeight,
-        duration: 0.5,
-        ease: "power2.out"
-      });
-    }
   }
-
-  $: if (activeCardId !== null) {
-    adjustMenuHeight();
+  
+  let wizardVisible = false;
+  
+  function toggleWizard(): void {
+    wizardVisible = !wizardVisible;
   }
-
-  onMount(() => {
-    window.addEventListener('resize', adjustMenuHeight);
-    return () => window.removeEventListener('resize', adjustMenuHeight);
-  });
-
-  // Guided menu selection
-  let showGuidedSelection = false;
-
-  function openGuidedSelection() {
-    showGuidedSelection = true;
-  }
-
-  function closeGuidedSelection() {
-    showGuidedSelection = false;
+  
+  function handleWizardClose(): void {
+    wizardVisible = false;
   }
 </script>
 
@@ -366,21 +256,18 @@
       </div>
     </div>
     
-    <!-- Menu recommender explanation section with typewriter animation -->
     <div class="menu-recommender-section">
       <div class="recommender-container">
         <div class="recommender-text-container">
           <h3 class="recommender-title">Not sure what to choose?</h3>
           <p class="recommender-text">
-            <span class="typewriter-text"></span>
-            <span class="last-word" class:highlight-word={true}></span>
-            <span class="cursor"></span>
+            Discover your perfect meal with our flavor profile algorithm that calculates harmonious taste combinations based on your <span class="highlight-word">preferences</span>.
           </p>
         </div>
         <div class="recommender-button-container">
-          <button class="recommender-button" on:click={openGuidedSelection}>
-            <span class="pulse-circle"></span>
+          <button class="recommender-button" on:click={toggleWizard}>
             <span class="button-text">Find Your Perfect Dish</span>
+            <span class="button-icon"></span>
           </button>
         </div>
       </div>
@@ -391,8 +278,14 @@
         <button 
           class="card {getCardClasses(card.id)}"
           data-id={card.id}
-          on:click={() => openCard(card.id)}
-          on:touchend={(e) => { e.preventDefault(); openCard(card.id); }}
+          on:click={() => {
+            if (window.innerWidth >= 768) { // Desktop behavior
+              openCard(card.id);
+            }
+          }}
+          on:touchstart={handleTouchStart}
+          on:touchmove={handleTouchMove}
+          on:touchend={(e) => handleTouchEnd(e, card.id)}
           aria-pressed={activeCardId === card.id}
           style={activeCardId === null ? `transform: translate3d(-50%, -50%, 0) rotateZ(${getRotation(i)}deg)` : ''}
         >
@@ -410,7 +303,9 @@
   
   {#if activeCardId !== null}
     <div class="scroll-down-elegant">
-      <span class="arrow-elegant"></span>
+      <div class="arrow-bounce">
+        <div class="arrow-down"></div>
+      </div>
       <span class="hint-elegant">Scroll Down for Menu</span>
     </div>
     
@@ -454,16 +349,16 @@
 
 <Footer />
 
-{#if showGuidedSelection}
-  <GuidedMenuSelection on:close={closeGuidedSelection} />
+{#if wizardVisible}
+  <GuidedMenuSelection on:close={handleWizardClose} />
 {/if}
 
 <style lang="scss">
   @use "../../lib/styles/variables" as v;
-  /* Removed import of global.scss to avoid unused selectors */
   
   main {
     width: 100%;
+    background-color: v.$background-color-light;
   }
   
   .section-header {
@@ -707,20 +602,51 @@
     flex-direction: column;
     align-items: center;
     opacity: 1;
-    margin-top: -50px;
-    margin-bottom: 30px;
     transition: all 0.3s ease-out;
+    background-color: v.$background-color-light;
+  }
+
+  .arrow-bounce {
+    padding: 8px;
+    margin-bottom: 8px;
+  }
+
+  .arrow-down {
+    width: 20px;
+    height: 20px;
+    border-right: 3px solid v.$tertiary;
+    border-bottom: 3px solid v.$tertiary;
+    transform: rotate(45deg);
+    animation: bounce 2s infinite;
+    
+    @media (max-width: 767px) {
+      width: 16px;
+      height: 16px;
+      border-width: 2px;
+    }
+  }
+  
+  .hint-elegant {
+    font-family: "Inter 24pt Regular", sans-serif;
+    font-size: 0.9rem;
+    color: v.$tertiary;
+    margin-top: 5px;
+    font-weight: 500;
+    
+    @media (max-width: 767px) {
+      font-size: 0.8rem;
+    }
   }
   
   @keyframes bounce {
     0%, 20%, 50%, 80%, 100% {
-      transform: rotate(-45deg) translateY(0);
+      transform: rotate(45deg) translateY(0);
     }
     40% {
-      transform: rotate(-45deg) translateY(-10px);
+      transform: rotate(45deg) translateY(-10px);
     }
     60% {
-      transform: rotate(-45deg) translateY(-5px);
+      transform: rotate(45deg) translateY(-5px);
     }
   }
   
@@ -766,22 +692,19 @@
       box-shadow: 0 8px 20px rgba(106, 89, 72, 0.12);
       display: flex;
       overflow: hidden;
-      touch-action: manipulation;
+      touch-action: pan-y; /* Allow vertical scrolling */
       -webkit-tap-highlight-color: rgba(0,0,0,0);
       
       &::before {
-        height: 4px;
-        transition: height 0.3s ease;
+        display: none; /* Entfernung des oberen Borders auf Mobile */
       }
       
       &:hover, &:focus, &:active {
         transform: translate3d(-50%, -8px, 0) !important;
         box-shadow: 0 12px 25px rgba(106, 89, 72, 0.18);
-        
-        &::before {
-          height: 8px;
-        }
       }
+      
+      /* Kein visueller Hinweis mehr erforderlich */
       
       .title {
         width: 100% !important;
@@ -962,24 +885,13 @@
   }
   
   .menu-showcase {
-    background: linear-gradient(to bottom, white, #f9f7f4);
+    background: v.$background-color-light;
     padding: 60px 0 80px;
     position: relative;
-    margin-top: -20px;
-    
-    &::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: linear-gradient(to right, rgba(2, 92, 72, 0.2), v.$tertiary 50%, rgba(2, 92, 72, 0.2));
-    }
+    z-index: 30;
     
     @media (max-width: 767px) {
       padding: 40px 20px 60px;
-      margin-top: 30px;
     }
   }
   
@@ -1165,22 +1077,23 @@
     }
   }
 
-  /* Menu recommender section styles */
+  /* Menu recommender section styles - IMPROVED STYLES */
   .menu-recommender-section {
-    max-width: 900px;
-    margin: 0 auto 60px;
+    max-width: 850px;
+    margin: 80px auto 100px;
     padding: 0 20px;
   }
   
   .recommender-container {
-    background: linear-gradient(to right, rgba(2, 92, 72, 0.05), rgba(2, 92, 72, 0.1));
-    border: 1px solid rgba(2, 92, 72, 0.15);
+    border: 1px solid rgba(v.$primary, 0.15);
     border-radius: 16px;
-    padding: 30px;
+    padding: 45px 40px;
     display: flex;
     flex-direction: column;
     gap: 30px;
-    box-shadow: 0 10px 30px rgba(106, 89, 72, 0.08);
+    box-shadow: 
+      0 12px 30px rgba(v.$font-color-dark, 0.06),
+      0 2px 8px rgba(v.$primary, 0.1);
     position: relative;
     overflow: hidden;
     
@@ -1189,153 +1102,140 @@
       position: absolute;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 5px;
-      background: linear-gradient(to right, v.$tertiary, v.$tertiary-dark);
-      opacity: 0.8;
+      right: 0;
+      height: 4px;
+      
+      border-radius: 16px 16px 0 0;
+    }
+    
+    &::after {
+      content: "";
+      position: absolute;
+      top: -50px;
+      right: -50px;
+      width: 180px;
+      height: 180px;
+      background: radial-gradient(circle, rgba(v.$primary, 0.1) 0%, transparent 70%);
+      border-radius: 50%;
+      z-index: 0;
     }
     
     @media (max-width: 767px) {
-      padding: 25px 20px;
+      padding: 35px 25px;
+      gap: 25px;
     }
   }
   
   .recommender-text-container {
-      text-align: center;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    
+    .recommender-title {
+      font-family: "DynaPuff Regular", cursive;
+      color: v.$tertiary-dark;
+      font-size: 1.9rem;
+      font-weight: 600;
+      margin: 0 0 15px;
+      letter-spacing: 0.5px;
       
-      .recommender-title {
-        font-family: "DynaPuff Regular", cursive;
-        color: v.$tertiary-dark;
-        font-size: 1.8rem;
-        margin: 0 0 15px;
-        
-        @media (max-width: 767px) {
-          font-size: 1.5rem;
-        }
-      }
-      
-      .recommender-text {
-        font-family: "Inter 24pt Regular", sans-serif;
-        font-size: 1.3rem;
-        line-height: 1.8;
-        color: #4a3c31;
-        margin: 0;
-        min-height: 3.6em;
-        display: inline;
-        text-align: center;
-        
-        .typewriter-text, .last-word {
-          display: inline;
-        }
-        
-        @media (max-width: 767px) {
-          font-size: 1.15rem;
-        }
-      }
-      
-      .cursor {
-        display: inline-block;
-        width: 2px;
-        height: 1.2em;
-        background-color: #000;
-        margin-left: 2px;
-        vertical-align: middle;
-        animation: blink 0.8s infinite;
-        box-shadow: none;
-        position: relative;
-        top: -0.15em;
-      }
-      
-      @keyframes blink {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0; }
-      }
-      
-      .highlight-word {
-        color: v.$primary;
-        font-weight: 600;
-        font-size: 1.4em;
-        display: inline;
-        position: relative;
-        margin: 0 0.1em;
-        animation: glowing 1.5s ease-in-out infinite alternate;
-      }
-      
-      @keyframes glowing {
-        from {
-          text-shadow: 0 0 5px rgba(252, 98, 52, 0.3);
-        }
-        to {
-          text-shadow: 0 0 10px rgba(252, 98, 52, 0.7), 
-                     0 0 15px rgba(252, 98, 52, 0.5);
-        }
+      @media (max-width: 767px) {
+        font-size: 1.6rem;
       }
     }
+    
+    .recommender-text {
+      font-family: "Inter", sans-serif;
+      font-size: 1.15rem;
+      line-height: 1.7;
+      color: rgba(v.$font-color-dark, 0.75);
+      margin: 0;
+      padding: 0 15px;
+      display: block;
+      text-align: center;
+      
+      @media (max-width: 767px) {
+        font-size: 1rem;
+        padding: 0;
+      }
+    }
+    
+    .highlight-word {
+      color: v.$primary;
+      font-weight: 700;
+      position: relative;
+      
+      &::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: -2px;
+        width: 100%;
+        height: 2px;
+        background-color: v.$primary;
+        opacity: 0.5;
+      }
+    }
+  }
   
   .recommender-button-container {
     display: flex;
     justify-content: center;
+    margin-top: 15px;
+    position: relative;
+    z-index: 1;
   }
   
   .recommender-button {
-    background-color: v.$tertiary;
+    background: linear-gradient(to right, v.$primary, darken(v.$primary, 8%));
     color: white;
     border: none;
     border-radius: 50px;
-    padding: 16px 32px;
-    font-family: "DynaPuff Regular", cursive;
-    font-size: 1.2rem;
-    font-weight: 500;
-    display: flex;
+    padding: 14px 34px;
+    font-family: "Inter", sans-serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     position: relative;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 6px 15px rgba(2, 92, 72, 0.2);
+    box-shadow: 
+      0 4px 15px rgba(v.$primary, 0.3),
+      0 2px 5px rgba(v.$primary, 0.2);
+    overflow: hidden;
     
-    .pulse-circle {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 100%;
-      height: 100%;
-      border-radius: 50px;
-      background-color: v.$tertiary;
-      opacity: 0.3;
-      z-index: -1;
-      animation: pulse 2s infinite;
-    }
-    
-    @keyframes pulse {
-      0% {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 0.3;
-      }
-      50% {
-        transform: translate(-50%, -50%) scale(1.05);
-        opacity: 0.1;
-      }
-      100% {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 0.3;
-      }
+    .button-icon {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      margin-left: 10px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M8 5v14l11-7z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: contain;
+      transition: transform 0.3s ease;
     }
     
     &:hover {
-      background-color: darken(v.$tertiary, 5%);
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(2, 92, 72, 0.25);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(v.$primary, 0.4);
+      
+      .button-icon {
+        transform: translateX(3px);
+      }
     }
     
     &:active {
       transform: translateY(0);
+      background: linear-gradient(to right, darken(v.$primary, 5%), darken(v.$primary, 12%));
+      box-shadow: 0 2px 8px rgba(v.$primary, 0.3);
     }
     
     @media (max-width: 767px) {
-      font-size: 1.1rem;
-      padding: 14px 28px;
+      font-size: 0.95rem;
+      padding: 12px 30px;
     }
   }
 </style>

@@ -5,6 +5,7 @@
   import menuItems from '$lib/data/menu';
   import type { MenuItem } from '$lib/data/menu/types';
   import { basket } from '$lib/stores/basketStore';
+  import { formatPrice } from '$lib/utils/formatPrice';
   
   const dispatch = createEventDispatcher();
   
@@ -347,15 +348,27 @@
       <div class="results-content">
         {#if preferences.coursePreference !== 'main-only'}
           {#if selectedMeal.appetizer}
+            {@const itemInBasket = $basket.some(bItem => bItem.id === selectedMeal.appetizer!.id)}
             <div class="meal-item">
               <div class="meal-item-header">
                 <h3>Appetizer</h3>
-                <button class="add-item-button" on:click={() => addItemToBasket(selectedMeal.appetizer!)}>Add +</button>
+                <button 
+                  class="add-item-button"
+                  class:added={itemInBasket}
+                  on:click={() => !itemInBasket && addItemToBasket(selectedMeal.appetizer!)}
+                  disabled={itemInBasket}
+                >
+                  {#if itemInBasket}
+                    Added ✓
+                  {:else}
+                    Add +
+                  {/if}
+                </button>
               </div>
               <div class="meal-item-details">
                 <h4>{selectedMeal.appetizer.name}</h4>
                 <p>{selectedMeal.appetizer.description}</p>
-                <div class="meal-item-price">{selectedMeal.appetizer.price}</div>
+                <div class="meal-item-price">{formatPrice(selectedMeal.appetizer.price)}</div>
               </div>
             </div>
           {:else}
@@ -367,15 +380,27 @@
         {/if}
         
         {#if selectedMeal.main}
+          {@const itemInBasket = $basket.some(bItem => bItem.id === selectedMeal.main!.id)}
           <div class="meal-item main">
             <div class="meal-item-header">
               <h3>Main Course</h3>
-              <button class="add-item-button" on:click={() => addItemToBasket(selectedMeal.main!)}>Add +</button>
+              <button 
+                class="add-item-button"
+                class:added={itemInBasket}
+                on:click={() => !itemInBasket && addItemToBasket(selectedMeal.main!)}
+                disabled={itemInBasket}
+              >
+                {#if itemInBasket}
+                  Added ✓
+                {:else}
+                  Add +
+                {/if}
+              </button>
             </div>
             <div class="meal-item-details">
               <h4>{selectedMeal.main.name}</h4>
               <p>{selectedMeal.main.description}</p>
-              <div class="meal-item-price">{selectedMeal.main.price}</div>
+              <div class="meal-item-price">{formatPrice(selectedMeal.main.price)}</div>
             </div>
           </div>
         {:else}
@@ -387,15 +412,27 @@
         
         {#if preferences.coursePreference !== 'main-only'}
           {#if selectedMeal.drink}
+            {@const itemInBasket = $basket.some(bItem => bItem.id === selectedMeal.drink!.id)}
             <div class="meal-item">
               <div class="meal-item-header">
                 <h3>Drink</h3>
-                <button class="add-item-button" on:click={() => addItemToBasket(selectedMeal.drink!)}>Add +</button>
+                <button 
+                  class="add-item-button"
+                  class:added={itemInBasket}
+                  on:click={() => !itemInBasket && addItemToBasket(selectedMeal.drink!)}
+                  disabled={itemInBasket}
+                >
+                  {#if itemInBasket}
+                    Added ✓
+                  {:else}
+                    Add +
+                  {/if}
+                </button>
               </div>
               <div class="meal-item-details">
                 <h4>{selectedMeal.drink.name}</h4>
                 <p>{selectedMeal.drink.description}</p>
-                <div class="meal-item-price">{selectedMeal.drink.price}</div>
+                <div class="meal-item-price">{formatPrice(selectedMeal.drink.price)}</div>
               </div>
             </div>
           {:else}
@@ -408,15 +445,27 @@
         
         {#if preferences.coursePreference === 'full'}
           {#if selectedMeal.dessert}
+            {@const itemInBasket = $basket.some(bItem => bItem.id === selectedMeal.dessert!.id)}
             <div class="meal-item">
               <div class="meal-item-header">
                 <h3>Dessert</h3>
-                <button class="add-item-button" on:click={() => addItemToBasket(selectedMeal.dessert!)}>Add +</button>
+                <button 
+                  class="add-item-button"
+                  class:added={itemInBasket}
+                  on:click={() => !itemInBasket && addItemToBasket(selectedMeal.dessert!)}
+                  disabled={itemInBasket}
+                >
+                  {#if itemInBasket}
+                    Added ✓
+                  {:else}
+                    Add +
+                  {/if}
+                </button>
               </div>
               <div class="meal-item-details">
                 <h4>{selectedMeal.dessert.name}</h4>
                 <p>{selectedMeal.dessert.description}</p>
-                <div class="meal-item-price">{selectedMeal.dessert.price}</div>
+                <div class="meal-item-price">{formatPrice(selectedMeal.dessert.price)}</div>
               </div>
             </div>
           {:else}
@@ -449,343 +498,416 @@
 {/if}
 
 <style lang="scss">
-  @use "../../lib/styles/variables" as v;
+  @use "../styles/variables" as v;
 
   .guided-menu-overlay {
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.7);
+    width: 100%;
+    height: 100%;
+    background-color: rgba(v.$font-color-dark, 0.6);
     display: flex;
-    justify-content: center;
     align-items: center;
-    z-index: 1000;
-    padding: 20px;
-    backdrop-filter: blur(3px);
+    justify-content: center;
+    z-index: 10000; // High z-index to be on top
+    padding: 15px; // Reduced padding for very small screens
+    box-sizing: border-box; // Ensure overlay's padding is within its 100% width
+
+    @media (max-width: 700px) {
+        padding: 20px; // Original padding for general mobile
+    }
   }
 
   .guided-menu-wizard {
-    background-color: white;
+    background-color: v.$background-color-light;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(v.$font-color-dark, 0.15);
+    padding: 30px 35px;
     width: 100%;
-    max-width: 800px;
-    max-height: 90vh;
-    border-radius: 8px;
-    padding: 30px;
+    max-width: 680px; // Max width for the modal
     position: relative;
-    overflow-y: auto;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    font-family: "Inter", sans-serif;
+    color: v.$font-color-dark;
+    max-height: 90vh; // Max height
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box; // Ensure padding and border are inside the width
 
-    @media (max-width: 768px) {
-      padding: 20px;
-      max-height: 80vh;
+    @media (max-width: 700px) {
+      padding: 25px 20px;
+      max-height: calc(100vh - 30px); // Adjusted for less padding on overlay
+      border-radius: 12px;
+    }
+    @media (max-width: 480px) {
+      padding: 20px 15px;
     }
   }
 
   .close-button {
     position: absolute;
-    top: 15px;
-    right: 15px;
+    top: 18px;
+    right: 20px;
     background: none;
     border: none;
-    font-size: 28px;
+    font-size: 2.2rem;
+    color: rgba(v.$font-color-dark, 0.5);
     cursor: pointer;
-    width: 35px;
-    height: 35px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    color: #444;
-    transition: all 0.2s ease;
+    line-height: 1;
+    padding: 5px;
+    transition: color 0.2s ease;
 
     &:hover {
-      background-color: rgba(0, 0, 0, 0.1);
+      color: v.$primary;
+    }
+    @media (max-width: 700px) {
+      top: 12px;
+      right: 12px;
+      font-size: 2rem;
     }
   }
 
-  .wizard-header {
-    margin-bottom: 25px;
+  .wizard-header, .results-header {
     text-align: center;
-    
+    margin-bottom: 25px;
+    padding-right: 30px; // Space for close button
+
     h2 {
       font-family: "DynaPuff Regular", cursive;
-      font-size: 1.8rem;
-      color: v.$tertiary;
+      color: v.$tertiary-dark;
+      font-size: 1.9rem;
       margin: 0 0 15px;
+      line-height: 1.3;
     }
-    
-    .progress-bar {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      margin-top: 5px;
-      
-      .progress-step {
-        width: 30px;
-        height: 5px;
-        background-color: rgba(160, 147, 125, 0.2);
-        border-radius: 3px;
-        transition: background-color 0.3s;
-        
-        &.active {
-          background-color: v.$tertiary;
-        }
+    p {
+      font-size: 1rem;
+      color: rgba(v.$font-color-dark, 0.8);
+      margin: 0;
+      line-height: 1.6;
+    }
+    @media (max-width: 700px) {
+      margin-bottom: 20px;
+      padding-right: 20px; // Reduced space for close button
+      h2 { 
+        font-size: 1.6rem; 
+        margin-bottom: 10px;
       }
+      p { font-size: 0.9rem; }
+    }
+    @media (max-width: 480px) {
+      h2 { font-size: 1.4rem; }
+      p { font-size: 0.85rem; }
+    }
+  }
+
+  .progress-bar {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 15px;
+
+    .progress-step {
+      width: 30px;
+      height: 6px;
+      background-color: rgba(v.$font-color-dark, 0.15);
+      border-radius: 3px;
+      transition: background-color 0.3s ease;
+
+      &.active {
+        background-color: v.$primary;
+      }
+    }
+    @media (max-width: 700px) {
+      gap: 6px;
+      margin-top: 10px;
+      .progress-step {
+        width: 25px;
+        height: 5px;
+      }
+    }
+  }
+
+  .wizard-content, .results-content {
+    margin-bottom: 30px;
+    overflow-y: auto; // Allow content to scroll if modal is too short
+    flex-grow: 1; // Allow content to take available space
+    padding-right: 10px; // For scrollbar spacing
+    margin-right: -10px; // Counteract padding for scrollbar
+     @media (max-width: 700px) {
+        margin-bottom: 20px;
+        padding-right: 5px; 
+        margin-right: -5px;
     }
   }
 
   .wizard-content {
-    margin-bottom: 30px;
-    
     h3 {
       font-family: "DynaPuff Regular", cursive;
+      color: v.$font-color-dark;
       font-size: 1.4rem;
-      color: #4a3c31;
-      margin: 0 0 5px;
+      margin: 0 0 8px;
+      text-align: center;
     }
-    
     .question {
-      font-family: "Inter 24pt Regular", sans-serif;
-      font-size: 1.1rem;
-      color: #4a3c31;
+      font-size: 1rem;
+      color: rgba(v.$font-color-dark, 0.9);
       margin-bottom: 25px;
+      text-align: center;
+      line-height: 1.6;
     }
-    
-    .options-container {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      
-      .option-button {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
-        background-color: white;
-        border: 1px solid rgba(160, 147, 125, 0.3);
-        border-radius: 6px;
-        padding: 15px 20px;
-        text-align: left;
-        cursor: pointer;
-        transition: all 0.2s;
-        font-family: "Inter 24pt Regular", sans-serif;
-        
-        &:hover {
-          border-color: v.$tertiary;
-          background-color: rgba(2, 92, 72, 0.03);
-        }
-        
-        &.selected {
-          background-color: rgba(2, 92, 72, 0.08);
-          border-color: v.$tertiary;
-          
-          .option-label {
-            font-weight: 500;
-            color: v.$tertiary-dark;
-          }
-        }
-        
-        .option-label {
-          color: #4a3c31;
-          font-size: 1rem;
-        }
-        
-        .check-icon {
-          color: v.$tertiary;
-          font-weight: bold;
-          font-size: 1.2rem;
-        }
+    @media (max-width: 700px) {
+      h3 { 
+        font-size: 1.2rem; 
+        margin-bottom: 6px;
       }
+      .question { 
+        font-size: 0.9rem; 
+        margin-bottom: 20px; 
+      }
+    }
+     @media (max-width: 480px) {
+      h3 { font-size: 1.1rem; }
+      .question { font-size: 0.85rem; margin-bottom: 15px; }
     }
   }
 
-  .wizard-footer {
+  .options-container {
+    display: grid;
+    grid-template-columns: 1fr; // Single column by default
+    gap: 12px;
+
+    @media (max-width: 700px) {
+      gap: 10px;
+    }
+  }
+
+  .option-button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 14px 18px;
+    background-color: rgba(v.$font-color-dark, 0.03);
+    border: 1px solid rgba(v.$font-color-dark, 0.1);
+    border-radius: 8px;
+    text-align: left;
+    font-size: 0.95rem;
+    font-family: "Inter", sans-serif;
+    color: v.$font-color-dark;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+
+    .option-label {
+      flex-grow: 1;
+    }
+
+    .check-icon {
+      font-size: 1.2rem;
+      color: v.$primary;
+      margin-left: 10px;
+    }
+
+    &:hover {
+      background-color: rgba(v.$font-color-dark, 0.06);
+      border-color: rgba(v.$font-color-dark, 0.2);
+    }
+
+    &.selected {
+      background-color: rgba(v.$primary, 0.1);
+      border-color: v.$primary;
+      color: v.$primary;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(v.$primary, 0.1);
+    }
+
+    @media (max-width: 700px) {
+      padding: 12px 15px;
+      font-size: 0.9rem;
+      .check-icon {
+        font-size: 1.1rem;
+      }
+    }
+    @media (max-width: 480px) {
+      padding: 10px 12px;
+      font-size: 0.85rem;
+    }
+  }
+
+  .wizard-footer, .results-actions {
     display: flex;
     justify-content: space-between;
-    margin-top: 20px;
-    
-    .nav-button {
-      padding: 12px 25px;
-      border-radius: 6px;
-      font-family: "Inter 24pt Regular", sans-serif;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      
-      &.back {
-        background-color: white;
-        border: 1px solid rgba(160, 147, 125, 0.3);
-        color: #4a3c31;
-        
-        &:hover {
-          background-color: rgba(160, 147, 125, 0.1);
-        }
-      }
-      
-      &.next {
-        background-color: v.$tertiary;
-        color: white;
-        border: none;
-        
-        &:hover {
-          background-color: v.$tertiary-dark;
-        }
-      }
+    padding-top: 20px;
+    border-top: 1px solid rgba(v.$font-color-dark, 0.1);
+    gap: 15px;
+    @media (max-width: 700px) {
+      padding-top: 15px;
+      gap: 10px;
+    }
+  }
+  
+  .results-actions {
+    flex-direction: column; // Stack action buttons in results view
+    gap: 12px;
+     @media (max-width: 700px) {
+      gap: 10px;
     }
   }
 
-  // Results styles
-  .results-header {
-    text-align: center;
-    margin-bottom: 30px;
-    
-    h2 {
-      font-family: "DynaPuff Regular", cursive;
-      font-size: 1.8rem;
-      color: v.$tertiary;
-      margin: 0 0 10px;
+  .nav-button, .action-button {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    font-family: "Inter", sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+    flex-grow: 1; // Allow buttons to grow
+
+    &.next, &.add-all {
+      background-color: v.$primary;
+      color: v.$font-color-light;
+      box-shadow: 0 4px 10px rgba(v.$primary, 0.15);
+      &:hover {
+        background-color: darken(v.$primary, 7%);
+        box-shadow: 0 5px 12px rgba(v.$primary, 0.2);
+        transform: translateY(-1px);
+      }
     }
-    
-    p {
-      font-family: "Inter 24pt Regular", sans-serif;
-      font-size: 1.1rem;
-      color: #4a3c31;
+
+    &.back, &.restart {
+      background-color: rgba(v.$font-color-dark, 0.08);
+      color: v.$font-color-dark;
+      &:hover {
+        background-color: rgba(v.$font-color-dark, 0.12);
+        transform: translateY(-1px);
+      }
+    }
+    @media (min-width: 500px) {
+        flex-grow: 0;
+    }
+    @media (max-width: 700px) {
+      padding: 10px 15px;
+      font-size: 0.9rem;
+    }
+    @media (max-width: 480px) {
+      padding: 10px 12px;
+      font-size: 0.85rem;
     }
   }
+  
+  .results-actions .action-button {
+      width: 100%; // Make action buttons full width in their column
+  }
 
+  // Results View Specifics
   .results-content {
+    gap: 20px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    margin-bottom: 30px;
-    
-    .meal-item {
-      border: 1px solid rgba(160, 147, 125, 0.2);
-      border-radius: 8px;
-      overflow: hidden;
-      
-      &.main {
-        border-left: 4px solid v.$tertiary;
-      }
-      
-      &.no-match {
-        padding: 20px;
-        background-color: rgba(160, 147, 125, 0.05);
-        border-left: 4px solid #ccc;
-        
-        h3 {
-          font-family: "DynaPuff Regular", cursive;
-          font-size: 1.2rem;
-          color: #4a3c31;
-          margin: 0 0 5px;
-        }
-        
-        p {
-          margin: 0;
-          font-family: "Inter 24pt Regular", sans-serif;
-          font-style: italic;
-          color: #776a60;
-        }
-      }
-      
-      .meal-item-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background-color: rgba(160, 147, 125, 0.08);
-        padding: 10px 20px;
-        
-        h3 {
-          font-family: "DynaPuff Regular", cursive;
-          font-size: 1.1rem;
-          margin: 0;
-          color: #4a3c31;
-        }
-        
-        .add-item-button {
-          background-color: v.$tertiary;
-          color: white;
-          border: none;
-          border-radius: 30px;
-          padding: 5px 15px;
-          font-family: "Inter 24pt Regular", sans-serif;
-          font-size: 0.9rem;
-          cursor: pointer;
-          transition: background-color 0.2s;
-          
-          &:hover {
-            background-color: v.$tertiary-dark;
-          }
-        }
-      }
-      
-      .meal-item-details {
-        padding: 15px 20px;
-        
-        h4 {
-          font-family: "Inter 24pt Regular", sans-serif;
-          font-size: 1.1rem;
-          font-weight: 600;
-          color: v.$tertiary;
-          margin: 0 0 5px;
-        }
-        
-        p {
-          font-family: "Inter 24pt Regular", sans-serif;
-          font-size: 0.95rem;
-          color: #4a3c31;
-          margin: 0 0 10px;
-        }
-        
-        .meal-item-price {
-          font-family: "Inter 24pt Regular", sans-serif;
-          font-size: 1.1rem;
-          font-weight: 600;
-          color: #4a3c31;
-        }
-      }
+    @media (max-width: 700px) {
+      gap: 15px;
     }
   }
 
-  .results-actions {
-    display: flex;
-    gap: 15px;
-    
-    @media (max-width: 767px) {
-      flex-direction: column;
+  .meal-item {
+    background-color: rgba(v.$font-color-dark, 0.025);
+    border: 1px solid rgba(v.$font-color-dark, 0.08);
+    border-radius: 10px;
+    padding: 18px;
+
+    &.no-match p {
+      font-style: italic;
+      color: rgba(v.$font-color-dark, 0.6);
     }
-    
-    .action-button {
-      flex: 1;
-      padding: 15px;
+
+    .meal-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+
+      h3 {
+        font-family: "DynaPuff Regular", cursive;
+        color: v.$tertiary-dark;
+        font-size: 1.2rem;
+        margin: 0;
+      }
+    }
+
+    .add-item-button {
+      background-color: v.$primary;
+      color: v.$font-color-light;
+      border: none;
       border-radius: 6px;
-      font-family: "Inter 24pt Regular", sans-serif;
-      font-size: 1rem;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
       cursor: pointer;
-      text-align: center;
-      transition: all 0.2s;
+      transition: background-color 0.2s ease, opacity 0.2s ease;
       
-      &.add-all {
+      &:hover {
+        background-color: darken(v.$primary, 8%);
+      }
+
+      &.added {
         background-color: v.$tertiary;
-        color: white;
-        border: none;
-        
+        color: v.$font-color-light;
+        cursor: default;
+        opacity: 0.8;
         &:hover {
-          background-color: v.$tertiary-dark;
+          background-color: v.$tertiary;
         }
       }
-      
-      &.restart {
-        background-color: white;
-        border: 1px solid rgba(160, 147, 125, 0.3);
-        color: #4a3c31;
-        
-        &:hover {
-          background-color: rgba(160, 147, 125, 0.1);
+    }
+
+    .meal-item-details {
+      h4 {
+        font-family: "Inter", sans-serif;
+        font-weight: 600;
+        font-size: 1.05rem;
+        color: v.$font-color-dark;
+        margin: 0 0 6px;
+      }
+      p {
+        font-size: 0.9rem;
+        color: rgba(v.$font-color-dark, 0.8);
+        line-height: 1.5;
+        margin: 0 0 8px;
+      }
+      .meal-item-price {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: v.$tertiary;
+        text-align: right;
+      }
+    }
+    @media (max-width: 700px) {
+      padding: 15px;
+      border-radius: 8px;
+      .meal-item-header {
+        margin-bottom: 10px;
+        h3 { font-size: 1.1rem; }
+      }
+      .add-item-button {
+        padding: 5px 10px;
+        font-size: 0.75rem;
+        &.added {
+            padding: 5px 10px;
+            font-size: 0.75rem;
         }
       }
+      .meal-item-details {
+        h4 { font-size: 1rem; margin-bottom: 4px; }
+        p { font-size: 0.85rem; margin-bottom: 6px; }
+        .meal-item-price { font-size: 0.9rem; }
+      }
+    }
+    @media (max-width: 480px) {
+       padding: 12px;
+      .meal-item-header h3 { font-size: 1rem; }
+      .meal-item-details h4 { font-size: 0.9rem; }
+      .meal-item-details p { font-size: 0.8rem; }
     }
   }
 
@@ -794,43 +916,30 @@
     bottom: 30px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: v.$tertiary;
-    color: white;
-    padding: 15px 25px;
-    border-radius: 30px;
+    background-color: v.$tertiary-dark; // Or v.$success if defined
+    color: v.$font-color-light;
+    padding: 12px 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(v.$font-color-dark, 0.1);
     display: flex;
     align-items: center;
     gap: 10px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    font-family: "Inter 24pt Regular", sans-serif;
-    
+    z-index: 10005; // Above wizard overlay content potentially
+    font-size: 0.95rem;
+
     .success-icon {
-      font-weight: bold;
+      font-size: 1.2rem;
+    }
+    @media (max-width: 700px) {
+      padding: 10px 20px;
+      font-size: 0.9rem;
+      bottom: 20px;
+      width: calc(100% - 40px);
+      max-width: 350px;
+      .success-icon {
+        font-size: 1.1rem;
+      }
     }
   }
 
-  @media (max-width: 767px) {
-    .wizard-content .options-container .option-button {
-      padding: 12px 15px;
-      
-      .option-label {
-        font-size: 0.95rem;
-      }
-    }
-    
-    .wizard-footer .nav-button {
-      padding: 10px 20px;
-      font-size: 0.95rem;
-    }
-    
-    .results-content .meal-item .meal-item-details {
-      h4 {
-        font-size: 1rem;
-      }
-      
-      p {
-        font-size: 0.9rem;
-      }
-    }
-  }
 </style>

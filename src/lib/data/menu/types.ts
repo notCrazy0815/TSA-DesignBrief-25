@@ -24,7 +24,7 @@ export interface MenuItem {
   id: number;
   name: string;
   description: string;
-  price: string;
+  price: number;
   isVegan: boolean;
   isVegetarian: boolean;
   contains: string[];

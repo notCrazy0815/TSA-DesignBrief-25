@@ -25,6 +25,10 @@
     sourcing: true
   };
 
+  function formatPrice(price: number): string {
+    return `$${price.toFixed(2)}`;
+  }
+
   function toggleSection(section: keyof typeof expandedSections) {
     expandedSections[section] = !expandedSections[section];
   }
@@ -173,7 +177,7 @@
     >
       <div class="modal-header">
         <h2 class="item-name">{item.name}</h2>
-        <div class="item-price">{item.price}</div>
+        <div class="item-price">{formatPrice(item.price)}</div>
       </div>
 
       <div class="item-badges">
