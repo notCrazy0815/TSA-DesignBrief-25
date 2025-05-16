@@ -8,7 +8,7 @@
         width: 100%;
         height: 2px;
         margin-bottom: -1px;
-        background-color: v.$secondary;
+        background-color: v.$tertiary-dark;
         position: relative;
     }
 </style>
