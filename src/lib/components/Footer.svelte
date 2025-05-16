@@ -1,12 +1,10 @@
 <script lang="ts">
     import { onMount, onDestroy } from "svelte";
-    import { shouldAnimate, isLoading } from "$lib/stores/navStore";
     import { goto } from "$app/navigation";
     import gsap from "gsap";
     import { ScrollTrigger } from "gsap/ScrollTrigger";
 
     let resizeObserver: ResizeObserver;
-    let footerAnimation: ScrollTrigger;
 
     function updateFooterSpacing() {
         const footer = document.querySelector('.footer');
@@ -97,22 +95,6 @@
 
         return result;
     }
-
-    function navigateAndAnimate(href: string) {
-        if (window.location.pathname === href) {
-            return;
-        }
-
-        setTimeout(() => {
-            shouldAnimate.set(true);
-            isLoading.set(true);
-        }, 0);
-
-        setTimeout(() => {
-            shouldAnimate.set(false);
-            goto(href);
-        }, 950);
-    }
 </script>
 
 <svelte:window on:resize={updateFooterSpacing}/>
@@ -128,9 +110,9 @@
             <div class="right">
                 <div class="links">
                     {#each [["/", "Our approach"], ["/menu", "Our seasonal menu"], ["/news", "News"]] as link}
-                        <button class="link" on:click={() => navigateAndAnimate(link[0])}>
+                        <a class="link" href={link[0]} on:click|preventDefault={() => goto(link[0])}>
                             {link[1]}
-                        </button>
+                        </a>
                     {/each}
                 </div>
                 <div class="contact-and-location">
