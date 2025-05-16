@@ -11,7 +11,7 @@
      import WeAreSection from "$lib/components/WeAreSection.svelte";
      import CardSection from "$lib/components/CardSection.svelte";
      import TestimonialsSection from "$lib/components/TestimonialsSection.svelte";
-    import FooterTopBorder from "$lib/components/FooterTopBorder.svelte";
+     import FooterTopBorder from "$lib/components/FooterTopBorder.svelte";
 
      let bg = "base";
 

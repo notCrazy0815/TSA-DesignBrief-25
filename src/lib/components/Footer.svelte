@@ -50,16 +50,11 @@
                 y: "120%",
             });
 
-            const colors = ["#0a3161", "white", "#0a3161", "#b31942", "white", "#b31942", "white", "#b31942", "white", "#b31942"];
-
-            console.log(colors[index], letter.innerText);
-
             letter.addEventListener("mouseenter", () => {
                 gsap.to(letter, {
                     scale: 1.1,
                     y: "0%",
                     duration: 0.3,
-                    color: colors[index],
                     ease: "power3.out",
                 });
             });
@@ -69,7 +64,7 @@
                     scale: 1,
                     y: "30%",
                     duration: 0.3,
-                    ease: "power3.out",
+                    ease: "power3.out"
                 });
             });
         });
@@ -127,20 +122,16 @@
         <div class="top">
             <div class="left">
                 <div class="slogan">
-                    <h4>Good food for <span>everyone</span></h4>
+                    <h4>Good food for<br><span>everyone</span></h4>
                 </div>
             </div>
             <div class="right">
                 <div class="links">
-                    <div class="link">
-                        <a href="/">Our approach</a>
-                    </div>
-                    <div class="link">
-                        <a href="/menu">Our seasonal menu</a>
-                    </div>
-                    <div class="link">
-                        <a href="/news">News</a>
-                    </div>
+                    {#each [["/", "Our approach"], ["/menu", "Our seasonal menu"], ["/news", "News"]] as link}
+                        <button class="link" on:click={() => navigateAndAnimate(link[0])}>
+                            {link[1]}
+                        </button>
+                    {/each}
                 </div>
                 <div class="contact-and-location">
                     <div class="location">
@@ -162,14 +153,14 @@
         </div>
         <div class="bottom">
             <h1>V</h1>
-            <h1>e</h1>
-            <h1>r</h1>
-            <h1>d</h1>
-            <h1>a</h1>
-            <h1>n</h1>
-            <h1>t</h1>
-            <h1>i</h1>
-            <h1>a</h1>
+            <h1>E</h1>
+            <h1>R</h1>
+            <h1>D</h1>
+            <h1>A</h1>
+            <h1>N</h1>
+            <h1>T</h1>
+            <h1>I</h1>
+            <h1>A</h1>
         </div>
     </div>
 </div>
@@ -190,7 +181,7 @@
         position: fixed;
         bottom: 0;
         left: 0;
-        background-color: v.$secondary-lighter;
+        background-color: #fbf9f6;
 
         .footer-content {
             width: 100%;
@@ -204,20 +195,87 @@
                 width: 90%;
                 padding: 3rem 2rem;
 
+                @media (max-width: 768px) {
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 2rem;
+                }
+
                 .left {
                     width: 50%;
 
                     .slogan {
                         h4 {
                             font-family: "Inter 24pt Regular";
-                            font-size: clamp(1.2rem, 2vw, 1.6rem);
-                            color: v.$font-color-light;
+                            font-size: clamp(1.4rem, 2.5vw, 2.8rem);
+                            line-height: 1;
+                            color: v.$tertiary-dark;
                             
                             span {
                                 font-family: "DynaPuff Regular";
                             }
                         }
                     }
+                }
+
+                .right {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 2rem;
+
+                    .links {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 0.7rem;
+
+                        .link {
+                            font-family: "Inter 24pt Regular";
+                            font-size: clamp(0.9rem, 1.2vw, 1rem);
+                            line-height: 1;
+                            color: v.$tertiary-dark;
+                            background-color: transparent;
+                            border: none;
+                            cursor: pointer;
+                            text-align: left;
+                            width: fit-content;
+
+                            &:hover {
+                                text-decoration: underline;
+                            }
+                        }
+                    }
+
+                    .contact-and-location {
+                        display: flex;
+                        justify-content: space-between;
+                        gap: 2rem;
+
+                        .location, .contant {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 0.5rem;
+
+                            p {
+                                font-family: "Inter 24pt Regular";
+                                font-size: clamp(0.9rem, 1.2vw, 1rem);
+                                line-height: 1;
+                                color: v.$tertiary-dark;
+                                text-transform: uppercase;
+                            }
+
+                            .info {
+                                display: flex;
+                                flex-direction: column;
+                                gap: 0.2rem;
+
+                                p {
+                                    color: v.$tertiary-dark;
+                                    margin-bottom: 0;
+                                    text-transform: none;
+                                }
+                            }
+                        }
+                    } 
                 }
             }
 
@@ -229,7 +287,7 @@
                 padding: 1rem 2rem;
 
                 h1 {
-                    color: v.$font-color-light;
+                    color: v.$tertiary-dark;
                     font-size: clamp(30px, 17vw, 620px);
                     line-height: 1;
                     padding: 0;
