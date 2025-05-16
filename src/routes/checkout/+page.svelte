@@ -4,6 +4,7 @@
     import { basket, basketSubtotal, type BasketItem } from "$lib/stores/basketStore";
     import Footer from "$lib/components/Footer.svelte";
     import { formatPrice } from "$lib/utils/formatPrice";
+    import FooterTopBorder from "$lib/components/FooterTopBorder.svelte";
 
     let checkoutItems: BasketItem[] = [];
     let subtotal = 0;
@@ -337,9 +338,10 @@
         </div>
     {/if}
 </div>
+    <FooterTopBorder />
+</div>
 
 <Footer />
-</div>
 
 {#if isModalOpen}
 <div class="modal-overlay">
@@ -425,14 +427,13 @@
     @use "../../lib/styles/variables" as v;
 
     .checkout-background {
-        
         width: 100%;
         display: flex;
         flex-direction: column;
         align-items: center;
         position: relative;
-        z-index: 0;
-        
+        z-index: 3;
+        background-color: v.$background-color-light;
     }
 
     * {
@@ -441,6 +442,7 @@
     
     .page-container {
         width: 100%;
+        min-height: 100vh;
         max-width: 1100px;
         margin-top: 1rem;
         margin-bottom: 1rem;
