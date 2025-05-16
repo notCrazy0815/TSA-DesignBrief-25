@@ -10,7 +10,8 @@
      import { ScrollTrigger } from "gsap/ScrollTrigger";
      import WeAreSection from "$lib/components/WeAreSection.svelte";
      import CardSection from "$lib/components/CardSection.svelte";
-    import TestimonialsSection from "$lib/components/TestimonialsSection.svelte";
+     import TestimonialsSection from "$lib/components/TestimonialsSection.svelte";
+    import FooterTopBorder from "$lib/components/FooterTopBorder.svelte";
 
      let bg = "base";
 
@@ -37,16 +38,21 @@
                ease: "power1.out",
           });
           
-          gsap.to(".hero-plants-wrapper", {
+          const plantsTimeline = gsap.timeline({
                scrollTrigger: {
                     trigger: ".hero-section",
                     start: "bottom top",
                     end: "bottom+=40% top",
                     scrub: true
-               },
-               opacity: 0,
-               ease: "power2.in",
+               }
           });
+          
+          plantsTimeline
+               .to(".hero-plants-wrapper", {
+                    opacity: 0,
+                    ease: "power2.in",
+               })
+               .set(".hero-plants-wrapper", { display: "none" });
           
           const ctaTimeline = gsap.timeline({
                scrollTrigger: {
@@ -88,11 +94,11 @@
      <div class="testimonials-section-container">
           <TestimonialsSection />
      </div>
+     <div class="transparency-section-container"></div>
+     <FooterTopBorder />
 </div>
 
-<div class="footer-wrapper">
-     <Footer />
-</div>
+<Footer />
 
 <style lang="scss">
      @use "../lib/styles/variables" as v;
@@ -100,6 +106,12 @@
 
      :global(body) {
           overflow-x: hidden;
+     }
+
+     .content {
+          background-color: v.$background-color-light;
+          position: relative;
+          z-index: 1;
      }
 
      .hero-section {
@@ -139,20 +151,9 @@
           justify-content: center;
           align-items: end;
           padding-bottom: 4rem;
-          z-index: 3;
      }
 
-     .we-are-section-container {
-          z-index: 2;
-     }
-
-     .card-section-container {
-          z-index: 2;
-          width: 100%;
-          display: flex;
-     }
-
-     .testimonials-section-container {
+     .card-section-container, .we-are-section-container, .testimonials-section-container {
           z-index: 2;
           width: 100%;
           display: flex;

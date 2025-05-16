@@ -256,7 +256,7 @@
                     grid-template-columns: repeat(3, minmax(250px, 1fr));
                     gap: 1rem;
 
-                    @media screen and (max-width: 1200px) {
+                    @media screen and (max-width: 1350px) {
                         grid-template-columns: repeat(2, minmax(250px, 1fr));
                     }
 
@@ -272,7 +272,7 @@
                         gap: 1rem;
                         padding: 2rem 3.5rem;
 
-                        width: clamp(250px, 30vw, 400px);
+                        width: clamp(250px, 90vw, 400px);
 
                         background-color: #fbf9f6;
                         border-radius: 2rem;
