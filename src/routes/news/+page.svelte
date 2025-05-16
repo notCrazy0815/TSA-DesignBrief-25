@@ -16,6 +16,7 @@
     import lavenderImg from "$lib/assets/news/lavender.png";
     import flowerImg from "$lib/assets/news/leaf.png";
     import FooterTopBorder from "$lib/components/FooterTopBorder.svelte";
+    import TsaIcon from "$lib/components/TSAIcon.svelte";
 
     const newDishes = [
         {
@@ -220,6 +221,8 @@
         likeStore.toggleLike(articleId);
     }
 </script>
+
+<TsaIcon />
 
 <div class="news-page-wrapper">
     <div class="news-page">

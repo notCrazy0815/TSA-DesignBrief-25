@@ -28,8 +28,7 @@
                     duration: 1,
                     ease: "bounce"
                 });
-            },
-            once: false
+            }
         });
 
         const testimonialItems = document.querySelectorAll(".testimonial-item");
@@ -52,8 +51,7 @@
                     duration: 0.7,
                     ease: "back.out(1.5)"
                 });
-            },
-            once: false
+            }
         });
     });
 </script>
@@ -170,7 +168,7 @@
         justify-content: center;
         align-items: center;
         z-index: 2;
-        padding: 3rem 0;
+        padding: 12rem 0;
 
         .testimonials-content {
             display: flex;

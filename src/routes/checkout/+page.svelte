@@ -5,6 +5,7 @@
     import Footer from "$lib/components/Footer.svelte";
     import { formatPrice } from "$lib/utils/formatPrice";
     import FooterTopBorder from "$lib/components/FooterTopBorder.svelte";
+    import TsaIcon from "$lib/components/TSAIcon.svelte";
 
     let checkoutItems: BasketItem[] = [];
     let subtotal = 0;
@@ -201,6 +202,8 @@
         isModalOpen = false;
     }
 </script>
+
+<TsaIcon />
 
 <div class="checkout-background">
 <div class="page-container checkout-container">

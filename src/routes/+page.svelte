@@ -12,6 +12,7 @@
      import CardSection from "$lib/components/CardSection.svelte";
      import TestimonialsSection from "$lib/components/TestimonialsSection.svelte";
      import FooterTopBorder from "$lib/components/FooterTopBorder.svelte";
+     import TsaIcon from "$lib/components/TSAIcon.svelte";
 
      let bg = "base";
 
@@ -70,6 +71,8 @@
           }).set(".hero-cta-container", { visibility: "hidden" });
      });
 </script>
+
+<TsaIcon />
 
 <NavBar {bg} />
 
