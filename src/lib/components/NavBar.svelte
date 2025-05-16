@@ -6,7 +6,7 @@
     import orange from "$lib/assets/icons/orange.png";
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
-    import { shouldAnimate, firstLoad, isLoading } from "$lib/stores/navStore";
+    import { firstLoad } from "$lib/stores/navStore";
     import { page } from "$app/stores";
     import { gsap } from "gsap";
     import { basket, basketSubtotal, type BasketItem } from "$lib/stores/basketStore";
