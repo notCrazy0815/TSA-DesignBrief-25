@@ -50,7 +50,7 @@
         bottom: 2rem;
         right: 2rem;
 
-        width: clamp(2rem, 5vw, 4rem);
+        width: clamp(50px, 6.5vh, 90px);
         aspect-ratio: 1/1;
         display: flex;
         justify-content: center;
