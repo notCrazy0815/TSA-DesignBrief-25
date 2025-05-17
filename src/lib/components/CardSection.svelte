@@ -5,6 +5,7 @@
     import usa from "$lib/assets/svg/usa.svg";
     import leaf from "$lib/assets/svg/leaf.svg";
     import branch2d from "$lib/assets/branches/branch_2d_s.png";
+    import tomatoSoup from "$lib/assets/food/tomato-basil-soup_trans.png";
 
     onMount(() => {
         gsap.registerPlugin(ScrollTrigger);
@@ -91,6 +92,26 @@
             ease: "bounce",
             scrollTrigger: {
                 trigger: ".card.plant-based",
+                start: "top 60%",
+                end: "top 40%",
+                scrub: false,
+                toggleActions: "play none none reverse"
+            }
+        });
+
+        const tastyImage = document.querySelector(".card.tasty .card-graphic img");
+        gsap.set(tastyImage, { 
+            scale: 0,
+            y: 60
+        });
+
+        gsap.to(tastyImage, {
+            scale: 1,
+            duration: 1,
+            y: 0,
+            ease: "back.out(1.7)",
+            scrollTrigger: {
+                trigger: ".card.tasty",
                 start: "top 60%",
                 end: "top 40%",
                 scrub: false,
@@ -190,7 +211,9 @@
                         <p>Our food isn’t just good for you and the planet — it’s seriously delicious. We focus on bold flavors, rich textures, and surprising combinations that satisfy every time.</p>
                     </div>
                 </div>
-                <div class="card-graphic"></div>
+                <div class="card-graphic">
+                    <img src={tomatoSoup} alt="Tomato Soup" />
+                </div>
             </div>
         </div>
     </div>
@@ -387,6 +410,19 @@
                         background-color: v.$primary;
                         color: #fff;
                         border: 2px solid v.$primary-dark;
+
+                        .card-graphic {
+                            width: 100%;
+                            height: 100%;
+                            display: flex;
+                            justify-content: center;
+
+                            img {
+                                width: 80%;
+                                height: 90%;
+                                object-fit: contain;
+                            }
+                        }
                     }
                 }
             }
