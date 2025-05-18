@@ -36,10 +36,11 @@
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
   }
 
   .image-placeholder {
-    height: 200px;
     background-color: v.$quaternary;
     display: flex;
     align-items: center;
@@ -60,12 +61,15 @@
     img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
     }
   }
 
   .dish-content {
     padding: 1.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 
     h3 {
       color: v.$tertiary-dark;
@@ -85,7 +89,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    margin-top: 1rem;
+    margin-top: auto;
 
     .tag {
       background-color: v.$tertiary-light-low-opacity;
