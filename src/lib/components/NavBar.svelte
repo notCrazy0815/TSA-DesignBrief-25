@@ -6,8 +6,6 @@
     import orange from "$lib/assets/icons/orange.png";
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
-    import { firstLoad } from "$lib/stores/navStore";
-    import { page } from "$app/stores";
     import { gsap } from "gsap";
     import { basket, basketSubtotal, type BasketItem } from "$lib/stores/basketStore";
     
@@ -28,18 +26,15 @@
     });
 
     onMount(() => {
-        if ($firstLoad) {
-            firstLoad.set(false);
+        if (active === "approach") {
+            gsap.from(contentElement, {
+                y: -200,
+                opacity: 0,
+                duration: 1.2,
+                delay: 1.2,
+                ease: "power2.out"
+            });
         }
-
-        const delay = $page.url.pathname !== "/" ? 0.4 : 1.6;
-        gsap.from(contentElement, {
-            y: -200,
-            opacity: 0,
-            duration: 0.75,
-            ease: "power2.out",
-            delay: $firstLoad ? delay : 0
-        });
 
         return () => {
             unsubscribeBasket();

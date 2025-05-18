@@ -109,7 +109,7 @@
             </div>
             <div class="right">
                 <div class="links">
-                    {#each [["/", "Our approach"], ["/menu", "Our seasonal menu"], ["/news", "News"]] as link}
+                    {#each [["/", "Our approach"], ["/menu", "Our seasonal menu"], ["/news", "News"], ["/references", "References page"]] as link}
                         <a class="link" href={link[0]} on:click|preventDefault={() => goto(link[0])}>
                             {link[1]}
                         </a>
