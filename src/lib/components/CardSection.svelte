@@ -5,7 +5,7 @@
     import usa from "$lib/assets/svg/usa.svg";
     import leaf from "$lib/assets/svg/leaf.svg";
     import branch2d from "$lib/assets/branches/branch_2d_s.png";
-    import tomatoSoup from "$lib/assets/food/tomato-basil-soup_trans.png";
+    import beetTartare from "$lib/assets/food/roasted-beet-tartare_trans.png";
 
     onMount(() => {
         gsap.registerPlugin(ScrollTrigger);
@@ -109,7 +109,7 @@
             scale: 1,
             duration: 1,
             y: 0,
-            ease: "back.out(1.7)",
+            ease: "back.out(1.1)",
             scrollTrigger: {
                 trigger: ".card.tasty",
                 start: "top 60%",
@@ -212,7 +212,7 @@
                     </div>
                 </div>
                 <div class="card-graphic">
-                    <img src={tomatoSoup} alt="Tomato Soup" />
+                    <img src={beetTartare} alt="beet tartare" />
                 </div>
             </div>
         </div>
