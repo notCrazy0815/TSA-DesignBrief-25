@@ -294,7 +294,9 @@
             {/each}
         </section>
         
-        <Newsletter />
+        <div class="newsletter-container">
+            <Newsletter />
+        </div>
     </div>
 
     <FooterTopBorder />
@@ -741,5 +743,11 @@
         :global(strong) {
             color: v.$tertiary;
         }
+    }
+
+    .newsletter-container {
+        width: 100%;
+        display: flex;
+        justify-content: center;
     }
 </style>
