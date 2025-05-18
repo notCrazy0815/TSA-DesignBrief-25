@@ -18,30 +18,35 @@
     import FooterTopBorder from "$lib/components/FooterTopBorder.svelte";
     import TsaIcon from "$lib/components/TSAIcon.svelte";
 
+    import tomatoSoupImg from "$lib/assets/news/tomato-basil-soup.png";
+    import beetTartareImg from "$lib/assets/news/roasted-beet-tartare.png";
+    import watermelonSkewersImg from "$lib/assets/news/watermelon-mint-skewers.png";
+    
     const newDishes = [
         {
-            title: "Artisanal Mushroom Risotto",
-            description: "Creamy arborio rice with locally foraged wild mushrooms and truffle oil",
-            imageUrl: leafImg,
-            tags: ["new", "seasonal", "gluten-free"]
+            title: "Tomato Basil Soup",
+            description: "Slow‑simmered tomato soup with fresh basil, served warm.",
+            imageUrl: tomatoSoupImg,
+            tags: ["seasonal", "vegan"]
         },
         {
-            title: "Rainbow Buddha Bowl",
-            description: "Nutrient-packed bowl with quinoa, roasted vegetables, avocado and tahini dressing",
-            imageUrl: orangeImg,
-            tags: ["popular", "protein-rich"]
+            title: "Roasted Beet Tartare",
+            description: "Finely diced roasted beets with feta, balsamic vinegar and spicy candied walnuts served on fresh arugula.",
+            imageUrl: beetTartareImg,
+            tags: ["vegan"]
         },
         {
-            title: "Jackfruit Tacos",
-            description: "Spicy pulled jackfruit with homemade corn tortillas and lime-cilantro slaw",
-            imageUrl: lavenderImg,
-            tags: ["new", "spicy"]
+            title: "Watermelon & Mint Skewers",
+            description: "Refreshing watermelon cubes paired with vegan feta and fresh mint leaves, drizzled with balsamic reduction.",
+            imageUrl: watermelonSkewersImg,
+            tags: ["seasonal", "vegan"]
         }
     ];
     
     // News article data with full content
     const newsArticles = [
         {
+            id: 1,
             id: 1,
             date: "June 15, 2023",
             title: "Summer Menu Launch Party",
