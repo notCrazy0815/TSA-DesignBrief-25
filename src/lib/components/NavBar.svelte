@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-    export type ActivePage = "approach" | "menu" | "news" | "checkout";
+    export type ActivePage = "approach" | "menu" | "news" | "checkout" | "references";
 </script>
 
 <script lang="ts">
