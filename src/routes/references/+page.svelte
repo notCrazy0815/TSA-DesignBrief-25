@@ -5,7 +5,7 @@
 
 </script>
 
-<NavBar />
+<NavBar active="references" />
 
 <div class="content">
     <div class="wrapper">
