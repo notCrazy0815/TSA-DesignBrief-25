@@ -13,7 +13,7 @@
      import TestimonialsSection from "$lib/components/TestimonialsSection.svelte";
      import FooterTopBorder from "$lib/components/FooterTopBorder.svelte";
      import TsaIcon from "$lib/components/TSAIcon.svelte";
-
+     import Newsletter from "$lib/components/Newsletter.svelte";
      let bg = "base";
 
      onMount(() => {
@@ -97,7 +97,11 @@
      <div class="testimonials-section-container">
           <TestimonialsSection />
      </div>
-     <div class="transparency-section-container"></div>
+     
+     <div class="newsletter-container">
+          <Newsletter />
+     </div>
+
      <FooterTopBorder />
 </div>
 
@@ -161,6 +165,13 @@
           z-index: 2;
           width: 100%;
           display: flex;
+     }
+
+     .newsletter-container {
+          z-index: 2;
+          width: 100%;
+          display: flex;
+          justify-content: center;;
      }
 
      @keyframes moveIn {
