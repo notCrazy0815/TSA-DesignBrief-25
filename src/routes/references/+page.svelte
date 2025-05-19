@@ -28,11 +28,11 @@
             <div class="images">
                 <div class="image">
                     <h4>.svg image of the map of the USA:</h4>
-                    <p>MapSVG. (n.d.). USA map. MapSVG. <a href="https://mapsvg.com/maps/usa">https://mapsvg.com/maps/usa</a></p>
+                    <p>MapSVG. (n.d.). <i>USA map</i>. MapSVG. <a href="https://mapsvg.com/maps/usa">https://mapsvg.com/maps/usa</a></p>
                 </div>
                 <div class="image">
                     <h4>The TSA logo</h4>
-                    <p>Technology Student Association. (n.d.). TSA logo [Logo]. <a href="https://tsaweb.org/ResourcePackages/Bootstrap5/assets/dist/img/TSA_logo.png">https://tsaweb.org/ResourcePackages/Bootstrap5/assets/dist/img/TSA_logo.png</a></p>
+                    <p>Technology Student Association. (n.d.). <i>TSA logo</i> [Logo]. <a href="https://tsaweb.org/ResourcePackages/Bootstrap5/assets/dist/img/TSA_logo.png">https://tsaweb.org/ResourcePackages/Bootstrap5/assets/dist/img/TSA_logo.png</a></p>
                 </div>
             </div>
         </div>
@@ -40,6 +40,16 @@
         <div class="other-sources box">
             <h2>Other Sources</h2>
             <p>All sources used to gather information for this project are listed below:</p>
+            <br>
+            <div class="sources">
+                <p>Avey, T. (n.d.). <i>Roasted beet tartare</i>. <a href="https://toriavey.com/roasted-beet-tartare/" target="_blank">https://toriavey.com/roasted-beet-tartare/</a></p>
+                <p>Allrecipes. (n.d.). <i>Gourmet mushroom risotto</i>. <a href="https://www.allrecipes.com/recipe/85389/gourmet-mushroom-risotto/" target="_blank">https://www.allrecipes.com/recipe/85389/gourmet-mushroom-risotto/</a></p>
+                <p>Allrecipes. (n.d.). <i>Allrecipes</i>. <a href="https://www.allrecipes.com/" target="_blank">https://www.allrecipes.com/</a></p>
+                <p>Food.com. (n.d.). <i>Food.com</i>. <a href="https://food.com/" target="_blank">https://food.com/</a></p>
+                <p>Zapatka, B. (n.d.). <i>Rezepte</i>. <a href="https://biancazapatka.com/de/rezepte/" target="_blank">https://biancazapatka.com/de/rezepte/</a></p>
+                <p>Love and Lemons. (n.d.). <i>Vegan recipes</i>. <a href="https://www.loveandlemons.com/vegan-recipes/" target="_blank">https://www.loveandlemons.com/vegan-recipes/</a></p>
+                <p>Rainbow Plant Life. (n.d.). <i>Recipes</i>. <a href="https://rainbowplantlife.com/category/recipes/" target="_blank">https://rainbowplantlife.com/category/recipes/</a></p>
+            </div>
         </div>
     </div>
 
@@ -129,8 +139,8 @@
             }
         }
 
-        .image-sources {
-            .images {
+        .image-sources, .other-sources{
+            .images, .sources {
                 display: flex;
                 flex-direction: column;
                 gap: 0.5rem;
