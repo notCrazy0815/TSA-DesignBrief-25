@@ -28,11 +28,11 @@
             <div class="images">
                 <div class="image">
                     <h4>.svg image of the map of the USA:</h4>
-                    <p>MapSVG. (n.d.). <i>USA map</i>. MapSVG. <a href="https://mapsvg.com/maps/usa">https://mapsvg.com/maps/usa</a></p>
+                    <p>MapSVG. (n.d.). <i>USA map</i>. MapSVG. <a target="_blank" href="https://mapsvg.com/maps/usa">https://mapsvg.com/maps/usa</a></p>
                 </div>
                 <div class="image">
                     <h4>The TSA logo</h4>
-                    <p>Technology Student Association. (n.d.). <i>TSA logo</i> [Logo]. <a href="https://tsaweb.org/ResourcePackages/Bootstrap5/assets/dist/img/TSA_logo.png">https://tsaweb.org/ResourcePackages/Bootstrap5/assets/dist/img/TSA_logo.png</a></p>
+                    <p>Technology Student Association. (n.d.). <i>TSA logo</i> [Logo]. <a target="_blank" href="https://tsaweb.org/ResourcePackages/Bootstrap5/assets/dist/img/TSA_logo.png">https://tsaweb.org/ResourcePackages/Bootstrap5/assets/dist/img/TSA_logo.png</a></p>
                 </div>
             </div>
         </div>
