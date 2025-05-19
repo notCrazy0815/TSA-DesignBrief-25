@@ -2,7 +2,6 @@
     import Footer from "$lib/components/Footer.svelte";
     import FooterTopBorder from "$lib/components/FooterTopBorder.svelte";
     import NavBar from "$lib/components/NavBar.svelte";
-
 </script>
 
 <NavBar active="references" />
