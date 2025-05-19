@@ -129,7 +129,7 @@
         const dividerTimeline = gsap.timeline({
             scrollTrigger: {
                 trigger: ".faq-section",
-                start: "top 20%",
+                start: "top 40%",
                 end: "top +=20% top",
                 toggleActions: "play none none reverse",
             }
