@@ -37,6 +37,22 @@
             </div>
         </div>
 
+        <div class="fonts-sources box">
+            <h2>Fonts</h2>
+            <p>For the making of this website, we used two fonts. The sources are listed below.</p>
+            <br>
+            <div class="fonts">
+                <div class="font">
+                    <h4>DynaPuff font</h4>
+                    <p>Google Fonts. (n.d.). <i>DynaPuff</i>. Google. <a href="https://fonts.google.com/specimen/DynaPuff" target="_blank">https://fonts.google.com/specimen/DynaPuff</a></p>
+                </div>
+                <div class="font">
+                    <h4>Inter font</h4>
+                    <p>Google Fonts. (n.d.). <i>Inter</i>. Google. <a href="https://fonts.google.com/specimen/Inter" target="_blank">https://fonts.google.com/specimen/Inter</a></p>
+                </div>
+            </div>
+        </div>
+
         <div class="other-sources box">
             <h2>Other Sources</h2>
             <p>All sources used to gather information for this project are listed below:</p>
@@ -139,8 +155,8 @@
             }
         }
 
-        .image-sources, .other-sources{
-            .images, .sources {
+        .image-sources, .other-sources, .fonts-sources {
+            .images, .sources, .fonts {
                 display: flex;
                 flex-direction: column;
                 gap: 0.5rem;
