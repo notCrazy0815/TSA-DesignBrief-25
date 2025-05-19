@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import gsap from 'gsap';
 
-    export let title: string = "It's simple:\nGood food for everyone.";
+    export let title: string = "It's simple: good food for everyone.";
 
     let heroTitleElement: HTMLHeadingElement;
 
