@@ -270,6 +270,8 @@
         class="ingredient-close-button"
         on:click={closeModal}
         aria-label="Close ingredient details"
+        in:scale={{delay: 200, duration: 200, start: 0.8}}
+        out:scale={{duration: 150}}
       >
         <FontAwesomeIcon icon={faTimes} />
       </button>
@@ -287,25 +289,24 @@
           <div class="ingredient-badges">
             {#if ingredient.sourceInfo?.local}
               <span class="badge local-badge">
-                <FontAwesomeIcon icon={faMapMarkerAlt} class="badge-icon" />
+                <FontAwesomeIcon icon={faMapMarkerAlt} />
                 <span>Local</span>
               </span>
             {/if}
             {#if ingredient.sourceInfo?.organic}
               <span class="badge organic-badge">
-                <FontAwesomeIcon icon={faLeaf} class="badge-icon" />
+                <FontAwesomeIcon icon={faLeaf} />
                 <span>Organic</span>
               </span>
             {/if}
             {#if ingredient.dietaryInfo?.isVegan}
               <span class="badge vegan-badge">
-                <FontAwesomeIcon icon={faLeaf} class="badge-icon" />
+                <FontAwesomeIcon icon={faLeaf} />
                 <span>Vegan</span>
               </span>
             {/if}
             {#if isAllergen(ingredient.name)}
               <span class="badge allergen-badge">
-                <FontAwesomeIcon icon={faInfoCircle} class="badge-icon" />
                 <span>Allergen</span>
               </span>
             {/if}
@@ -526,13 +527,19 @@
                 </div>
               </div>
               
+              {#if isAllergen(ingredient.name)}
+                <div class="allergen-info">
+                  <h4>Allergen Information</h4>
+                  <p>This ingredient is identified as an allergen. If you have allergies or dietary concerns, please consult with our staff for detailed information.</p>
+                </div>
+              {/if}
+              
               {#if ingredient.healthBenefits}
                 <div class="health-benefits">
                   <h4>Health Benefits</h4>
                   <ul class="benefits-list">
                     {#each ingredient.healthBenefits as benefit}
                       <li>
-                        <FontAwesomeIcon icon={faLeaf} class="benefit-icon" />
                         <span>{benefit}</span>
                       </li>
                     {/each}
@@ -593,42 +600,34 @@
             id="panel-benefits" 
             aria-labelledby="tab-benefits"
           >
-            <div class="ingredient-section">
+            <div class="local-impact">
               <h4>Benefits of Local Sourcing</h4>
-              <ul class="benefits-list">
-                <li>
-                  <FontAwesomeIcon icon={faLeaf} class="benefit-icon" />
-                  <span>Fresher ingredients with optimal flavor and nutritional value</span>
-                </li>
-                <li>
-                  <FontAwesomeIcon icon={faLeaf} class="benefit-icon" />
-                  <span>Reduced carbon footprint from reduced transportation</span>
-                </li>
-                <li>
-                  <FontAwesomeIcon icon={faLeaf} class="benefit-icon" />
-                  <span>Support for local farmers and the local economy</span>
-                </li>
-                <li>
-                  <FontAwesomeIcon icon={faLeaf} class="benefit-icon" />
-                  <span>Seasonal eating promotes biodiversity and variety</span>
-                </li>
-                <li>
-                  <FontAwesomeIcon icon={faLeaf} class="benefit-icon" />
-                  <span>Increased transparency in food production</span>
-                </li>
-                <li>
-                  <FontAwesomeIcon icon={faLeaf} class="benefit-icon" />
-                  <span>Better adaptability to regional conditions and needs</span>
-                </li>
-              </ul>
+              <p>Choosing locally sourced ingredients like {ingredient.name.toLowerCase()} provides numerous benefits for our community, environment, and your dining experience.</p>
               
-              <div class="local-impact">
-                <h4>Environmental Impact</h4>
-                <p>By choosing locally sourced {ingredient.name.toLowerCase()}, we reduce our carbon footprint by approximately 25% compared to ingredients shipped from distant regions.</p>
+              <div class="impact-cards">
+                <div class="impact-card">
+                  <div class="impact-title">Environmental Impact</div>
+                  <div class="impact-description">Reduces carbon footprint by approximately 25% compared to ingredients shipped from distant regions.</div>
+                </div>
                 
-                <h4>Community Impact</h4>
-                <p>Our partnership with {ingredient.sourceInfo?.supplier || 'local suppliers'} helps sustain local farming communities and preserves traditional farming practices.</p>
+                <div class="impact-card">
+                  <div class="impact-title">Freshness Guaranteed</div>
+                  <div class="impact-description">Ingredients travel shorter distances, ensuring optimal flavor and nutritional value.</div>
+                </div>
+                
+                <div class="impact-card">
+                  <div class="impact-title">Community Support</div>
+                  <div class="impact-description">Partnership with {ingredient.sourceInfo?.supplier || 'local suppliers'} helps sustain local farming communities.</div>
+                </div>
+                
+                <div class="impact-card">
+                  <div class="impact-title">Seasonal Variety</div>
+                  <div class="impact-description">Promotes biodiversity and offers a rotating menu that reflects natural growing seasons.</div>
+                </div>
               </div>
+              
+              <h4>Sustainability Practices</h4>
+              <p>Our partnership with {ingredient.sourceInfo?.supplier || 'local suppliers'} ensures that this {ingredient.name.toLowerCase()} is grown using sustainable farming practices that preserve soil health and minimize water usage.</p>
             </div>
           </div>
         {/if}
@@ -660,14 +659,18 @@
     justify-content: center;
     align-items: center;
     z-index: 1100;
-    padding: 20px;
+    padding: 15px;
     backdrop-filter: blur(4px);
+    
+    @media (max-width: 480px) {
+      padding: 10px;
+    }
   }
   
   .ingredient-modal {
     width: 95%;
     max-width: 700px;
-    height: 90vh;
+    height: 85vh;
     max-height: 800px;
     background-color: white;
     border-radius: 20px;
@@ -679,50 +682,74 @@
     
     @media (max-width: 768px) {
       width: 95%;
-      height: 80vh;
+      height: 90vh;
+      border-radius: 16px;
+      max-height: none;
+    }
+    
+    @media (max-width: 480px) {
+      width: 96%;
+      height: 94vh;
+      border-radius: 10px 10px 0 0;
+      position: absolute;
+      bottom: 0;
+      max-height: none;
     }
   }
   
   .ingredient-close-button {
-    position: absolute;
+    position: fixed;
     top: 20px;
     right: 20px;
-    background: transparent;
+    background: rgba(240, 229, 219, 0.95);
     border: none;
-    color: white;
-    font-size: 1.5rem;
-    cursor: pointer;
-    z-index: 10;
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    transition: all 0.2s ease;
-    background-color: rgba(255, 255, 255, 0.2);
+    color: v.$tertiary;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 20;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    
+    @media (max-width: 480px) {
+      top: 15px;
+      right: 15px;
+      width: 36px;
+      height: 36px;
+    }
+    
+    svg {
+      font-size: 1.2rem;
+      
+      @media (max-width: 480px) {
+        font-size: 1rem;
+      }
+    }
     
     &:hover {
-      background-color: rgba(255, 255, 255, 0.3);
-      transform: rotate(90deg);
+      background-color: v.$tertiary;
+      color: v.$font-color-light;
+      transform: rotate(90deg) scale(1.1);
+    }
+    
+    &:active {
+      transform: rotate(90deg) scale(0.95);
     }
   }
   
   .ingredient-header {
-    background: linear-gradient(135deg, v.$primary, v.$tertiary);
+    background-color: v.$tertiary;
     color: white;
-    padding: 25px 30px;
+    padding: 20px 25px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     position: relative;
     
-    &::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 6px;
-      background: linear-gradient(to right, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+    @media (max-width: 480px) {
+      padding: 15px 20px;
     }
     
     .ingredient-title {
@@ -731,6 +758,11 @@
       font-weight: 700;
       letter-spacing: 0.01em;
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      
+      @media (max-width: 480px) {
+        font-size: 1.4rem;
+        margin-bottom: 10px;
+      }
     }
     
     .ingredient-source {
@@ -740,17 +772,25 @@
       align-items: center;
       gap: 15px;
       
+      @media (max-width: 600px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      
       .source-farm {
         display: flex;
         align-items: center;
         gap: 8px;
-        background-color: rgba(255, 255, 255, 0.15);
+        background-color: rgba(255, 255, 255, 0.25);
         padding: 6px 12px;
         border-radius: 20px;
         font-size: 0.9rem;
+        font-weight: 500;
         
-        svg {
-          opacity: 0.9;
+        @media (max-width: 480px) {
+          font-size: 0.85rem;
+          padding: 5px 10px;
         }
       }
       
@@ -758,40 +798,64 @@
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
+        margin-top: 5px;
+        
+        @media (max-width: 480px) {
+          margin-top: 10px;
+          width: 100%;
+          justify-content: flex-start;
+        }
         
         .badge {
-          display: flex;
+          display: inline-flex;
           align-items: center;
           gap: 5px;
-          padding: 5px 10px;
+          padding: 5px 12px;
           border-radius: 20px;
           font-size: 0.8rem;
           font-weight: 600;
-          background-color: rgba(255, 255, 255, 0.15);
           transition: all 0.2s ease;
+          white-space: nowrap;
+          
+          @media (max-width: 480px) {
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            flex-grow: 1;
+          }
+          
+          svg {
+            font-size: 0.75rem;
+            flex-shrink: 0;
+          }
           
           &:hover {
             transform: translateY(-2px);
-          }
-          
-          .badge-icon {
-            font-size: 0.75rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
           }
           
           &.local-badge {
-            background-color: rgba(2, 92, 72, 0.2);
+            background-color: rgba(255, 255, 255, 0.25);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.4);
           }
           
           &.organic-badge {
-            background-color: rgba(147, 196, 125, 0.25);
+            background-color: rgba(255, 255, 255, 0.25);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.4);
           }
           
           &.vegan-badge {
-            background-color: rgba(252, 98, 52, 0.2);
+            background-color: rgba(255, 255, 255, 0.25);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.4);
           }
           
           &.allergen-badge {
-            background-color: rgba(224, 102, 102, 0.25);
+            background-color: rgba(255, 255, 255, 0.25);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            font-weight: 700;
           }
         }
       }
@@ -816,6 +880,11 @@
       transition: all 0.2s ease;
       position: relative;
       overflow: hidden;
+      
+      @media (max-width: 480px) {
+        font-size: 0.85rem;
+        padding: 12px 5px;
+      }
       
       &::after {
         content: '';
@@ -850,29 +919,92 @@
   }
   
   .ingredient-content {
-    padding: 0 5px;
+    padding: 0;
     overflow-y: auto;
     flex: 1;
+    
+    /* Scrollbar-Styling für bessere Benutzererfahrung */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(v.$tertiary, 0.3) transparent;
+    
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background-color: rgba(v.$tertiary, 0.3);
+      border-radius: 8px;
+    }
   }
   
   .tab-content {
-    padding: 25px 15px;
-    height: 100%;
+    padding: 20px 15px 30px;
+    height: auto;
+    
+    @media (max-width: 480px) {
+      padding: 15px 10px 40px;
+    }
   }
   
   .overview-tab {
     display: flex;
     flex-direction: column;
     gap: 25px;
+    background-color: rgba(251, 249, 246, 0.7);
+    border-radius: 20px;
+    padding: 25px 20px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeSlideUp 0.6s ease-out;
+    
+    @media (max-width: 480px) {
+      padding: 20px 15px;
+      gap: 20px;
+    }
+  }
+  
+  @keyframes fadeSlideUp {
+    0% { 
+      opacity: 0; 
+      transform: translateY(20px); 
+    }
+    100% { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
   }
   
   .ingredient-description-card {
-    background: linear-gradient(to right, rgba(252, 98, 52, 0.05), rgba(2, 92, 72, 0.05));
+    background-color: rgba(252, 98, 52, 0.05);
     border-radius: 16px;
-    padding: 24px;
+    padding: 24px 28px;
     margin-bottom: 5px;
     border-left: 4px solid v.$primary;
     box-shadow: 0 2px 15px rgba(0, 0, 0, 0.03);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    transform-origin: top center;
+    animation: scaleIn 0.4s ease-out 0.2s both;
+    
+    @media (max-width: 480px) {
+      padding: 20px;
+    }
+    
+    &::before {
+      content: '"';
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 50px;
+      color: rgba(252, 98, 52, 0.08);
+      font-family: Georgia, serif;
+      line-height: 1;
+    }
     
     .ingredient-description {
       color: v.$font-color-dark;
@@ -881,6 +1013,22 @@
       margin-bottom: 0;
       font-weight: 400;
       letter-spacing: 0.01em;
+      position: relative;
+      
+      @media (max-width: 480px) {
+        font-size: 0.95rem;
+      }
+    }
+  }
+  
+  @keyframes scaleIn {
+    0% { 
+      opacity: 0; 
+      transform: scale(0.98); 
+    }
+    100% { 
+      opacity: 1; 
+      transform: scale(1); 
     }
   }
   
@@ -889,6 +1037,21 @@
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 20px;
     margin-bottom: 0;
+    animation: fadeIn 0.4s ease-out 0.4s both;
+    
+    @media (max-width: 480px) {
+      grid-template-columns: 1fr;
+      gap: 15px;
+    }
+  }
+  
+  @keyframes fadeIn {
+    0% { 
+      opacity: 0; 
+    }
+    100% { 
+      opacity: 1; 
+    }
   }
   
   .overview-card {
@@ -897,9 +1060,14 @@
     padding: 22px;
     box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
     border: 1px solid rgba(241, 241, 241, 0.7);
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     overflow: hidden;
+    transform: translateZ(0);
+    
+    @media (max-width: 480px) {
+      padding: 18px;
+    }
     
     &::before {
       content: '';
@@ -908,27 +1076,32 @@
       left: 0;
       width: 4px;
       height: 100%;
-      background: linear-gradient(to bottom, v.$primary, v.$tertiary);
+      background-color: darken(v.$tertiary, 10%);
       border-radius: 2px 0 0 2px;
     }
     
     &:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 7px 20px rgba(0, 0, 0, 0.08);
+      transform: translateY(-5px) translateZ(0);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
     }
     
     h4 {
       font-size: 1.1rem;
-      color: v.$primary-dark;
+      color: v.$font-color-dark;
       margin: 0 0 15px 0;
       display: flex;
       align-items: center;
       gap: 10px;
+      transition: color 0.3s ease;
+      
+      @media (max-width: 480px) {
+        font-size: 1rem;
+      }
       
       .card-icon {
-        color: v.$tertiary;
+        color: darken(v.$tertiary, 10%);
         font-size: 1rem;
-        background-color: rgba(v.$tertiary, 0.1);
+        background-color: rgba(v.$tertiary, 0.15);
         padding: 8px;
         border-radius: 50%;
         width: 1em;
@@ -936,6 +1109,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        transition: all 0.3s ease;
       }
     }
     
@@ -944,6 +1118,10 @@
       line-height: 1.7;
       font-size: 0.95rem;
       margin-bottom: 15px;
+      
+      @media (max-width: 480px) {
+        font-size: 0.9rem;
+      }
     }
     
     .supplier-info, .shelf-life {
@@ -953,6 +1131,12 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      
+      @media (max-width: 480px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
       
       .supplier-label, .shelf-life-label {
         color: #777;
@@ -966,6 +1150,7 @@
         background-color: rgba(v.$tertiary, 0.1);
         border-radius: 20px;
         font-size: 0.85rem;
+        transition: all 0.3s ease;
       }
     }
   }
@@ -973,18 +1158,36 @@
   .flavor-profile-section {
     background-color: white;
     border-radius: 16px;
-    padding: 25px;
+    padding: 30px;
     box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
     border: 1px solid rgba(241, 241, 241, 0.7);
     margin-top: 5px;
+    animation: fadeIn 0.4s ease-out 0.6s both;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    
+    @media (max-width: 480px) {
+      padding: 20px;
+    }
+    
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+    }
     
     h4 {
       font-size: 1.15rem;
-      color: v.$primary-dark;
+      color: v.$font-color-dark;
       margin: 0 0 22px 0;
       position: relative;
       display: inline-block;
       font-weight: 600;
+      
+      @media (max-width: 480px) {
+        font-size: 1.05rem;
+        margin-bottom: 18px;
+      }
       
       &::after {
         content: '';
@@ -993,8 +1196,9 @@
         left: 0;
         right: 0;
         height: 3px;
-        background: linear-gradient(to right, v.$primary, v.$tertiary);
+        background-color: v.$tertiary;
         border-radius: 3px;
+        transition: width 0.3s ease;
       }
     }
   }
@@ -1007,6 +1211,24 @@
     
     .flavor-bar {
       margin-bottom: 0;
+      position: relative;
+      transition: transform 0.3s ease;
+      
+      &:hover {
+        transform: translateX(5px);
+        
+        .flavor-name {
+          color: v.$primary;
+        }
+        
+        .intensity-bar {
+          box-shadow: inset 0 1px 5px rgba(0, 0, 0, 0.08);
+        }
+        
+        .intensity-fill {
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+      }
       
       .flavor-name {
         display: block;
@@ -1014,6 +1236,7 @@
         margin-bottom: 8px;
         color: v.$font-color-dark;
         font-weight: 500;
+        transition: color 0.3s ease;
       }
       
       .intensity-bar {
@@ -1022,11 +1245,12 @@
         border-radius: 10px;
         overflow: hidden;
         box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
         
         .intensity-fill {
           height: 100%;
           border-radius: 10px;
-          transition: width 0.5s ease-out;
+          transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
         }
       }
     }
@@ -1068,6 +1292,16 @@
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
       gap: 20px;
+      
+      @media (max-width: 600px) {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+      }
+      
+      @media (max-width: 480px) {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
       
       .nutrition-item {
         .nutrition-bar-container {
@@ -1119,56 +1353,147 @@
   }
   
   .health-benefits {
-    margin-top: 30px;
+    margin-top: 25px;
+    background-color: #f8f8f8;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #eee;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    
+    @media (max-width: 480px) {
+      padding: 15px;
+      margin-top: 20px;
+    }
+    
+    h4 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: v.$font-color-dark;
+      margin: 0 0 15px 0;
+      
+      @media (max-width: 480px) {
+        font-size: 1.05rem;
+        margin-bottom: 12px;
+      }
+    }
     
     .benefits-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      
       li {
-        display: flex;
-        align-items: center;
+        background-color: white;
+        padding: 12px 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+        border-left: 3px solid v.$tertiary;
+        transition: transform 0.2s ease;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
         
-        .benefit-icon {
-          color: v.$tertiary;
-          margin-right: 10px;
+        @media (max-width: 480px) {
+          padding: 10px 12px;
+        }
+        
+        &:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        span {
+          font-size: 0.95rem;
+          line-height: 1.5;
+          color: v.$font-color-dark;
+          display: block;
+          
+          @media (max-width: 480px) {
+            font-size: 0.9rem;
+          }
         }
       }
     }
   }
   
-  .sustainability-metrics {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 20px;
-    margin: 25px 0;
+  .local-impact {
+    margin-top: 30px;
+    background-color: #f8f8f8;
+    padding: 25px;
+    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
+    border-left: 5px solid v.$tertiary;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
     
-    .metric-card {
-      background-color: white;
-      border-radius: 12px;
+    @media (max-width: 480px) {
       padding: 20px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      border: 1px solid #f1f1f1;
-      transition: all 0.25s ease;
+    }
+    
+    h4 {
+      margin-top: 20px;
+      margin-bottom: 15px;
+      color: v.$font-color-dark;
+      font-size: 1.1rem;
+      font-weight: 600;
       
-      &:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-        border-color: v.$tertiary;
+      @media (max-width: 480px) {
+        font-size: 1rem;
       }
       
-      .metric-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: v.$primary;
-        margin-bottom: 10px;
+      &:first-child {
+        margin-top: 0;
       }
+    }
+    
+    p {
+      margin: 0 0 15px 0;
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: v.$font-color-dark;
       
-      .metric-label {
+      @media (max-width: 480px) {
         font-size: 0.9rem;
-        color: v.$font-color-dark;
-        line-height: 1.4;
+      }
+    }
+    
+    .impact-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+      
+      @media (max-width: 480px) {
+        grid-template-columns: 1fr;
+      }
+      
+      .impact-card {
+        background-color: white;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+        border-top: 3px solid v.$tertiary;
+        transition: transform 0.2s ease;
+        
+        &:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .impact-title {
+          font-weight: 600;
+          font-size: 0.95rem;
+          color: v.$tertiary-dark;
+          margin-bottom: 8px;
+        }
+        
+        .impact-description {
+          font-size: 0.9rem;
+          color: v.$font-color-dark;
+          line-height: 1.5;
+        }
       }
     }
   }
@@ -1264,36 +1589,57 @@
       border: 1px solid #f1f1f1;
     }
   }
-  
-  .local-impact {
-    margin-top: 30px;
-    background-color: #f8f8f8;
-    padding: 25px;
+
+  /* Allergen Information Styling im Nutrition Tab */
+  .allergen-info {
+    margin-top: 25px;
+    background-color: rgba(224, 102, 102, 0.1);
+    padding: 18px 20px;
     border-radius: 12px;
+    border-left: 4px solid #e06666;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     position: relative;
     overflow: hidden;
-    border-left: 5px solid v.$tertiary;
+    
+    &::before {
+      content: "⚠️";
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      font-size: 28px;
+      opacity: 0.15;
+    }
+    
+    @media (max-width: 480px) {
+      padding: 15px;
+      margin-top: 20px;
+    }
     
     h4 {
-      margin-top: 20px;
-      margin-bottom: 15px;
-      color: v.$primary;
+      color: v.$font-color-dark;
+      margin: 0 0 10px 0;
       font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
       
-      &:first-child {
-        margin-top: 0;
-      }
-      
-      &::after {
-        display: none;
+      @media (max-width: 480px) {
+        font-size: 1rem;
       }
     }
     
     p {
-      margin: 0 0 15px 0;
-      font-size: 1rem;
-      line-height: 1.7;
-      color: v.$font-color-dark;
+      margin: 0;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: #555;
+      max-width: 100%;
+      word-wrap: break-word;
+      overflow-wrap: anywhere;
+      
+      @media (max-width: 480px) {
+        font-size: 0.9rem;
+      }
     }
   }
 </style> 

@@ -18,7 +18,7 @@
   let preferences = {
     dietary: 'any', // 'any', 'vegetarian', 'vegan'
     spiceLevel: 'medium', // 'mild', 'medium', 'spicy'
-    allergies: [] as string[],
+    allergies: [] as string[], // No allergens selected by default
     coursePreference: 'full', // 'full', 'light', 'main-only'
     flavorPreference: 'balanced' // 'sweet', 'savory', 'balanced', 'refreshing'
   };
@@ -84,10 +84,11 @@
     if (currentStepConfig.multiSelect) {
       // For multi-select steps (like allergies)
       if (optionId === 'none') {
-        preferences.allergies = []; // Clear allergies if 'none' selected
+        // If "No allergies" is clicked, deselect all other allergies
+        preferences.allergies = preferences.allergies.includes('none') ? [] : ['none'];
       } else {
+        // If a specific allergy is clicked and "No allergies" was selected, remove it
         if (preferences.allergies.includes('none')) {
-          // Remove 'none' if it was previously selected
           preferences.allergies = preferences.allergies.filter(id => id !== 'none');
         }
         
@@ -136,7 +137,7 @@
   
   // Go to next step
   function nextStep() {
-    // If multi-select and nothing selected, select 'none' by default
+    // If allergen step and nothing selected, select 'none' by default
     if (steps[currentStep].multiSelect && preferences.allergies.length === 0) {
       preferences.allergies = ['none'];
     }
@@ -320,6 +321,7 @@
               class="option-button" 
               class:selected={isOptionSelected(option.id)}
               on:click={() => selectOption(option.id)}
+              data-option-id={option.id}
             >
               <span class="option-label">{option.label}</span>
               {#if isOptionSelected(option.id)}
@@ -348,14 +350,14 @@
       <div class="results-content">
         {#if preferences.coursePreference !== 'main-only'}
           {#if selectedMeal.appetizer}
-            {@const itemInBasket = $basket.some(bItem => bItem.id === selectedMeal.appetizer!.id)}
+            {@const itemInBasket = $basket.some(bItem => bItem.id === selectedMeal.appetizer?.id)}
             <div class="meal-item">
               <div class="meal-item-header">
                 <h3>Appetizer</h3>
                 <button 
                   class="add-item-button"
                   class:added={itemInBasket}
-                  on:click={() => !itemInBasket && addItemToBasket(selectedMeal.appetizer!)}
+                  on:click={() => !itemInBasket && selectedMeal.appetizer && addItemToBasket(selectedMeal.appetizer)}
                   disabled={itemInBasket}
                 >
                   {#if itemInBasket}
@@ -380,14 +382,14 @@
         {/if}
         
         {#if selectedMeal.main}
-          {@const itemInBasket = $basket.some(bItem => bItem.id === selectedMeal.main!.id)}
+          {@const itemInBasket = $basket.some(bItem => bItem.id === selectedMeal.main?.id)}
           <div class="meal-item main">
             <div class="meal-item-header">
               <h3>Main Course</h3>
               <button 
                 class="add-item-button"
                 class:added={itemInBasket}
-                on:click={() => !itemInBasket && addItemToBasket(selectedMeal.main!)}
+                on:click={() => !itemInBasket && selectedMeal.main && addItemToBasket(selectedMeal.main)}
                 disabled={itemInBasket}
               >
                 {#if itemInBasket}
@@ -412,14 +414,14 @@
         
         {#if preferences.coursePreference !== 'main-only'}
           {#if selectedMeal.drink}
-            {@const itemInBasket = $basket.some(bItem => bItem.id === selectedMeal.drink!.id)}
+            {@const itemInBasket = $basket.some(bItem => bItem.id === selectedMeal.drink?.id)}
             <div class="meal-item">
               <div class="meal-item-header">
                 <h3>Drink</h3>
                 <button 
                   class="add-item-button"
                   class:added={itemInBasket}
-                  on:click={() => !itemInBasket && addItemToBasket(selectedMeal.drink!)}
+                  on:click={() => !itemInBasket && selectedMeal.drink && addItemToBasket(selectedMeal.drink)}
                   disabled={itemInBasket}
                 >
                   {#if itemInBasket}
@@ -445,14 +447,14 @@
         
         {#if preferences.coursePreference === 'full'}
           {#if selectedMeal.dessert}
-            {@const itemInBasket = $basket.some(bItem => bItem.id === selectedMeal.dessert!.id)}
+            {@const itemInBasket = $basket.some(bItem => bItem.id === selectedMeal.dessert?.id)}
             <div class="meal-item">
               <div class="meal-item-header">
                 <h3>Dessert</h3>
                 <button 
                   class="add-item-button"
                   class:added={itemInBasket}
-                  on:click={() => !itemInBasket && addItemToBasket(selectedMeal.dessert!)}
+                  on:click={() => !itemInBasket && selectedMeal.dessert && addItemToBasket(selectedMeal.dessert)}
                   disabled={itemInBasket}
                 >
                   {#if itemInBasket}
@@ -718,6 +720,31 @@
       color: v.$primary;
       font-weight: 600;
       box-shadow: 0 2px 8px rgba(v.$primary, 0.1);
+    }
+    
+    &[data-option-id="none"] {
+      border-width: 2px;
+      background-color: rgba(v.$tertiary, 0.05);
+      border-color: rgba(v.$tertiary, 0.3);
+      color: v.$tertiary;
+      font-weight: 500;
+      
+      &.selected {
+        background-color: rgba(v.$tertiary, 0.15);
+        border-color: v.$tertiary;
+        color: v.$tertiary;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(v.$tertiary, 0.2);
+        
+        .check-icon {
+          color: v.$tertiary;
+        }
+      }
+      
+      &:hover {
+        background-color: rgba(v.$tertiary, 0.1);
+        border-color: rgba(v.$tertiary, 0.5);
+      }
     }
 
     @media (max-width: 700px) {
