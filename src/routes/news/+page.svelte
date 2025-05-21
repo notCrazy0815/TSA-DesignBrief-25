@@ -167,13 +167,11 @@
             {
                 y: 0,
                 opacity: 1,
-                duration: 1,
-                stagger: 0.2,
+                duration: 0.4,
                 scrollTrigger: {
                     trigger: ".news-hero",
-                    start: "top 80%",
-                    end: "center center",
-                    scrub: 1
+                    start: "top 20%",
+                    end: "top 80%"
                 }
             }
         );
@@ -204,18 +202,6 @@
                 toggleActions: "play none none none"
             }
         });
-        
-        // Parallax
-        gsap.to(".bg-image-container", {
-            y: "-30%",
-            ease: "none",
-            scrollTrigger: {
-                trigger: ".news-page",
-                start: "top top",
-                end: "bottom top",
-                scrub: true
-            }
-        });
     });
 
     // Function to handle likes
@@ -233,20 +219,12 @@
     <div class="news-page">
         <NavBar active="news" />
         
-        <div class="bg-image-container">
-            <img src={flowerImg} alt="" class="bg-image" />
-        </div>
-        
-        <section class="news-hero">
+        <div class="news-hero">
             <div class="news-hero-content">
-                <h1>
-                    <span class="mega-text">NEWS</span>
-                    <span class="mega-text">&</span>
-                    <span class="mega-text">UPDATES</span>
-                </h1>
-                <p class="hero-subtitle">Stay informed about our latest events, menu launches, and sustainability initiatives.</p>
+                <h1 class="mega-text">News & Updates</h1>
+                <p class="subtitle">Learn about newly released items on our menu and other latest news!</p>
             </div>
-        </section>
+        </div>
         
         <section class="featured-dishes">
             <h2>New on our Menu</h2>
@@ -378,58 +356,31 @@
         z-index: 3;
         background-color: v.$background-color-light;
     }
-    
-    .bg-image-container {
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 100%;
-        height: 120vh;
-        z-index: -1;
-        overflow: hidden;
-        opacity: 0.08;
-        
-        .bg-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center;
-        }
-    }
 
     .news-hero {
-        height: 90vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
+        width: 100%;
+        padding: 10rem 0rem;
+        border-bottom: 2px solid rgba(5, 113, 95, 0.1);
         
         .news-hero-content {
-            text-align: center;
-            max-width: 1000px;
-            padding: 0 2rem;
-            
-            h1 {
-                display: flex;
-                flex-direction: column;
+            width: 100%;
+
+            .mega-text {
                 font-family: "DynaPuff Regular";
-                font-size: clamp(3rem, 20vw, 8rem);
-                line-height: 0.9;
-                margin-bottom: 1.5rem;
-                color: v.$tertiary-dark;
-                
-                .mega-text {
-                    opacity: 0;
-                    font-family: "DynaPuff Regular";
-                }
-            }
-            
-            .hero-subtitle {
-                font-size: 1.4rem;
+                font-size: clamp(2.5rem, 5vw, 6rem);
                 color: v.$tertiary;
-                max-width: 600px;
-                margin: 0 auto;
-                line-height: 1.4;
+                margin: 0;
+                text-align: center;
+                line-height: 1.2;
+                overflow: hidden;
+            }
+
+            .subtitle {
+                font-family: "Inter 24pt Regular";
+                font-size: clamp(0.9rem, 2vw, 1.2rem);
+                color: v.$tertiary-dark;
+                margin-top: 1rem;
+                text-align: center;
             }
         }
     }
@@ -466,15 +417,17 @@
         padding: 0 1rem 4rem;
 
         .news-card {
-            background-color: white;
-            border-radius: 8px;
             padding: 1.5rem;
             margin-bottom: 2rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             cursor: pointer;
             display: flex;
             gap: 1.5rem;
+
+            background-color: #fbf9f6;
+            border-radius: 1rem;
+            border: 2px solid rgba(160, 147, 125, 0.5);
+            box-shadow: 0 8px 100px rgba(105, 89, 72, 0.15);
 
             &:hover {
                 transform: translateY(-5px);

@@ -32,12 +32,14 @@
   @use "../styles/variables.scss" as v;
 
   .dish-card {
-    background-color: white;
-    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
     display: flex;
     flex-direction: column;
+
+    background-color: #fbf9f6;
+    border-radius: 3rem;
+    border: 2px solid rgba(160, 147, 125, 0.5);
+    box-shadow: 0 8px 100px rgba(105, 89, 72, 0.15);
   }
 
   .image-placeholder {
