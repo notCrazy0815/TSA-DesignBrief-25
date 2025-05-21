@@ -16,7 +16,7 @@
             <h2>Downloadable Files</h2>
             <p class="hint">Click on the specific file to start the download.</p>
             <a href="/files/worklog_webmaster25.pdf" download>Plan of Worklog</a>
-            <a href="/">Student Copyright Checklist</a>
+            <a href="/files/student_copyright_checklist.pdf" download>Student Copyright Checklist</a>
         </div>
 
         <div class="image-sources box">
