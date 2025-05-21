@@ -1244,4 +1244,111 @@
     from { opacity: 0; transform: translateY(5px); }
     to { opacity: 1; transform: translateY(0); }
   }
+
+  .flavor-profile-section {
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    
+    .flavor-bars {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+      
+      @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .flavor-bar {
+      margin-bottom: 5px;
+      
+      .flavor-name {
+        font-family: "Inter 24pt Regular", sans-serif;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: v.$font-color-dark;
+        margin-bottom: 5px;
+        display: block;
+      }
+      
+      .intensity-bar {
+        height: 10px;
+        background-color: rgba(0, 0, 0, 0.05);
+        border-radius: 5px;
+        overflow: hidden;
+        
+        .intensity-fill {
+          height: 100%;
+          border-radius: 5px;
+          transition: width 0.8s ease-out;
+        }
+      }
+    }
+    
+    .flavor-profile-explainer {
+      margin-top: 15px;
+      padding: 10px 15px;
+      background-color: rgba(v.$tertiary, 0.05);
+      border-radius: 8px;
+      border-left: 3px solid v.$tertiary;
+      
+      p {
+        font-size: 0.85rem;
+        margin: 0;
+        color: v.$font-color-dark;
+        line-height: 1.5;
+      }
+    }
+  }
+  
+  .pairing-section {
+    margin-bottom: 25px;
+    
+    .pairing-suggestions {
+      margin-top: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .pairing-item {
+      position: relative;
+      padding: 10px 15px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(v.$tertiary, 0.1);
+      
+      .pairing-name {
+        font-family: "Inter 24pt Regular", sans-serif;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: v.$font-color-dark;
+        position: relative;
+        z-index: 2;
+      }
+      
+      .pairing-strength {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        background-color: rgba(v.$tertiary, 0.1);
+        border-radius: 8px;
+        z-index: 1;
+        transition: width 0.8s ease-out;
+      }
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+        
+        .pairing-strength {
+          background-color: rgba(v.$tertiary, 0.15);
+        }
+      }
+    }
+  }
 </style>
