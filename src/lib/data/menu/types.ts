@@ -29,18 +29,36 @@ export interface MenuItem {
   isVegetarian: boolean;
   contains: string[];
   seasonal: boolean;
-  nutrition: NutritionInfo;
-  // New field for flavor profiles
-  flavorProfile?: FlavorProfile;
-  // Other optional fields
-  ingredients?: string[];
+  nutrition: {
+    calories: number;
+    protein: number;
+    fat: number;
+    carbs: number;
+    sugar?: number;
+    fiber?: number;
+    sodium?: number;
+  };
+  flavorProfile: {
+    sweet: number;
+    salty: number;
+    sour: number;
+    bitter: number;
+    umami: number;
+    spicy: number;
+    refreshing: number;
+    rich: number;
+  };
+  dynamicPairings: boolean;
+  ingredients: string[];
   preparation?: string;
   pairingRecommendation?: string;
-  dynamicPairings?: boolean; // Flag to use dynamic pairing system
   sourceInfo?: {
-    local?: boolean;
-    organic?: boolean;
-    sources?: {name: string, location: string}[];
+    local: boolean;
+    organic: boolean;
+    sources: Array<{
+      name: string;
+      location: string;
+    }>;
   };
   dietarySuitability?: {
     glutenFree?: boolean;
@@ -57,4 +75,45 @@ export interface MenuCategory {
   title: string;
   text?: string; // Make optional to handle both text and description
   description: string; // Add description to match usage in index.ts
+}
+
+export interface Ingredient {
+  name: string;
+  description: string;
+  nutritionalValue?: {
+    calories?: number;
+    protein?: number;
+    fat?: number;
+    carbs?: number;
+    fiber?: number;
+    sugar?: number;
+  };
+  flavorProfile?: {
+    sweet?: number;
+    salty?: number;
+    sour?: number;
+    bitter?: number;
+    umami?: number;
+    spicy?: number;
+  };
+  dietaryInfo?: {
+    isVegan: boolean;
+    isVegetarian: boolean;
+    isGlutenFree: boolean;
+    isDairyFree: boolean;
+    isNutFree: boolean;
+  };
+  sourceInfo?: {
+    local: boolean;
+    organic: boolean;
+    supplier?: string;
+    origin?: string;
+    ingredientSource?: any; // Reference to detailed ingredient source information
+  };
+  healthBenefits?: string[];
+  storageInfo?: string;
+  seasonality?: {
+    isSeasonal: boolean;
+    peakSeason?: string[];
+  };
 }
