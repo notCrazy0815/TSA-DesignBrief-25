@@ -1242,4 +1242,81 @@
       padding: 12px 30px;
     }
   }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    background-color: #f7f5f2;
+    border-radius: 12px;
+    border: 1px dashed rgba(160, 147, 125, 0.3);
+    
+    p {
+      font-family: "Inter 24pt Regular", sans-serif;
+      color: #8c7b6b;
+      font-style: italic;
+      margin: 0 0 20px;
+    }
+    
+    .reset-button {
+      background: linear-gradient(to right, v.$tertiary, v.$tertiary-light);
+      color: white;
+      border: none;
+      border-radius: 30px;
+      padding: 12px 26px;
+      font-family: "Inter", sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 
+        0 4px 12px rgba(v.$tertiary, 0.3),
+        0 2px 4px rgba(v.$tertiary, 0.2);
+      position: relative;
+      overflow: hidden;
+      
+      &::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 5px;
+        height: 5px;
+        background: rgba(255, 255, 255, 0.5);
+        opacity: 0;
+        border-radius: 100%;
+        transform: scale(1, 1) translate(-50%);
+        transform-origin: 50% 50%;
+      }
+      
+      &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(v.$tertiary, 0.4);
+        
+        &::after {
+          animation: ripple 1s ease-out;
+        }
+      }
+      
+      &:active {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(v.$tertiary, 0.3);
+      }
+      
+      @media (max-width: 767px) {
+        font-size: 0.95rem;
+        padding: 10px 22px;
+      }
+    }
+  }
+  
+  @keyframes ripple {
+    0% {
+      transform: scale(0);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(20);
+      opacity: 0;
+    }
+  }
 </style>

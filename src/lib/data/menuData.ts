@@ -243,6 +243,7 @@ export const menuCategories: MenuCategory[] = [
                   organic: false,
                   nonGMO: true,
                   season: "Ganzjährig",
+                  farmDescription: "Dozen Bakery ist eine preisgekrönte Handwerksbäckerei in Nashville, die für ihre traditionellen Brottechniken und den Fokus auf qualitativ hochwertige lokale Zutaten bekannt ist. Die Bäckerei wurde 2015 gegründet und hat sich schnell einen Namen für authentisches Sauerteigbrot gemacht.",
                   description: "Unser Sauerteigbrot wird täglich frisch von Dozen Bakery gebacken, einer lokalen Handwerksbäckerei in Nashville, die für ihre traditionellen Brottechniken und ihr Engagement für Qualitätszutaten bekannt ist.",
                   image: "/images/ingredients/sourdough-bread.jpg",
                   peakSeason: "Ganzjährig verfügbar",
