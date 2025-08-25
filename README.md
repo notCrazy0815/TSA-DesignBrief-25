@@ -1,38 +1,26 @@
-# sv
+# TSA Webmaster Project 2024/25  
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+This repository was created as part of the **TSA Webmaster competition 2024/25**.  
+The challenge was to design and develop a website for a **vegetarian or vegan restaurant**.  
 
-## Creating a project 
+## 🥗 Project Overview  
+Our goal was to create a modern, engaging, and user-friendly website that reflects the restaurant’s focus on sustainable, plant-based dining. The design emphasizes clean aesthetics, smooth animations, and accessibility.  
 
-If you're seeing this, you've probably already done this step. Congrats! 
+## 🛠️ Technologies Used  
+- **[Svelte.js](https://svelte.dev/):** Frontend framework for building reactive user interfaces  
+- **SCSS (Sass):** CSS preprocessor for modular and maintainable styling  
 
-```bash
-# create a new project in the current directory
-npx sv create
+## 🚀 Features  
+- Responsive design optimized for desktop and mobile devices  
+- Scroll-based storytelling elements for an interactive user experience  
+- Menu and news pages to showcase restaurant offerings and updates  
 
-# create a new project in my-app
-npx sv create my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
+## ▶️ Getting Started  
+To run this project locally, clone the repository and then run the following commands:
 
 ```bash
-npm run build
-```
+# Install dependencies
+npm install  
 
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+# Start development server
+npm run dev  
