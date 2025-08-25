@@ -227,9 +227,23 @@
                                 <span class="item-quantity-details">(x{item.quantity} at {formatPrice(item.price)} each)</span>
                             </div>
                             <div class="item-controls">
-                                <button class="quantity-btn icon-btn" on:click={() => updateQuantity(item.id, item.quantity - 1)} aria-label="Decrease quantity">-</button>
-                                <button class="quantity-btn icon-btn" on:click={() => updateQuantity(item.id, item.quantity + 1)} aria-label="Increase quantity">+</button>
-                                <button class="remove-btn-small icon-btn danger-icon-btn" on:click={() => removeItem(item.id)} aria-label="Remove item">×</button>
+                                <button 
+                                    class="quantity-btn icon-btn" 
+                                    class:disabled={item.quantity <= 1}
+                                    on:click={() => updateQuantity(item.id, item.quantity - 1)} 
+                                    aria-label="Decrease quantity"
+                                    disabled={item.quantity <= 1}
+                                >-</button>
+                                <button 
+                                    class="quantity-btn icon-btn" 
+                                    on:click={() => updateQuantity(item.id, item.quantity + 1)} 
+                                    aria-label="Increase quantity"
+                                >+</button>
+                                <button 
+                                    class="remove-btn-small icon-btn danger-icon-btn" 
+                                    on:click={() => removeItem(item.id)} 
+                                    aria-label="Remove item"
+                                >×</button>
                             </div>
                             <div class="item-total-line">
                                 <span>{formatPrice(item.price * item.quantity)}</span>
@@ -1137,5 +1151,14 @@
 
     .success-modal .modal-footer {
         justify-content: center;
+    }
+
+    .quantity-btn.icon-btn {
+        &.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            background-color: #e0e0e0;
+            color: #888;
+        }
     }
 </style> 

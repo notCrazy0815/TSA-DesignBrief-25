@@ -1,11 +1,20 @@
 <script lang="ts">
-  import { createEventDispatcher, onMount } from 'svelte';
+  import { createEventDispatcher, onMount, afterUpdate } from 'svelte';
   import { gsap } from 'gsap';
   import { fade, fly, scale, slide } from 'svelte/transition';
-  import { cubicIn, cubicOut } from 'svelte/easing';
+  import { cubicIn, cubicOut, quintOut } from 'svelte/easing';
   import type { MenuItem } from '$lib/data/menu/types';
   import { findBestPairings, generatePairingRecommendation, type PairingItem } from '$lib/utils/pairingSystem';
   import menuItems from '$lib/data/menu';
+  import { faInfoCircle, faTimes, faChevronDown, faChevronUp, faLeaf, faMapMarkerAlt, faCalendarAlt, faHeartbeat, faUtensils } from '@fortawesome/free-solid-svg-icons';
+  import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
+  import ingredients from '$lib/data/ingredients';
+  import type { Ingredient } from '$lib/data/menu/types';
+  import { Chart, registerables } from 'chart.js';
+  import IngredientModal from './IngredientModal.svelte';
+
+  // Register all Chart.js components
+  Chart.register(...registerables);
 
   export let item: MenuItem;
   export let isOpen: boolean = false;
@@ -25,6 +34,11 @@
     sourcing: true
   };
 
+  let selectedIngredient: string | null = null;
+  let showIngredientModal = false;
+  let activeTab = 'overview';
+  let currentIngredient: any = null;
+  
   function formatPrice(price: number): string {
     return `$${price.toFixed(2)}`;
   }
@@ -114,6 +128,19 @@
     }
   }
 
+  function showIngredientDetails(ingredient: string) {
+    if (ingredients[ingredient] && ingredients[ingredient]?.sourceInfo?.local) {
+      selectedIngredient = ingredient;
+      currentIngredient = ingredients[ingredient];
+      showIngredientModal = true;
+    }
+  }
+  
+  function closeIngredientModal() {
+    showIngredientModal = false;
+    selectedIngredient = null;
+  }
+
   $: if (item && item.id) {
     pairingsGenerated = false;
   }
@@ -161,7 +188,7 @@
       in:scale={{delay: 200, duration: 200, start: 0.8}}
       out:scale={{duration: 150}}
     >
-      ×
+      <FontAwesomeIcon icon={faTimes} />
     </button>
     
     <div 
@@ -182,18 +209,31 @@
 
       <div class="item-badges">
         {#if item.isVegan}
-          <span class="badge vegan">Vegan</span>
+          <span class="tag tag-vegan">
+            <FontAwesomeIcon icon={faLeaf} />
+            <span>Vegan</span>
+          </span>
         {:else if item.isVegetarian}
-          <span class="badge vegetarian">Vegetarian</span>
+          <span class="tag tag-vegetarian">
+            <FontAwesomeIcon icon={faLeaf} />
+            <span>Vegetarian</span>
+          </span>
         {/if}
         {#if item.seasonal}
-          <span class="badge seasonal">Seasonal</span>
+          <span class="tag tag-seasonal">
+            <FontAwesomeIcon icon={faCalendarAlt} />
+            <span>Seasonal</span>
+          </span>
         {/if}
         {#if item.dietarySuitability?.glutenFree}
-          <span class="badge gluten-free">Gluten-Free</span>
+          <span class="tag tag-gluten-free">
+            <span>Gluten-Free</span>
+          </span>
         {/if}
         {#if item.dietarySuitability?.dairyFree}
-          <span class="badge dairy-free">Dairy-Free</span>
+          <span class="tag tag-dairy-free">
+            <span>Dairy-Free</span>
+          </span>
         {/if}
       </div>
 
@@ -235,22 +275,30 @@
                 aria-expanded={expandedSections.flavorProfile}
               >
                 <h3>Flavor Profile</h3>
-                <span class="toggle-icon">{expandedSections.flavorProfile ? '−' : '+'}</span>
+                <span class="toggle-icon">
+                  {#if expandedSections.flavorProfile}
+                    <FontAwesomeIcon icon={faChevronUp} />
+                  {:else}
+                    <FontAwesomeIcon icon={faChevronDown} />
+                  {/if}
+                </span>
               </button>
               
               {#if expandedSections.flavorProfile}
                 <div class="section-content flavor-profile-section" transition:slide={{duration: 300}}>
                   <div class="flavor-bars">
-                    {#each Object.entries(item.flavorProfile) as [flavor, intensity], index}
-                      <div class="flavor-bar">
-                        <span class="flavor-name">{flavor.charAt(0).toUpperCase() + flavor.slice(1)}</span>
-                        <div class="intensity-bar">
-                          <div 
-                            class="intensity-fill" 
-                            style="width: {intensity * 10}%; background-color: {getFlavorColor(flavor)};"
-                          ></div>
+                    {#each Object.entries(item.flavorProfile || {}) as [flavor, intensity], index}
+                      {#if typeof intensity === 'number' && intensity > 0}
+                        <div class="flavor-bar">
+                          <span class="flavor-name">{flavor.charAt(0).toUpperCase() + flavor.slice(1)}</span>
+                          <div class="intensity-bar">
+                            <div 
+                              class="intensity-fill" 
+                              style="width: {intensity * 10}%; background-color: {getFlavorColor(flavor)};"
+                            ></div>
+                          </div>
                         </div>
-                      </div>
+                      {/if}
                     {/each}
                   </div>
                   
@@ -273,16 +321,61 @@
                 aria-expanded={expandedSections.ingredients}
               >
                 <h3>Ingredients</h3>
-                <span class="toggle-icon">{expandedSections.ingredients ? '−' : '+'}</span>
+                <span class="toggle-icon">
+                  {#if expandedSections.ingredients}
+                    <FontAwesomeIcon icon={faChevronUp} />
+                  {:else}
+                    <FontAwesomeIcon icon={faChevronDown} />
+                  {/if}
+                </span>
               </button>
               
               {#if expandedSections.ingredients}
                 <div class="section-content ingredients-section" transition:slide={{duration: 300}}>
-                  <ul class="ingredients-list">
+                  <div class="ingredients-display">
                     {#each item.ingredients as ingredient}
-                      <li>{ingredient}</li>
+                      {#if ingredients[ingredient] && ingredients[ingredient]?.sourceInfo?.local}
+                        <button 
+                          class="ingredient-card local-ingredient"
+                          on:click={() => showIngredientDetails(ingredient)}
+                          on:keydown={(e) => e.key === 'Enter' && showIngredientDetails(ingredient)}
+                        >
+                          <div class="ingredient-row">
+                            <div class="ingredient-info">
+                              <span class="ingredient-name">{ingredient}</span>
+                              <div class="ingredient-badges">
+                                {#if ingredients[ingredient]?.sourceInfo?.local}
+                                  <span class="ingredient-badge local">
+                                    <FontAwesomeIcon icon={faMapMarkerAlt} />
+                                    <span>Local</span>
+                                  </span>
+                                {/if}
+                                {#if ingredients[ingredient]?.sourceInfo?.organic}
+                                  <span class="ingredient-badge organic">
+                                    <FontAwesomeIcon icon={faLeaf} />
+                                    <span>Organic</span>
+                                  </span>
+                                {/if}
+                              </div>
+                            </div>
+                          </div>
+                          <div class="view-details-btn">
+                            <FontAwesomeIcon icon={faInfoCircle} />
+                            <span>View Details</span>
+                          </div>
+                        </button>
+                      {:else}
+                        <div class="ingredient-card">
+                          <div class="ingredient-info">
+                            <span class="ingredient-name">{ingredient}</span>
+                            {#if item.contains && item.contains.includes(ingredient)}
+                              <span class="ingredient-badge allergen">⚠️ Allergen</span>
+                            {/if}
+                          </div>
+                        </div>
+                      {/if}
                     {/each}
-                  </ul>
+                  </div>
                 </div>
               {/if}
             </div>
@@ -296,17 +389,27 @@
                 on:keydown={(e) => e.key === 'Enter' && toggleSection('allergens')}
                 aria-expanded={expandedSections.allergens}
               >
-                <h3>Contains</h3>
-                <span class="toggle-icon">{expandedSections.allergens ? '−' : '+'}</span>
+                <h3>Allergens</h3>
+                <span class="toggle-icon">
+                  {#if expandedSections.allergens}
+                    <FontAwesomeIcon icon={faChevronUp} />
+                  {:else}
+                    <FontAwesomeIcon icon={faChevronDown} />
+                  {/if}
+                </span>
               </button>
               
               {#if expandedSections.allergens}
                 <div class="section-content allergens-section" transition:slide={{duration: 300}}>
-                  <div class="allergens">
+                  <div class="allergens-container">
                     {#each item.contains as allergen}
-                      <span class="allergen-pill">{allergen}</span>
+                      <span class="tag tag-allergen allergen-pill">
+                        <FontAwesomeIcon icon={faInfoCircle} />
+                        <span>{allergen}</span>
+                      </span>
                     {/each}
                   </div>
+                  <p class="allergen-note">Please inform our staff about any allergies or dietary restrictions before ordering.</p>
                 </div>
               {/if}
             </div>
@@ -320,7 +423,13 @@
               aria-expanded={expandedSections.nutrition}
             >
               <h3>Nutrition Information</h3>
-              <span class="toggle-icon">{expandedSections.nutrition ? '−' : '+'}</span>
+              <span class="toggle-icon">
+                {#if expandedSections.nutrition}
+                  <FontAwesomeIcon icon={faChevronUp} />
+                {:else}
+                  <FontAwesomeIcon icon={faChevronDown} />
+                {/if}
+              </span>
             </button>
             
             {#if expandedSections.nutrition}
@@ -374,7 +483,13 @@
                 aria-expanded={expandedSections.sourcing}
               >
                 <h3>Sourcing Information</h3>
-                <span class="toggle-icon">{expandedSections.sourcing ? '−' : '+'}</span>
+                <span class="toggle-icon">
+                  {#if expandedSections.sourcing}
+                    <FontAwesomeIcon icon={faChevronUp} />
+                  {:else}
+                    <FontAwesomeIcon icon={faChevronDown} />
+                  {/if}
+                </span>
               </button>
               
               {#if expandedSections.sourcing}
@@ -407,6 +522,15 @@
   </div>
 {/if}
 
+{#if showIngredientModal && selectedIngredient && ingredients[selectedIngredient]}
+  <IngredientModal 
+    ingredient={currentIngredient} 
+    parentItem={item}
+    isOpen={showIngredientModal}
+    on:close={closeIngredientModal}
+  />
+{/if}
+
 <style lang="scss">
   @use "../../lib/styles/variables" as v;
 
@@ -416,7 +540,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(36, 31, 33, 0.8);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -430,22 +554,23 @@
     width: 100%;
     max-width: 800px;
     max-height: 90vh;
-    border-radius: 8px;
-    padding: 30px;
+    border-radius: 12px;
+    padding: 25px 20px;
     position: relative;
     overflow-y: auto;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
     transform-origin: center;
-    transition: transform 0.3s ease, opacity 0.3s ease;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     &.closing {
       transform: scale(0.98);
       opacity: 0.8;
     }
 
-    @media (max-width: 768px) {
-      padding: 20px;
-      max-height: 80vh;
+    @media (max-width: 480px) {
+      padding: 15px;
+      border-radius: 8px;
     }
   }
 
@@ -453,10 +578,8 @@
     position: fixed;
     top: 20px;
     right: 20px;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(240, 229, 219, 0.95);
     border: none;
-    font-size: 22px;
-    cursor: pointer;
     width: 40px;
     height: 40px;
     display: flex;
@@ -467,14 +590,17 @@
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     z-index: 20;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-    font-weight: 300;
-
+    
+    svg {
+      font-size: 1.2rem;
+    }
+    
     &:hover {
       background-color: v.$tertiary;
-      color: white;
+      color: v.$font-color-light;
       transform: rotate(90deg) scale(1.1);
     }
-
+    
     &:active {
       transform: rotate(90deg) scale(0.95);
     }
@@ -482,27 +608,42 @@
 
   .modal-header {
     display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 15px;
-    border-bottom: 1px solid rgba(160, 147, 125, 0.2);
-    padding-bottom: 15px;
-    padding-right: 20px;
+    flex-direction: column;
+    margin-bottom: 20px;
+    border-bottom: 2px solid rgba(2, 92, 72, 0.1);
+    padding-bottom: 20px;
+    
+    @media (min-width: 480px) {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: baseline;
+    }
   }
 
   .item-name {
-    font-family: "Inter 24pt Regular", sans-serif;
-    font-size: 1.8rem;
+    font-family: "DynaPuff Regular", sans-serif;
+    font-size: 2rem;
     font-weight: 600;
     color: v.$tertiary;
     margin: 0;
+    line-height: 1.2;
+    word-wrap: break-word;
+    
+    @media (max-width: 768px) {
+      font-size: 1.5rem;
+    }
   }
 
   .item-price {
     font-family: "Inter 24pt Regular", sans-serif;
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     font-weight: 700;
     color: v.$tertiary;
+    margin-top: 5px;
+    
+    @media (min-width: 480px) {
+      margin-top: 0;
+    }
   }
 
   .item-badges {
@@ -510,69 +651,125 @@
     flex-wrap: wrap;
     gap: 8px;
     margin-bottom: 20px;
+  }
 
-    .badge {
-      padding: 5px 12px;
-      border-radius: 4px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: white;
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    white-space: nowrap;
+    gap: 5px;
+    transition: all 0.2s ease;
+    font-family: "Inter 24pt Regular", sans-serif;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    max-width: 100%;
+    
+    svg {
+      font-size: 0.75rem;
+      flex-shrink: 0;
     }
-
-    .vegan {
-      background-color: v.$tertiary;
+    
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
-
-    .vegetarian {
-      background-color: v.$secondary;
+    
+    span {
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-
-    .seasonal {
-      background-color: v.$primary;
+    
+    &.tag-vegan {
+      background-color: rgba(2, 92, 72, 0.1);
+      color: v.$tertiary;
+      border: 1px solid rgba(2, 92, 72, 0.2);
     }
-
-    .gluten-free {
-      background-color: #8e7cc3;
+    
+    &.tag-vegetarian {
+      background-color: rgba(93, 92, 168, 0.1);
+      color: v.$secondary;
+      border: 1px solid rgba(93, 92, 168, 0.2);
     }
-
-    .dairy-free {
-      background-color: #6fa8dc;
+    
+    &.tag-seasonal {
+      background-color: rgba(252, 98, 52, 0.1);
+      color: v.$primary;
+      border: 1px solid rgba(252, 98, 52, 0.2);
+    }
+    
+    &.tag-gluten-free {
+      background-color: rgba(142, 124, 195, 0.1);
+      color: #8e7cc3;
+      border: 1px solid rgba(142, 124, 195, 0.2);
+    }
+    
+    &.tag-dairy-free {
+      background-color: rgba(111, 168, 220, 0.1);
+      color: #6fa8dc;
+      border: 1px solid rgba(111, 168, 220, 0.2);
+    }
+    
+    &.tag-organic {
+      background-color: rgba(93, 92, 168, 0.1);
+      color: v.$secondary;
+      border: 1px solid rgba(93, 92, 168, 0.2);
+    }
+    
+    &.tag-local {
+      background-color: rgba(2, 92, 72, 0.1);
+      color: v.$tertiary;
+      border: 1px solid rgba(2, 92, 72, 0.2);
+    }
+    
+    &.tag-allergen {
+      background-color: rgba(252, 98, 52, 0.1);
+      color: v.$primary;
+      border: 1px solid rgba(252, 98, 52, 0.2);
     }
   }
 
   .modal-body {
-    display: flex;
-    gap: 30px;
-
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 35px;
+    
     @media (max-width: 768px) {
-      flex-direction: column;
+      grid-template-columns: 1fr;
+      gap: 25px;
     }
   }
 
   .description-section {
-    flex: 1;
+    .item-description {
+      font-size: 1.1rem;
+      line-height: 1.7;
+      color: v.$font-color-dark;
+      margin-bottom: 25px;
+      font-family: "Inter 24pt Regular", sans-serif;
+    }
   }
 
   .details-section {
-    flex: 1;
-    background-color: #f9f7f4;
-    padding: 20px;
-    border-radius: 8px;
-  }
-
-  .item-description {
-    font-family: "Inter 24pt Regular", sans-serif;
-    font-size: 1.1rem;
-    line-height: 1.6;
-    color: #333;
-    margin-bottom: 20px;
+    background-color: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    
+    @media (max-width: 480px) {
+      padding: 10px;
+    }
   }
 
   .detail-section {
     margin-bottom: 20px;
 
     h3 {
-      font-family: "Inter 24pt Regular", sans-serif;
+      font-family: "DynaPuff Regular", sans-serif;
       font-size: 1.1rem;
       font-weight: 600;
       color: v.$tertiary;
@@ -583,99 +780,330 @@
       font-family: "Inter 24pt Regular", sans-serif;
       font-size: 1rem;
       line-height: 1.5;
-      color: #444;
+      color: v.$font-color-dark;
     }
   }
   
   .collapsible-section {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     background-color: white;
-    border-radius: 6px;
+    border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
     
     .section-toggle {
       display: flex;
       justify-content: space-between;
       align-items: center;
       width: 100%;
-      padding: 12px 15px;
+      padding: 15px 20px;
       background-color: white;
-      border: 1px solid rgba(160, 147, 125, 0.15);
-      border-radius: 6px;
+      border: 1px solid rgba(2, 92, 72, 0.15);
+      border-radius: 8px;
       cursor: pointer;
       text-align: left;
-      transition: background-color 0.2s;
+      transition: all 0.2s ease;
       
       &:hover {
-        background-color: rgba(160, 147, 125, 0.05);
+        background-color: v.$tertiary-light-low-opacity;
+        border-color: rgba(2, 92, 72, 0.3);
       }
       
       h3 {
-        font-family: "Inter 24pt Regular", sans-serif;
-        font-size: 1rem;
+        font-family: "DynaPuff Regular", sans-serif;
+        font-size: 1.1rem;
         font-weight: 600;
         color: v.$tertiary;
         margin: 0;
       }
       
       .toggle-icon {
-        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         color: v.$tertiary;
-        font-weight: 300;
+        transition: transform 0.2s ease;
+        
+        svg {
+          font-size: 1rem;
+        }
+        
+        &:hover {
+          transform: scale(1.2);
+        }
       }
     }
     
     .section-content {
-      padding: 15px;
-      border: 1px solid rgba(160, 147, 125, 0.15);
+      padding: 20px;
+      border: 1px solid rgba(2, 92, 72, 0.15);
       border-top: none;
-      border-bottom-left-radius: 6px;
-      border-bottom-right-radius: 6px;
+      border-bottom-left-radius: 8px;
+      border-bottom-right-radius: 8px;
+      max-width: 100%;
+      overflow: hidden;
     }
   }
 
-  .ingredients-list {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
+  .ingredients-section {
+    max-width: 100%;
+    background-color: white;
+    border-radius: 8px;
+  }
 
-    li {
-      font-family: "Inter 24pt Regular", sans-serif;
-      font-size: 0.95rem;
-      color: #444;
-      padding: 5px 0;
+  .ingredients-display {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+    gap: 12px;
+    margin-top: 10px;
+    
+    @media (max-width: 480px) {
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 8px;
+    }
+  }
+
+  .ingredient-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    background-color: white;
+    border-radius: 8px;
+    border: 1px solid rgba(v.$tertiary, 0.15);
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    
+    &.local-ingredient {
       position: relative;
-      padding-left: 20px;
-
-      &:before {
-        content: "•";
-        position: absolute;
-        left: 0;
+      background-color: white;
+      border: 1px solid rgba(v.$tertiary, 0.2);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+      
+      .ingredient-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      
+      .view-details-btn {
+        margin-top: 2px;
+        width: 100%;
+        padding: 5px 8px;
+        background-color: rgba(v.$tertiary, 0.05);
         color: v.$tertiary;
+        border: none;
+        border-top: 1px solid rgba(v.$tertiary, 0.1);
+        border-radius: 0 0 8px 8px;
+        font-family: "Inter 24pt Regular", sans-serif;
+        font-size: 0.75rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 5px;
+        
+        svg {
+          font-size: 0.75rem;
+        }
+      }
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 3px 8px rgba(v.$tertiary-dark, 0.1);
+        border-color: v.$tertiary;
+        
+        .view-details-btn {
+          background-color: rgba(v.$tertiary, 0.08);
+          color: darken(v.$tertiary, 10%);
+        }
+      }
+
+      &:active {
+        transform: translateY(0);
+        box-shadow: 0 1px 3px rgba(v.$tertiary-dark, 0.1);
+      }
+    }
+    
+    .ingredient-info {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    
+    .ingredient-name {
+      font-family: "Inter 24pt Regular", sans-serif;
+      font-weight: 500;
+      color: v.$font-color-dark;
+      font-size: 0.95rem;
+    }
+    
+    .ingredient-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    
+    .ingredient-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-family: "Inter 24pt Regular", sans-serif;
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      gap: 3px;
+      
+      svg {
+        font-size: 0.7rem;
+        flex-shrink: 0;
+      }
+      
+      &.local {
+        background-color: rgba(v.$tertiary, 0.1);
+        color: v.$tertiary;
+      }
+      
+      &.organic {
+        background-color: rgba(v.$secondary, 0.1);
+        color: v.$secondary;
+      }
+      
+      &.allergen {
+        background-color: rgba(v.$primary, 0.1);
+        color: v.$primary;
       }
     }
   }
-
-  .allergens {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-
-    .allergen-pill {
-      background-color: rgba(160, 147, 125, 0.1);
-      color: #695a4e;
-      padding: 4px 10px;
+  
+  .seasonality-chart-container {
+    background-color: white;
+    padding: 25px;
+    border-radius: 12px;
+    margin-top: 20px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(v.$tertiary, 0.1);
+    
+    .chart-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      
+      @media (max-width: 600px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      
+      .chart-title {
+        font-weight: 600;
+        color: v.$tertiary;
+        font-family: "DynaPuff Regular", sans-serif;
+        font-size: 1.1rem;
+      }
+      
+      .chart-legend {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        
+        .legend-item {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.85rem;
+          color: #666;
+          font-family: "Inter 24pt Regular", sans-serif;
+        }
+        
+        .legend-color {
+          width: 12px;
+          height: 12px;
+          border-radius: 3px;
+          
+          &.peak {
+            background-color: v.$tertiary;
+          }
+          
+          &.good {
+            background-color: rgba(v.$tertiary, 0.5);
+          }
+          
+          &.limited {
+            background-color: rgba(v.$tertiary, 0.2);
+          }
+        }
+      }
+    }
+    
+    .current-month-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+      padding: 8px 15px;
+      background-color: rgba(v.$primary, 0.1);
       border-radius: 30px;
-      font-size: 0.85rem;
-      font-weight: 500;
+      width: fit-content;
+      font-family: "Inter 24pt Regular", sans-serif;
+      font-size: 0.9rem;
+      color: v.$primary;
+      border: 1px solid rgba(v.$primary, 0.2);
+      
+      .current-month-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: v.$primary;
+      }
+    }
+    
+    .chart-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 220px;
+      margin-top: 15px;
+      padding: 10px;
+      background-color: rgba(255, 255, 255, 0.5);
+      border-radius: 8px;
     }
   }
-
+  
+  .source-info {
+    background-color: rgba(v.$background-color-light, 0.5);
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+    
+    p {
+      margin: 8px 0;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: v.$font-color-dark;
+      font-family: "Inter 24pt Regular", sans-serif;
+      
+      strong {
+        color: v.$tertiary;
+        font-weight: 600;
+      }
+    }
+  }
+  
   .nutrition-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 15px;
+    margin-top: 12px;
 
     @media (max-width: 480px) {
       grid-template-columns: repeat(2, 1fr);
@@ -688,8 +1116,16 @@
     align-items: center;
     background-color: white;
     padding: 10px;
-    border-radius: 5px;
+    border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease;
+    border: 1px solid rgba(v.$tertiary-light, 0.1);
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-color: rgba(v.$tertiary-light, 0.3);
+    }
   }
 
   .nutrition-value {
@@ -702,148 +1138,217 @@
   .nutrition-label {
     font-family: "Inter 24pt Regular", sans-serif;
     font-size: 0.85rem;
-    color: #695a4e;
-    margin-top: 3px;
+    color: v.$font-color-dark;
+    margin-top: 5px;
+    opacity: 0.8;
   }
-
+  
   .source-tags {
     display: flex;
-    gap: 10px;
-    margin-bottom: 12px;
-
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 15px;
+    
     .source-tag {
-      font-size: 0.85rem;
-      padding: 4px 10px;
-      border-radius: 30px;
-      font-weight: 500;
-    }
-
-    .local {
-      background-color: rgba(2, 92, 72, 0.1);
-      color: v.$tertiary;
-    }
-
-    .organic {
-      background-color: rgba(93, 92, 168, 0.1);
-      color: v.$secondary;
-    }
-  }
-
-  .source-list {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-
-    li {
-      display: flex;
-      justify-content: space-between;
+      display: inline-flex;
       align-items: center;
+      gap: 6px;
+      background-color: white;
+      border: 1px solid rgba(v.$tertiary, 0.2);
+      padding: 6px 12px;
+      border-radius: 20px;
       font-family: "Inter 24pt Regular", sans-serif;
-      font-size: 0.95rem;
-      color: #444;
-      padding: 6px 0;
-      border-bottom: 1px solid rgba(160, 147, 125, 0.1);
-
-      &:last-child {
-        border-bottom: none;
+      font-size: 0.8rem;
+      color: v.$font-color-dark;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background-color: v.$tertiary-light-low-opacity;
+        border-color: rgba(v.$tertiary, 0.4);
+        transform: translateY(-2px);
+      }
+      
+      .source-icon {
+        color: v.$tertiary;
+        font-size: 0.9rem;
       }
     }
+  }
 
-    .source-name {
-      font-weight: 500;
-    }
-
-    .source-location {
-      font-size: 0.85rem;
-      color: #695a4e;
-      font-style: italic;
+  .sustainability-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    margin: 25px 0;
+    
+    .metric-card {
+      background-color: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      border: 1px solid rgba(v.$tertiary-light, 0.15);
+      transition: all 0.25s ease;
+      
+      &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        border-color: rgba(v.$tertiary, 0.3);
+      }
+      
+      .metric-value {
+        font-family: "DynaPuff Regular", sans-serif;
+        font-size: 2rem;
+        font-weight: 700;
+        color: v.$tertiary;
+        margin-bottom: 10px;
+      }
+      
+      .metric-label {
+        font-family: "Inter 24pt Regular", sans-serif;
+        font-size: 0.9rem;
+        color: v.$font-color-dark;
+        line-height: 1.4;
+      }
     }
   }
 
-  .pairing-section {
-    background-color: rgba(2, 92, 72, 0.05);
-    padding: 15px;
-    border-radius: 8px;
-    border-left: 3px solid v.$tertiary;
-    margin-top: 25px;
-    margin-bottom: 20px;
-  }
-  
-  .pairing-suggestions {
-    margin-top: 15px;
+  .allergens-container {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     gap: 8px;
-  }
-  
-  .pairing-item {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    
-    .pairing-name {
-      font-size: 0.9rem;
-      font-weight: 500;
-      color: #444;
-    }
-    
-    .pairing-strength {
-      height: 6px;
-      background-color: v.$tertiary;
-      border-radius: 3px;
-      max-width: 100%;
-      transition: width 0.5s ease;
-    }
-  }
-  
-  .flavor-profile-section {
-    background-color: white;
-  }
-  
-  .flavor-bars {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
     margin-bottom: 15px;
   }
-  
-  .flavor-bar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+
+  .allergen-note {
+    font-size: 0.85rem;
+    color: #777;
+    font-style: italic;
+    margin-top: 12px;
+    font-family: "Inter 24pt Regular", sans-serif;
+    padding: 10px;
+    background-color: rgba(252, 98, 52, 0.05);
+    border-radius: 6px;
+    border-left: 2px solid rgba(252, 98, 52, 0.3);
+  }
+
+  .tab-content {
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .flavor-profile-section {
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
     
-    .flavor-name {
-      width: 100px;
-      font-size: 0.85rem;
-      color: #444;
-      font-weight: 500;
+    .flavor-bars {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+      
+      @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+      }
     }
     
-    .intensity-bar {
-      flex: 1;
-      height: 8px;
-      background-color: rgba(160, 147, 125, 0.1);
-      border-radius: 4px;
-      overflow: hidden;
+    .flavor-bar {
+      margin-bottom: 5px;
       
-      .intensity-fill {
-        height: 100%;
-        border-radius: 4px;
-        transition: width 0.5s ease;
+      .flavor-name {
+        font-family: "Inter 24pt Regular", sans-serif;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: v.$font-color-dark;
+        margin-bottom: 5px;
+        display: block;
+      }
+      
+      .intensity-bar {
+        height: 10px;
+        background-color: rgba(0, 0, 0, 0.05);
+        border-radius: 5px;
+        overflow: hidden;
+        
+        .intensity-fill {
+          height: 100%;
+          border-radius: 5px;
+          transition: width 0.8s ease-out;
+        }
+      }
+    }
+    
+    .flavor-profile-explainer {
+      margin-top: 15px;
+      padding: 10px 15px;
+      background-color: rgba(v.$tertiary, 0.05);
+      border-radius: 8px;
+      border-left: 3px solid v.$tertiary;
+      
+      p {
+        font-size: 0.85rem;
+        margin: 0;
+        color: v.$font-color-dark;
+        line-height: 1.5;
       }
     }
   }
   
-  .flavor-profile-explainer {
-    background-color: rgba(160, 147, 125, 0.05);
-    padding: 10px;
-    border-radius: 4px;
+  .pairing-section {
+    margin-bottom: 25px;
     
-    p {
-      margin: 0;
-      font-size: 0.8rem;
-      color: #695a4e;
-      font-style: italic;
+    .pairing-suggestions {
+      margin-top: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .pairing-item {
+      position: relative;
+      padding: 10px 15px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(v.$tertiary, 0.1);
+      
+      .pairing-name {
+        font-family: "Inter 24pt Regular", sans-serif;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: v.$font-color-dark;
+        position: relative;
+        z-index: 2;
+      }
+      
+      .pairing-strength {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        background-color: rgba(v.$tertiary, 0.1);
+        border-radius: 8px;
+        z-index: 1;
+        transition: width 0.8s ease-out;
+      }
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+        
+        .pairing-strength {
+          background-color: rgba(v.$tertiary, 0.15);
+        }
+      }
     }
   }
 </style>

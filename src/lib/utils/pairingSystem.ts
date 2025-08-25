@@ -19,45 +19,105 @@ export interface PairingItem {
   isVegetarian: boolean;
   seasonal: boolean;
   contains: string[];
-  pairingStrength?: number; 
+  pairingStrength?: number;
 }
 
-export function calculatePairingStrength(item1: FlavorProfile, item2: FlavorProfile): number {
-  const complementaryPairs = [
-    { flavor1: 'sweet', flavor2: 'sour', weight: 1.5 },
-    { flavor1: 'sweet', flavor2: 'bitter', weight: 1.2 },
-    { flavor1: 'salty', flavor2: 'sweet', weight: 1.3 },
-    { flavor1: 'salty', flavor2: 'sour', weight: 1.2 },
-    { flavor1: 'umami', flavor2: 'salty', weight: 1.5 },
-    { flavor1: 'refreshing', flavor2: 'rich', weight: 1.7 },
-    { flavor1: 'refreshing', flavor2: 'spicy', weight: 1.8 }
-  ];
-  
-  const clashingPairs = [
-    { flavor1: 'bitter', flavor2: 'bitter', weight: 0.5 },
-    { flavor1: 'spicy', flavor2: 'spicy', weight: 0.5 }
-  ];
-  
+// Enhanced complementary pairs with more nuanced weights
+const complementaryPairs = [
+  { flavor1: 'sweet', flavor2: 'sour', weight: 1.5 },
+  { flavor1: 'sweet', flavor2: 'bitter', weight: 1.2 },
+  { flavor1: 'salty', flavor2: 'sweet', weight: 1.3 },
+  { flavor1: 'salty', flavor2: 'sour', weight: 1.2 },
+  { flavor1: 'umami', flavor2: 'salty', weight: 1.5 },
+  { flavor1: 'refreshing', flavor2: 'rich', weight: 1.7 },
+  { flavor1: 'refreshing', flavor2: 'spicy', weight: 1.8 },
+  { flavor1: 'spicy', flavor2: 'sweet', weight: 1.4 },
+  { flavor1: 'bitter', flavor2: 'sweet', weight: 1.3 },
+  { flavor1: 'rich', flavor2: 'refreshing', weight: 1.6 }
+];
+
+// Enhanced clashing pairs with more nuanced weights
+const clashingPairs = [
+  { flavor1: 'bitter', flavor2: 'bitter', weight: 0.5 },
+  { flavor1: 'spicy', flavor2: 'spicy', weight: 0.5 },
+  { flavor1: 'sour', flavor2: 'sour', weight: 0.6 },
+  { flavor1: 'rich', flavor2: 'rich', weight: 0.7 }
+];
+
+type MenuCategory = 'appetizer' | 'main' | 'drink' | 'dessert';
+
+// Category-specific pairing rules
+const categoryPairingRules: Record<MenuCategory, Record<MenuCategory, number>> = {
+  appetizer: {
+    appetizer: 0.8,  // Don't pair appetizers with appetizers
+    main: 1.2,       // Appetizers pair well with mains
+    drink: 1.1,      // Appetizers pair well with drinks
+    dessert: 0.8     // Appetizers don't typically pair with desserts
+  },
+  main: {
+    appetizer: 1.2,
+    main: 0.8,       // Don't pair mains with mains
+    drink: 1.3,      // Mains pair very well with drinks
+    dessert: 1.1     // Mains can pair with desserts
+  },
+  drink: {
+    appetizer: 1.1,
+    main: 1.3,
+    drink: 0.8,      // Don't pair drinks with drinks
+    dessert: 1.2     // Drinks pair well with desserts
+  },
+  dessert: {
+    appetizer: 0.8,
+    main: 1.1,
+    drink: 1.2,
+    dessert: 0.8     // Don't pair desserts with desserts
+  }
+};
+
+export function calculatePairingStrength(item1: PairingItem, item2: PairingItem): number {
   let score = 0;
+  
+  // Apply category-specific pairing rules
+  const categoryMultiplier = categoryPairingRules[item1.category][item2.category] || 1;
   
   // Process complementary pairs in both directions
   for (const pair of complementaryPairs) {
-    // Check pairing in both directions (e.g. sweet+sour and sour+sweet)
-    score += Math.min(item1[pair.flavor1 as keyof FlavorProfile] as number, 
-                    item2[pair.flavor2 as keyof FlavorProfile] as number) * pair.weight;
+    const value1 = item1.flavorProfile[pair.flavor1 as keyof FlavorProfile] as number;
+    const value2 = item2.flavorProfile[pair.flavor2 as keyof FlavorProfile] as number;
     
-    score += Math.min(item2[pair.flavor1 as keyof FlavorProfile] as number, 
-                    item1[pair.flavor2 as keyof FlavorProfile] as number) * pair.weight;
+    // Calculate complementary score with diminishing returns
+    const complementScore = Math.min(value1, value2) * pair.weight;
+    score += complementScore;
+    
+    // Add reverse direction
+    const reverseScore = Math.min(
+      item2.flavorProfile[pair.flavor1 as keyof FlavorProfile] as number,
+      item1.flavorProfile[pair.flavor2 as keyof FlavorProfile] as number
+    ) * pair.weight;
+    score += reverseScore;
   }
   
   // Process clashing pairs
   for (const pair of clashingPairs) {
-    score -= Math.min(item1[pair.flavor1 as keyof FlavorProfile] as number, 
-                    item2[pair.flavor2 as keyof FlavorProfile] as number) * pair.weight;
+    const clashScore = Math.min(
+      item1.flavorProfile[pair.flavor1 as keyof FlavorProfile] as number,
+      item2.flavorProfile[pair.flavor2 as keyof FlavorProfile] as number
+    ) * pair.weight;
+    score -= clashScore;
   }
   
-  // Contrasting intensity (middle scores are better)
-  score += (10 - Math.abs(item1.rich - item2.rich)) * 0.3;
+  // Consider dietary compatibility
+  if (item1.isVegan && !item2.isVegan) {
+    score *= 0.8; // Penalize non-vegan pairings for vegan items
+  }
+  
+  // Consider seasonal compatibility
+  if (item1.seasonal && item2.seasonal) {
+    score *= 1.2; // Bonus for seasonal pairings
+  }
+  
+  // Apply category multiplier
+  score *= categoryMultiplier;
   
   // Normalize to 0-10 scale with bounds checking
   return Math.max(0, Math.min(10, score / 5));
@@ -80,7 +140,7 @@ export function findBestPairings(
   
   // Calculate pairing strength for each potential pairing
   const scoredPairings = potentialPairings.map(item => {
-    const strength = calculatePairingStrength(menuItem.flavorProfile, item.flavorProfile);
+    const strength = calculatePairingStrength(menuItem, item);
     return { ...item, pairingStrength: strength };
   });
   
